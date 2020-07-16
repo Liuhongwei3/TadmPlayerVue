@@ -13,20 +13,20 @@ export function request(config) {
     const instance = axios.create({
         baseURL: 'http://localhost:3000/',
         // baseURL: 'http://api.mtnhao.com/',
-        timeout: 5000
+        timeout: 5000,
     });
 
     instance.interceptors.request.use(config => {
         NProgress.start();
         return config
-    },error => {
+    }, error => {
         console.log(error)
     });
 
     instance.interceptors.response.use(response => {
         NProgress.done();
         return response
-    },error => {
+    }, error => {
         console.log(error)
     });
 

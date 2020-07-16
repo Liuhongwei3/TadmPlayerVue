@@ -537,6 +537,10 @@ i {
   margin: 0 1vw;
 }
 
+.progress:hover{
+	cursor: pointer;
+}
+
 .leftTime,
 .rightTime {
   width: 5vw;

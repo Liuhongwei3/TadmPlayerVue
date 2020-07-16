@@ -8,18 +8,18 @@
 
 <template>
   <div>
-	<div class="topLyric" ref="topLyric"></div>
-	<div class="rightL" ref="musicLyric">
-	  <div :style="lyricTop">
-		<div class="lyrics" v-if="typeof lyrics=='object'" v-for="(item,index) in lyrics" :key="index"
-			 :class="{ active: lyricIndex === index}">
-		  <p>{{ item.text }}</p>
-		</div>
-		<div class="lyrics CYY" v-else>
-		  <p>纯音乐，请您欣赏</p>
-		</div>
-	  </div>
-	</div>
+    <div class="topLyric" ref="topLyric"></div>
+    <div class="rightL" ref="musicLyric">
+      <div :style="lyricTop">
+        <div class="lyrics" v-if="typeof lyrics=='object'" v-for="(item,index) in lyrics" :key="index"
+             :class="{ active: lyricIndex === index}">
+          <p>{{ item.text }}</p>
+        </div>
+        <div class="lyrics CYY" v-else>
+          <p>纯音乐，请您欣赏</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -136,54 +136,55 @@
 
 <style scoped>
   .rightL {
-	height: 240px;
-	margin: 10px 0;
-	overflow: hidden;
+    height: 240px;
+    margin: 10px 0;
+    overflow: hidden;
   }
 
   .topLyric {
-	display: none;
+    display: none;
   }
 
   .lyrics {
-	color: rgba(255, 255, 255, 0.85);
-	white-space: pre-line;
-	text-align: center;
-	font-size: 16px;
-	line-height: 25px;
-	transform: translate3d(0, 0, 0);
-	transition: transform 0.6s ease-out;
+    white-space: pre-line;
+    text-align: center;
+    font-size: 16px;
+    line-height: 25px;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.6s ease-out;
   }
 
   .active p, .CYY {
-	color: #ff1d3f;
-	font-weight: bolder;
+    color: transparent;
+    background: linear-gradient(to right, #00aaff, greenyellow);
+    -webkit-background-clip: text;
+    font-weight: bolder;
   }
 
   @media screen and (max-width: 768px) {
-	.rightL {
-	  display: none;
-	}
+    .rightL {
+      display: none;
+    }
 
-	.topLyric {
-	  width: 90%;
-	  overflow: hidden;
-	  display: inline;
-	  position: absolute;
-	  /*top: 2%;*/
-	  left: 5%;
-	  text-align: center;
-	  margin: 0 auto;
-	  /*color: #03A9F4;*/
-	  /*font-size: 26px;*/
-	  z-index: 3;
-	  /*font-family: STXingkai;*/
+    .topLyric {
+      width: 90%;
+      overflow: hidden;
+      display: inline;
+      position: absolute;
+      /*top: 2%;*/
+      left: 5%;
+      text-align: center;
+      margin: 0 auto;
+      /*color: #03A9F4;*/
+      /*font-size: 26px;*/
+      z-index: 3;
+      /*font-family: STXingkai;*/
 
-	  color: #fa6666;
-	  top: 30%;
-	  font-size: 16px;
-	  white-space: nowrap;
-	  text-overflow: ellipsis;
-	}
+      color: #fa6666;
+      top: 30%;
+      font-size: 16px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
   }
 </style>

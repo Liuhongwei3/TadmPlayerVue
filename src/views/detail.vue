@@ -7,22 +7,23 @@
   -->
 
 <template>
-  <div>
-	<div class="title">
-	  <div>
-		<span>{{this.detailName}} By </span>
-		<span title="点击查看用户详情" @click="updateUserId()" class="author">{{this.detailAuthor}}</span>
-	  </div>
-	</div>
-	<div class="description">{{ this.description }}</div>
-	<div id="detail">
-	  <div class="items" v-for="item in detaillist" @click="songId(item.id)">
-		<img v-lazy="item.al.picUrl" :key="item.al.picUrl" :title="`${item.name}---${item.ar[0].name}`">
-		<p class="name">{{ item.name }}---<a title="点击歌手名查看歌手" @click.prevent="searchPlayer(item.ar[0].name)">{{
-		  item.ar[0].name }}</a></p>
-	  </div>
-	</div>
-  </div>
+    <div>
+        <div class="title">
+            <div>
+                <span>{{this.detailName}} By </span>
+                <span title="点击查看用户详情" @click="updateUserId()" class="author">{{this.detailAuthor}}</span>
+            </div>
+        </div>
+        <div class="description">{{ this.description }}</div>
+        <div id="detail">
+            <div class="items" v-for="item in detaillist" @click="songId(item.id)">
+                <img v-lazy="item.al.picUrl" :key="item.al.picUrl" :title="`${item.name}---${item.ar[0].name}`">
+                <p class="name">{{ item.name }}---<a title="点击歌手名查看歌手" @click.prevent="searchPlayer(item.ar[0].name)">{{
+                    item.ar[0].name }}</a></p>
+                <img class="play" src="../assets/play_icon.png" alt="">
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -71,7 +72,7 @@
           });
           let last = songIds.length - 1;
           songIds = songIds.substring(0, last);
-		  musicCover(songIds).then(res => {
+          musicCover(songIds).then(res => {
             let {data} = res;
             this.detaillist = data.songs;
             for (let i = 0; i < this.detaillist.length; i++) {
@@ -98,20 +99,33 @@
 </script>
 
 <style scoped>
-  .title {
-	color: coral;
-	text-align: center;
-	margin-bottom: 10px;
-	font-size: 16px;
-  }
+    .title {
+        color: coral;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
 
-  .author {
-	color: #ff2b2b;
-  }
+    .author {
+        color: #ff2b2b;
+    }
 
-  #detail {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-around;
-  }
+    #detail {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+
+    .items {
+        position: relative;
+    }
+
+    .play {
+        width: 150px;
+        height: 150px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+    }
 </style>
