@@ -140,3 +140,9 @@ export function hotDetails(limit = 24) {
     url: '/top/playlist?limit=' + limit
   })
 }
+
+export function getMv(mvid) {
+  return request({
+    url: '/mv/url?id=' + mvid
+  })
+}

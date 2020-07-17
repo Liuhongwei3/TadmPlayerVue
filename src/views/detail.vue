@@ -128,4 +128,10 @@
         left: 0;
         opacity: 0;
     }
+    @media screen and (max-width: 768px) {
+        .play{
+            width: 100px;
+            height: 100px;
+        }
+    }
 </style>

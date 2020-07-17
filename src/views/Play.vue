@@ -8,66 +8,67 @@
 
 <template>
   <div id="play" :style="backImage">
-	<div class="left">
-	  <img :src="imgs" alt="image"/>
-	  <div id="name">
+    <div class="left">
+      <img :src="imgs" alt="image"/>
+      <div id="name">
         <span>
           {{ name }} ---
           <a title="点击查看歌手详情" @click.prevent="searchPlayer()">{{ player }}</a>
         </span>
-	  </div>
-	  <!--	  crossOrigin="anonymous"-->
-	  <audio id="audio" ref="audio" :src="urls" autoplay muted crossorigin="anonymous"></audio>
-	</div>
-	<canvas id="canvas"></canvas>
-	<div class="rightS">
-	  <div class="song_name">{{ name }}</div>
-	  <div class="singer">
-		歌手:
-		<a title="点击查看歌手详情" @click.prevent="searchPlayer()">{{ player }}</a>
-	  </div>
-	</div>
-	<r-lyric class="right" :songId="id" :cTime="cTime"></r-lyric>
-	<alert :flag="alertFlag" @closeAlert="hiddenAlert" class="alert-warning">
-	  <p>{{errorInfo}}</p>
-	</alert>
-	<div class="playControl">
-	  <div class="control">
-		<i
-				class="fa fa-random fa-2x"
-				aria-hidden="true"
-				title="随机播放"
-				v-if="random"
-				@click="changeList"
-		></i>
-		<i
-				class="fa fa-bars fa-2x"
-				aria-hidden="true"
-				title="顺序播放"
-				v-if="order"
-				@click="changeList"
-		></i>
-		<i class="fa fa-step-backward fa-2x" aria-hidden="true" title="上一曲" @click="prev"></i>
-		<i class="fa fa-play fa-2x" aria-hidden="true" @click="play" title="继续播放" v-if="!status"></i>
-		<i class="fa fa-pause fa-2x" aria-hidden="true" @click="play" title="暂停播放" v-if="status"></i>
-		<i class="fa fa-step-forward fa-2x" aria-hidden="true" title="下一曲" @click="next"></i>
-		<i class="fa fa-commenting fa-2x" aria-hidden="true" title="查看热评" @click="enjoyComment"></i>
-		<i class="fa fa-download fa-2x" aria-hidden="true" title="下载" @click="downloadMusic"></i>
-	  </div>
-	  <div class="timeProgress">
-		<div class="leftTime">{{ this.cTime | timeFormat }}</div>
-		<div class="progress" @click="offsetX">
-		  <hr id="ori" ref="ori"/>
-		  <hr id="cPro" :style="csty"/>
-		</div>
-		<div class="rightTime">{{ this.currDuration | timeFormat }}</div>
-	  </div>
-	</div>
+      </div>
+      <!--	  crossOrigin="anonymous"-->
+      <audio id="audio" ref="audio" :src="urls" autoplay muted crossorigin="anonymous"></audio>
+    </div>
+    <video ref="video" autoplay muted :src="videos" crossorigin="anonymous"/>
+    <!--    <canvas id="canvas"></canvas>-->
+    <div class="rightS">
+      <div class="song_name">{{ name }}</div>
+      <div class="singer">
+        歌手:
+        <a title="点击查看歌手详情" @click.prevent="searchPlayer()">{{ player }}</a>
+      </div>
+    </div>
+    <r-lyric class="right" :songId="id" :cTime="cTime"></r-lyric>
+    <alert :flag="alertFlag" @closeAlert="hiddenAlert" class="alert-warning">
+      <p>{{errorInfo}}</p>
+    </alert>
+    <div class="playControl">
+      <div class="control">
+        <i
+                class="fa fa-random fa-2x"
+                aria-hidden="true"
+                title="随机播放"
+                v-if="random"
+                @click="changeList"
+        ></i>
+        <i
+                class="fa fa-bars fa-2x"
+                aria-hidden="true"
+                title="顺序播放"
+                v-if="order"
+                @click="changeList"
+        ></i>
+        <i class="fa fa-step-backward fa-2x" aria-hidden="true" title="上一曲" @click="prev"></i>
+        <i class="fa fa-play fa-2x" aria-hidden="true" @click="play" title="继续播放" v-if="!status"></i>
+        <i class="fa fa-pause fa-2x" aria-hidden="true" @click="play" title="暂停播放" v-if="status"></i>
+        <i class="fa fa-step-forward fa-2x" aria-hidden="true" title="下一曲" @click="next"></i>
+        <i class="fa fa-commenting fa-2x" aria-hidden="true" title="查看热评" @click="enjoyComment"></i>
+        <i class="fa fa-download fa-2x" aria-hidden="true" title="下载" @click="downloadMusic"></i>
+      </div>
+      <div class="timeProgress">
+        <div class="leftTime">{{ this.cTime | timeFormat }}</div>
+        <div class="progress" @click="offsetX">
+          <hr id="ori" ref="ori"/>
+          <hr id="cPro" :style="csty"/>
+        </div>
+        <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-  import {checkMusic, download, musicCover, musicUrl} from "../network/Top";
+  import {checkMusic, download, musicCover, musicUrl, search, getMv} from "../network/Top";
   import RLyric from "../components/common/lyric/RLyric";
   import Alert from "../components/common/alert/Alert";
 
@@ -80,6 +81,7 @@
         name: "",
         player: "",
         imgs: "",
+        videos: "http://vodkgeyttp8.vod.126.net/cloudmusic/MDEgMCFiIiEwJCBhIGAkIQ==/mv/5741462/8d2407d2f206fae6d2c956a55ca4dd81.mp4?wsSecret=30d851f4f6a8de5944a02573c6c03b0e&wsTime=1594983380",
         urls: "",
         playlistIds: [],
         randomListIds: [],
@@ -117,6 +119,7 @@
     },
     mounted() {
       let audio = this.$refs.audio;
+      let video = this.$refs.video;
       let ori = this.$refs.ori;
       this.oWidth = ori.clientWidth;
       this.playlistIds = this.$store.state.playlistIds;
@@ -124,7 +127,7 @@
       audio.addEventListener("play", () => {
         this.status = true;
         this.currDuration = parseInt(audio.duration);
-        this.onLoadAudio();
+        // this.onLoadAudio();
       });
       audio.addEventListener("pause", () => {
         this.status = false;
@@ -153,7 +156,8 @@
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
-          backgroundAttachment: "fixed"
+          backgroundAttachment: "fixed",
+          zIndex: "-2"
         };
       },
       csty() {
@@ -164,6 +168,22 @@
       }
     },
     watch: {
+      name(newValue) {
+        search(newValue + " " + this.player, 1004).then(res => {
+          let mvid = res.data.result.mvs[0].id;
+          mvid && getMv(mvid).then(res => {
+            this.videos = res.data.data.url;
+          })
+        })
+      },
+      status(newValue) {
+        let video = this.$refs.video;
+        if (newValue) {
+          this.videos && video.play();
+        } else {
+          this.videos && video.pause();
+        }
+      },
       updateId() {
         this.id = this.cSongId;
       },
@@ -256,6 +276,7 @@
         this.$store.commit("updateSingerName", this.player);
       },
       prev() {
+        this.status = false;
         if (this.playlistIds.length === 1) {
           this.currentIndex = 0;
           return;
@@ -267,6 +288,7 @@
         }
       },
       next() {
+        this.status = false;
         this.jumpIndex();
         this.currentIndex++;
         if (this.currentIndex >= this.playlistIds.length) {
@@ -361,269 +383,282 @@
       hiddenAlert() {
         this.alertFlag = false;
       },
-      onLoadAudio() {
-        let context = new (window.AudioContext || window.webkitAudioContext)();
-        let analyser = context.createAnalyser();
-        analyser.fftSize = 512;
-        let source = context.createMediaElementSource(audio);
-
-        source.connect(analyser);
-        analyser.connect(context.destination);
-
-        let bufferLength = analyser.frequencyBinCount;
-        let dataArray = new Uint8Array(bufferLength);
-
-        let canvas = document.getElementById("canvas");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let ctx = canvas.getContext("2d");
-        let WIDTH = canvas.width;
-        let HEIGHT = canvas.height;
-
-        let barWidth = (WIDTH / bufferLength) * 1.5;
-        let barHeight;
-
-        function renderFrame() {
-          requestAnimationFrame(renderFrame);
-
-          analyser.getByteFrequencyData(dataArray);
-
-          ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-          for (let i = 0, x = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i];
-
-            let r = barHeight + 25 * (i / bufferLength);
-            // let r = Math.round(Math.random()*255);
-
-            let g = 250 * (i / bufferLength);
-            // let g = Math.round(Math.random()*255);
-
-            let b = 50;
-            // let b = Math.round(Math.random()*255);
-
-            ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-            ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
-
-            x += barWidth + 2;
-          }
-        }
-
-        renderFrame();
-        // setInterval(renderFrame, 44);
-      }
+      // onLoadAudio() {
+      //   let context = new (window.AudioContext || window.webkitAudioContext)();
+      //   let analyser = context.createAnalyser();
+      //   analyser.fftSize = 512;
+      //   let source = context.createMediaElementSource(audio);
+      //
+      //   source.connect(analyser);
+      //   analyser.connect(context.destination);
+      //
+      //   let bufferLength = analyser.frequencyBinCount;
+      //   let dataArray = new Uint8Array(bufferLength);
+      //
+      //   let canvas = document.getElementById("canvas");
+      //   canvas.width = window.innerWidth;
+      //   canvas.height = window.innerHeight;
+      //
+      //   let ctx = canvas.getContext("2d");
+      //   let WIDTH = canvas.width;
+      //   let HEIGHT = canvas.height;
+      //
+      //   let barWidth = (WIDTH / bufferLength) * 1.5;
+      //   let barHeight;
+      //
+      //   function renderFrame() {
+      //     requestAnimationFrame(renderFrame);
+      //
+      //     analyser.getByteFrequencyData(dataArray);
+      //
+      //     ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      //
+      //     for (let i = 0, x = 0; i < bufferLength; i++) {
+      //       barHeight = dataArray[i];
+      //
+      //       let r = barHeight + 25 * (i / bufferLength);
+      //       // let r = Math.round(Math.random()*255);
+      //
+      //       let g = 250 * (i / bufferLength);
+      //       // let g = Math.round(Math.random()*255);
+      //
+      //       let b = 50;
+      //       // let b = Math.round(Math.random()*255);
+      //
+      //       ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+      //       ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+      //
+      //       x += barWidth + 2;
+      //     }
+      //   }
+      //
+      //   renderFrame();
+      //   // setInterval(renderFrame, 44);
+      // }
     }
   };
 </script>
 
 <style scoped>
-#canvas {
-  position: absolute;
-  left: 5%;
-  bottom: 80px;
-  width: 90%;
-  height: 200%;
-  opacity: 0.75;
-}
-
-img {
-  width: 200px;
-  height: 200px;
-}
-
-#play {
-  width: 100%;
-  display: flex;
-}
-
-.left,
-.right,
-.rightS {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-#name {
-  color: #9786d9;
-  font-size: 22px;
-  font-family: "Times New Roman", Times, serif;
-  font-weight: 600;
-  height: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: relative;
-  z-index: 2;
-}
-
-.left {
-  display: block;
-  flex: 1;
-  margin: 0 auto;
-  overflow: hidden;
-}
-
-.left img {
-  opacity: 0.7;
-  border-radius: 50%;
-  animation: imgRotate 6s linear infinite normal;
-  position: relative;
-  z-index: 2;
-}
-
-@keyframes imgRotate {
-  0% {
-    transform: rotate(0deg);
+  video {
+    width: 100vw;
+    height: 34vh;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0.75;
   }
-  25% {
-    transform: rotate(90deg);
+
+  #canvas {
+    position: absolute;
+    left: 5%;
+    bottom: 80px;
+    width: 90%;
+    height: 200%;
+    opacity: 0.75;
   }
-  50% {
-    transform: rotate(180deg);
+
+  img {
+    width: 200px;
+    height: 200px;
   }
-  75% {
-    transform: rotate(270deg);
+
+  #play {
+    width: 100%;
+    display: flex;
   }
-  100% {
-    transform: rotate(360deg);
+
+  .left,
+  .right,
+  .rightS {
+    background: rgba(0, 0, 0, 0.5);
   }
-}
 
-.right {
-  flex: 1;
-}
-
-.rightS {
-  display: none;
-}
-
-a:hover {
-  cursor: pointer;
-}
-
-i {
-  color: #6cc1b9;
-  /*color: #4e89becc;*/
-  margin: 10px 18px;
-}
-
-.fa-2x {
-  font-size: 1.5em;
-}
-
-.playControl {
-  width: 96%;
-  height: 60px;
-  margin: 0 2vw;
-  padding: 10px;
-  position: absolute;
-  bottom: 10px;
-  display: flex;
-  justify-content: center;
-  background-color: #efeaea85;
-  border-radius: 10px;
-  transition: all 0.5s;
-}
-
-.timeProgress {
-  display: flex;
-  flex: 1;
-  justify-content: space-around;
-}
-
-.progress {
-  flex: 1;
-  height: 0;
-  margin: 0 1vw;
-}
-
-.progress:hover{
-	cursor: pointer;
-}
-
-.leftTime,
-.rightTime {
-  width: 5vw;
-  color: #595959;
-  line-height: 39px;
-}
-
-hr {
-  height: 5px;
-  background-color: #e3dddd;
-  border: none;
-  border-radius: 20px;
-}
-
-#ori {
-  width: 60vw;
-  position: absolute;
-  z-index: 1;
-}
-
-#cPro {
-  position: absolute;
-  z-index: 2;
-  background-color: #a8a5a5;
-}
-
-@media screen and (max-width: 768px) {
-  .fa-2x {
-    font-size: 1.3em;
-    margin: 5px 2.5vh;
+  #name {
+    color: #b586ff;
+    font-size: 22px;
+    font-family: "Times New Roman", Times, serif;
+    font-weight: 600;
+    height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
   }
 
   .left {
-    display: none;
+    display: block;
+    flex: 1;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .left img {
+    opacity: 0.7;
+    border-radius: 50%;
+    animation: imgRotate 6s linear infinite normal;
+    position: relative;
+    z-index: 2;
+  }
+
+  @keyframes imgRotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(90deg);
+    }
+    50% {
+      transform: rotate(180deg);
+    }
+    75% {
+      transform: rotate(270deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   .right {
-    flex: 0;
+    flex: 1;
   }
 
   .rightS {
-    display: inline;
-    width: 100vw;
-    height: 24vh;
-    color: #f25e0c;
-    font-size: 16px;
-    font-weight: 500;
-    padding: 0 10px;
-    margin: 0 auto;
+    display: none;
+  }
+
+  a:hover {
+    cursor: pointer;
+  }
+
+  i {
+    color: #6cc1b9;
+    /*color: #4e89becc;*/
+    margin: 10px 18px;
+  }
+
+  .fa-2x {
+    font-size: 1.5em;
   }
 
   .playControl {
-    height: 11vh;
+    width: 96%;
+    height: 60px;
     margin: 0 2vw;
-    float: left;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
-    bottom: 1vh;
-    padding: 5px;
+    padding: 10px;
+    position: absolute;
+    bottom: 10px;
+    display: flex;
+    justify-content: center;
+    background-color: #efeaea85;
+    border-radius: 10px;
+    transition: all 0.5s;
   }
 
-  .control {
-    width: 100vw;
+  .timeProgress {
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+  }
+
+  .progress {
+    flex: 1;
+    height: 0;
+    margin: 0 1vw;
+  }
+
+  .progress:hover {
+    cursor: pointer;
   }
 
   .leftTime,
   .rightTime {
-    width: 15vw;
+    width: 5vw;
+    color: #ebebeb;
+    line-height: 39px;
   }
 
-  .name {
-    margin-top: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  hr {
+    height: 5px;
+    background-color: #e3dddd;
+    border: none;
+    border-radius: 20px;
   }
 
-  #canvas {
-    width: 100%;
-    height: 35vh;
-    position: fixed;
-    left: 0;
-    top: 0;
+  #ori {
+    width: 60vw;
+    position: absolute;
+    z-index: 1;
   }
-}
+
+  #cPro {
+    position: absolute;
+    z-index: 2;
+    /*background-color: #a8a5a5;*/
+    color: transparent;
+    background: linear-gradient(to right, #00aaff, greenyellow);
+  }
+
+  @media screen and (max-width: 768px) {
+    .fa-2x {
+      font-size: 1.3em;
+      margin: 5px 2.5vh;
+    }
+
+    .left {
+      display: none;
+    }
+
+    .right {
+      flex: 0;
+    }
+
+    .rightS {
+      display: inline;
+      width: 100vw;
+      height: 24vh;
+      color: #f25e0c;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 0 10px;
+      margin: 0 auto;
+      z-index: 1;
+    }
+
+    .playControl {
+      height: 11vh;
+      margin: 0 2vw;
+      float: left;
+      -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+      bottom: 1vh;
+      padding: 5px;
+    }
+
+    .control {
+      width: 100vw;
+    }
+
+    .leftTime,
+    .rightTime {
+      width: 15vw;
+    }
+
+    .name {
+      margin-top: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #canvas {
+      width: 100%;
+      height: 35vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+  }
 </style>
