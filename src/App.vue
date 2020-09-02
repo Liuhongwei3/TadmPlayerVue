@@ -2,7 +2,9 @@
   <div id="app">
     <nav-bar/>
     <div class="center">
-      <Home class="home"/>
+      <div class="home">
+        <Play/>
+      </div>
       <scroll class="content" ref="scroll" :probe-type="3" :pull-up-load="true" @scroll="contentScroll"
               @pullingUp="loadMore">
         <div>
@@ -25,13 +27,13 @@
   import NavBar from "@/components/common/Nav-bar/NavBar";
   import {debounce} from "@/utils";
   import "@/css/App.css";
-  import Home from "@/views/Home";
+  import Play from "./views/Play";
   import About from "@/views/About";
   import Scroll from "@/components/common/scroll/Scroll";
   import BackTop from "@/components/common/backTop/BackTop";
 
   export default {
-    components: {BackTop, About, Home, NavBar, Scroll},
+    components: {Play,BackTop, About, NavBar, Scroll},
     data() {
       return {
         showBackTop: false,

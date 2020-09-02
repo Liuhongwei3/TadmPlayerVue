@@ -6,13 +6,20 @@
  * Copyright (c) 2020 All Rights Reserved.
  */
 
-export function debounce(func, delay) {
+export function debounce(func, delay = 500, immediate = false) {
   let timer = null
   return function (...args) {
+    let context = this
     timer && clearTimeout(timer)
-    timer = setTimeout(() => {
-      func.apply(this, ...args)
-    }, delay)
+    if (immediate) {
+      let callNow = !timer
+      timer = setTimeout(() => timer = null, delay)
+      if (callNow) {
+        func.apply(context, args)
+      }
+    } else {
+      timer = setTimeout(() => func.apply(context, ...args), delay)
+    }
   }
 }
 

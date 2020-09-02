@@ -32,7 +32,7 @@ npm run build
 
 ## 项目技能树
 
-```Vue``` + ```Vue-cli``` + ```Vue-Router``` +``` Vue-lazyload``` + ```Vuex``` + ```Vue-touch``` + ```ES6``` + ```Axios``` + ```Webpack ```+ ```Fontawesome``` + ```Better-scroll``` + ```Bootstrap``` + ```JQuery```
+```Vue``` + ```Vue-cli``` + ```Vue-Router``` +``` Vue-lazyload``` + ```Vuex``` + ```Vue-touch``` + ```ES6``` + ```Axios``` + ```Webpack ```+ ```Fontawesome``` + ```Better-scroll``` + ```Bootstrap```
 
 ## Features
 

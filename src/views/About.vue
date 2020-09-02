@@ -1,9 +1,9 @@
 <template>
   <div class="about">
-    <p>&copy;&nbsp;&nbsp;2020&nbsp;-&nbsp;&nbsp;{{ year }}&nbsp;&nbsp;
+    <p>&copy;&nbsp;&nbsp;2020&nbsp;<span v-if="year!==2020">-&nbsp;&nbsp;{{ year }}&nbsp;&nbsp;</span>
       <i class="fa fa-heart" aria-hidden="true" id="heart"></i>
       &nbsp;&nbsp;<el-link type="primary" href="https://liuhongwei3.github.io">Tadm</el-link>&nbsp;&nbsp;
-      <el-link type="success" href="https://github.com/Liuhongwei3/TadmPlayer">
+      <el-link type="success" href="https://github.com/Liuhongwei3/TadmPlayerVue">
         <i class="fa fa-github fa-2x" aria-hidden="true"></i>
       </el-link>
     </p>
@@ -39,7 +39,7 @@
 
   #heart {
     color: #f13131;
-    animation: heartAnimate 1s infinite;
+    animation: heartAnimate 1s linear infinite;
   }
 
   .fa-2x {

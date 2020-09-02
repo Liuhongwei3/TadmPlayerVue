@@ -6,10 +6,10 @@
         <el-tag type="success" title="点击查看用户详情" @click="updateUserId()">{{this.detailAuthorName}}</el-tag>
       </div>
     </div>
-    <el-card class="box-card">{{ this.description }}</el-card>
+    <el-card class="box-card" v-if="description">{{ this.description }}</el-card>
     <div id="detail">
       <div class="items main" v-for="(item,index) in detailList" :key="index" @click="updateSongId(item.id)">
-        <img v-lazy="item.al.picUrl" :title="`${item.name}---${item.ar[0].name}`">
+        <img v-lazy="item.al.picUrl" :title="`${item.name}---${item.ar[0].name}`" alt="img">
         <p class="name">{{ item.name }}---<a title="点击歌手名查看歌手" @click.prevent="searchPlayer(item.ar[0].name)">{{
           item.ar[0].name }}</a></p>
 <!--        <img class="play" src="@/assets/play_icon.png" alt="">-->
@@ -46,9 +46,6 @@
           this.detailAuthorId = playlist.creator.userId;
           this.detailAuthorName = playlist.creator.nickname;
           this.description = playlist.description;
-          if (!this.description) {
-            this.description = '暂时还没有简介呢~';
-          }
           let temp = playlist.trackIds;
           let songIds = '';
           temp.forEach(item => {

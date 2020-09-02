@@ -10,7 +10,7 @@
       <span>点击上方歌手名或者索您喜欢的歌手即可查看！</span>
     </el-card>
     <div v-else>
-      <el-card class="box-card">{{ this.briefDesc }}</el-card>
+      <el-card class="box-card" v-if="briefDesc">{{ this.briefDesc }}</el-card>
       <div id="singerSongs" v-show="this.songsFlag">
         <div class="items main" v-for="item in musiclist" :key="item.id" @click="songId(item.id)" :title="item.al.name">
           <div>

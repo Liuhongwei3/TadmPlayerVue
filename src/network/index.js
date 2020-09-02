@@ -20,14 +20,14 @@ export function request(config) {
         NProgress.start();
         return config
     }, error => {
-        console.log(error)
+        console.error(error)
     });
 
     instance.interceptors.response.use(response => {
         NProgress.done();
         return response
     }, error => {
-        console.log(error)
+        console.error(error)
     });
 
     return instance(config) //  Promise
