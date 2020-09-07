@@ -16,9 +16,9 @@ Vue.prototype.$notify = ElementUI.Notification;
 // Vue.prototype.$notify = ELEMENT.Notification;
 
 Vue.use(VueLazyLoad, {
-  preLoad: 1.3,
-  attempt: 6,
-  error: '@/assets/404.jpg'
+    preLoad: 1.3,
+    attempt: 6,
+    error: '@/assets/404.jpg'
 });
 
 Vue.prototype.$bus = new Vue();
@@ -28,7 +28,7 @@ Vue.config.devtools = true;
 Vue.config.productionTip = false
 
 new Vue({
-  router,
-  store,
-  render: h => h(App)
+    router,
+    store,
+    render: h => h(App)
 }).$mount('#app')

@@ -7,30 +7,42 @@
  */
 
 export function debounce(func, delay = 500, immediate = false) {
-  let timer = null
-  return function (...args) {
-    let context = this
-    timer && clearTimeout(timer)
-    if (immediate) {
-      let callNow = !timer
-      timer = setTimeout(() => timer = null, delay)
-      if (callNow) {
-        func.apply(context, args)
-      }
-    } else {
-      timer = setTimeout(() => func.apply(context, ...args), delay)
+    let timer;
+    return function(...args) {
+        let context = this
+        timer && clearTimeout(timer)
+        if (immediate) {
+            let callNow = !timer
+            timer = setTimeout(() => timer = null, delay)
+            if (callNow) {
+                func.apply(context, args)
+            }
+        } else {
+            timer = setTimeout(() => func.apply(context, ...args), delay)
+        }
     }
-  }
+}
+
+export function throttle(func, delay = 500, immediate = false) {
+    let prev = Date.now();
+    return function(...args) {
+        let now = Date.now(),
+            context = this;
+        if (now - prev >= delay) {
+            func.apply(context, args);
+            prev = Date.now();
+        }
+    }
 }
 
 export function shuffle(arr) {
-  let i = arr.length;
-  if (i <= 0) {
-    return [];
-  }
-  while (i) {
-    let j = Math.floor(Math.random() * i--);
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
+    let i = arr.length;
+    if (i <= 0) {
+        return [];
+    }
+    while (i) {
+        let j = Math.floor(Math.random() * i--);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }

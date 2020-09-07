@@ -1,14 +1,15 @@
 <template>
   <div>
-    <div class="topLyric" ref="topLyric"></div>
-    <div class="rightL" ref="musicLyric">
+    <div class="topLyric" ref="topLyric" v-show="showTop"></div>
+    <div class="rightL" ref="musicLyric" v-show="!showTop">
       <div :style="lyricTop">
-        <div class="lyrics" v-if="typeof lyrics=='object'" v-for="(item,index) in lyrics" :key="index"
-             :class="{ active: lyricIndex === index}">
-          <p>{{ item.text }}</p>
-        </div>
-        <div class="lyrics CYY" v-else>
-          <p>纯音乐，请您欣赏</p>
+        <div class="lyrics" v-for="(item, index) in lyrics" :key="index">
+          <div
+            class="lyric"
+            :class="{ active: lyricIndex === index || lyrics.length === 1 }"
+          >
+            {{ item.text }}
+          </div>
         </div>
       </div>
     </div>
@@ -16,162 +17,167 @@
 </template>
 
 <script>
-  import {musicLyric} from "@/network/Request";
+import { musicLyric } from "@/network/Request";
 
-  export default {
-    name: "RLyric",
-    data() {
-      return {
-        lyrics: [],
-        lyricIndex: 0,
-        top: 0
+export default {
+  name: "RLyric",
+  data() {
+    return {
+      lyrics: [],
+      lyricIndex: 0,
+      top: 0,
+      showTop: false,
+    };
+  },
+  props: {
+    songId: {
+      type: Number,
+      default: 0,
+    },
+    cTime: {
+      type: Number,
+      default: 0,
+    },
+  },
+  created() {
+    this.songId = this.$store.state.songId;
+    this.requestLyric(this.songId);
+    this.showTop = document.documentElement.offsetWidth <= 768;
+  },
+  mounted() {
+    let audio = document.getElementById("audio");
+    let topLyric = this.$refs.topLyric;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(this.resizeTimer);
+      this.showTop = document.documentElement.offsetWidth <= 768;
+      !this.showTop &&
+        (this.resizeTimer = setTimeout(() => this.calcTop(), 60));
+    });
+
+    this.showTop && (topLyric.innerText = "加载中");
+    let lyric = "正在加载歌词！";
+    !this.showTop && this.$nextTick(() => this.calcTop());
+    audio.addEventListener("timeupdate", () => {
+      let lyricIndex = 0;
+      for (let i = 0; i < this.lyrics.length; i++) {
+        if (audio.currentTime >= this.lyrics[i].time) {
+          lyricIndex = i;
+        }
+      }
+      this.lyricIndex = lyricIndex;
+      if (
+        this.lyrics.length !== 0 &&
+        Array.isArray(this.lyrics) &&
+        this.lyrics[this.lyricIndex] &&
+        this.lyrics[this.lyricIndex].hasOwnProperty("text")
+      ) {
+        lyric = this.lyrics[this.lyricIndex].text;
+      }
+      this.showTop && (topLyric.innerText = lyric);
+    });
+  },
+  computed: {
+    lyricTop() {
+      const line = document.getElementsByClassName("lyric")[0];
+      const lineH = (line && line.getBoundingClientRect().height) || 25;
+      return `transform :translate3d(0, ${-lineH *
+        (this.lyricIndex - this.top)}px, 0)`;
+    },
+  },
+  watch: {
+    songId(newValue) {
+      this.requestLyric(newValue);
+    },
+  },
+  methods: {
+    async requestLyric(sid) {
+      let res = await musicLyric(sid);
+      if (res.data.nolyric || res.data.nocollected) {
+        this.lyrics = [{ text: "暂无歌词" }];
+      } else {
+        let lyric = res.data.lrc.lyric;
+        if (lyric.length > 0 || res.data.nolyric) {
+          this.lyrics = this.parseLyric(lyric);
+          this.lyrics.length === 0 && (this.lyrics = lyric);
+        }
       }
     },
-    props: {
-      songId: {
-        type: Number,
-        default: 0
-      },
-      cTime: {
-        type: Number,
-        default: 0
+    parseLyric(lrc) {
+      let lyrics = lrc.split("\n");
+      let lrcObj = [];
+      for (let i = 0; i < lyrics.length; i++) {
+        let lyric = decodeURIComponent(lyrics[i]);
+        let timeReg = /\[\d*:\d*((\.|\:)\d*)*\]/g;
+        let timeRegExpArr = lyric.match(timeReg);
+        if (!timeRegExpArr) continue;
+        let clause = lyric.replace(timeReg, "");
+        for (let k = 0, h = timeRegExpArr.length; k < h; k++) {
+          let t = timeRegExpArr[k];
+          let min = Number(String(t.match(/\[\d*/i)).slice(1)),
+            sec = Number(String(t.match(/\:\d*/i)).slice(1));
+          let time = min * 60 + sec;
+          if (clause !== "") {
+            lrcObj.push({ time: time, text: clause });
+          }
+        }
       }
+      return lrcObj;
     },
-    created() {
-      this.songId = this.$store.state.songId
-      this.requestLyric(this.songId)
-    },
-    mounted() {
-      let audio = document.getElementById("audio");
-      let topLyric = this.$refs.topLyric;
-      topLyric.innerText = '加载中';
-      window.addEventListener('resize', () => {
-        clearTimeout(this.resizeTimer);
-        this.resizeTimer = setTimeout(() => this.calcTop(), 60)
-      });
-      this.calcTop();
-      let lyric = '';
-      audio.addEventListener('timeupdate', () => {
-        let lyricIndex = 0;
-        for (let i = 0; i < this.lyrics.length; i++) {
-          if (audio.currentTime >= this.lyrics[i].time) {
-            lyricIndex = i
-          }
-        }
-        this.lyricIndex = lyricIndex;
-        if (this.lyrics.length !== 0 && Array.isArray(this.lyrics) && this.lyrics[this.lyricIndex] && this.lyrics[this.lyricIndex].hasOwnProperty('text')) {
-          lyric = this.lyrics[this.lyricIndex].text
-        }
-        topLyric.innerText = lyric
-      })
-    },
-    computed: {
-      lyricTop() {
-        return `transform :translate3d(0, ${-41 *
-        (this.lyricIndex - this.top)}px, 0)`
-      },
-    },
-    watch: {
-      songId(newValue) {
-        this.requestLyric(newValue);
+    calcTop() {
+      const dom = this.$refs.musicLyric;
+      const line = document.getElementsByClassName("lyric")[0];
+      const { display = "" } = window.getComputedStyle(dom);
+      if (display === "none") {
+        return;
       }
+      const height = dom.offsetHeight;
+      const lineH = (line && line.getBoundingClientRect().height) || 25;
+      this.top = Math.floor(height / lineH / 2);
     },
-    methods: {
-      requestLyric(sid) {
-        musicLyric(sid).then(res => {
-          if (res.data.nolyric || res.data.nocollected) {
-            this.lyrics = '暂无歌词'
-          } else {
-            let lyric = res.data.lrc.lyric
-            if (lyric.length > 0 || res.data.nolyric) {
-              this.lyrics = this.parseLyric(lyric)
-              if (this.lyrics.length === 0) {
-                this.lyrics = lyric
-              }
-            }
-          }
-        })
-      },
-      parseLyric(lrc) {
-        let lyrics = lrc.split("\n");
-        let lrcObj = [];
-        for (let i = 0; i < lyrics.length; i++) {
-          let lyric = decodeURIComponent(lyrics[i]);
-          let timeReg = /\[\d*:\d*((\.|\:)\d*)*\]/g;
-          let timeRegExpArr = lyric.match(timeReg);
-          if (!timeRegExpArr) continue;
-          let clause = lyric.replace(timeReg, '');
-          for (let k = 0, h = timeRegExpArr.length; k < h; k++) {
-            let t = timeRegExpArr[k];
-            let min = Number(String(t.match(/\[\d*/i)).slice(1)),
-                sec = Number(String(t.match(/\:\d*/i)).slice(1));
-            let time = min * 60 + sec;
-            if (clause !== '') {
-              lrcObj.push({time: time, text: clause})
-            }
-          }
-        }
-        return lrcObj
-      },
-      calcTop() {
-        const dom = this.$refs.musicLyric
-        const {display = ''} = window.getComputedStyle(dom)
-        if (display === 'none') {
-          return
-        }
-        const height = dom.offsetHeight
-        this.top = Math.floor(height / 40 / 2)
-      },
-    }
-  }
+  },
+};
 </script>
 
 <style scoped>
-  .rightL {
-    height: 240px;
-    margin: 10px 0;
-    overflow: hidden;
-  }
+.rightL {
+  height: 32vh;
+  margin: 10px 0;
+  overflow: hidden;
+}
 
+.lyrics {
+  white-space: pre-line;
+  text-align: center;
+  font-size: 16px;
+  line-height: 25px;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.6s ease-out;
+}
+
+.active {
+  color: transparent;
+  background: linear-gradient(to right, #0af, #2fff39);
+  -webkit-background-clip: text;
+  font-size: calc(10px + 1vmin);
+  font-weight: 600;
+}
+
+@media screen and (max-width: 768px) {
   .topLyric {
-    display: none;
-  }
-
-  .lyrics {
-    white-space: pre-line;
+    width: 90%;
+    left: 5%;
+    top: 40%;
+    overflow: hidden;
+    display: inline-block;
+    position: absolute;
     text-align: center;
+    margin: 0 auto;
+    z-index: 3;
+    color: #fa6666;
     font-size: 16px;
-    line-height: 25px;
-    transform: translate3d(0, 0, 0);
-    transition: transform 0.6s ease-out;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
-
-  .active p, .CYY {
-    color: transparent;
-    background: linear-gradient(to right, #00aaff, greenyellow);
-    -webkit-background-clip: text;
-    font-weight: bolder;
-  }
-
-  @media screen and (max-width: 768px) {
-    .rightL {
-      display: none;
-    }
-
-    .topLyric {
-      width: 90%;
-      left: 5%;
-      top: 30%;
-      overflow: hidden;
-      display: inline;
-      position: absolute;
-      text-align: center;
-      margin: 0 auto;
-      z-index: 3;
-      color: #fa6666;
-      font-size: 16px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-  }
+}
 </style>

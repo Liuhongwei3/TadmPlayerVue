@@ -25,42 +25,34 @@
 </template>
 
 <script>
-  export default {
-    name: "NavBar",
-  }
+export default {
+  name: "NavBar",
+};
 </script>
 
 <style scoped>
+#nav {
+  padding: 10px;
+  position: sticky;
+  top: 0;
+  background-color: #5eff8b63;
+  z-index: 1;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #ff633c;
+}
+
+@media screen and (max-width: 768px) {
   #nav {
-    height: 7vh;
-    padding: 12px;
-    position: sticky;
-    top: 0;
-    background-color: #5eff8b63;
-    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
   }
-
-  #nav a {
-    font-weight: bold;
-    line-height: 32px;
-    color: #2c3e50;
-  }
-
-  #nav a.router-link-exact-active {
-    color: #ff633c;
-  }
-
-  @media screen and (max-width: 768px) {
-    #nav {
-      height: 8vh;
-      padding: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-    }
-
-    #nav a {
-      line-height: 24px;
-    }
-  }
+}
 </style>
