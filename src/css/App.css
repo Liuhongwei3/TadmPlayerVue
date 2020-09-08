@@ -1,5 +1,5 @@
 #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    font-family: "Avenir", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
@@ -10,7 +10,7 @@
 }
 
 [v-cloak] {
-    display: none
+    display: none;
 }
 
 .home {
@@ -21,6 +21,13 @@
 
 .center {
     background-color: #282c34;
+}
+
+#user,
+#userFollow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
 }
 
 .main {
@@ -75,16 +82,14 @@
 .main img:hover {
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     transform: translate3d(0, -3px, 0);
-    transition: all .3s;
+    transition: all 0.3s;
 }
 
-.top,
 .bottom {
     position: absolute;
     margin: 5px;
-    height: 27px;
-    color: #ffffff;
     font-size: 14px;
+    width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -92,11 +97,11 @@
 }
 
 .slide-fade-enter-active {
-    transition: all .3s ease;
+    transition: all 0.3s ease;
 }
 
 .slide-fade-leave-active {
-    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+    transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
 }
 
 .slide-fade-enter,
@@ -110,7 +115,7 @@
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity .4s;
+    transition: opacity 0.4s;
 }
 
 .fade-enter,
@@ -127,7 +132,7 @@
 }
 
 .box-card {
-    width: 60vw;
+    width: 80vw;
     margin: 10px auto;
     color: #f8dd0d !important;
     background-color: #9d9b9b !important;
@@ -141,12 +146,21 @@
 
 .el-collapse-item__content {
     color: #ef788d;
-    background-color: #e8e4e4;
     padding: 10px;
 }
 
 .el-avatar {
     margin-right: 5px;
+}
+
+.el-badge__content {
+    background-color: rgb(200, 100, 100);
+}
+
+.el-badge__content.is-fixed {
+    top: 15px;
+    right: 40px;
+    z-index: 6;
 }
 
 .user-info {
@@ -158,13 +172,9 @@
         width: 100px;
         height: 100px;
     }
-    .top,
     .bottom {
         width: 80px;
         font-size: 12px;
-    }
-    .top {
-        right: 0;
     }
     .home {
         height: 32vh;
@@ -179,5 +189,9 @@
     .el-dialog,
     .el-card {
         width: 80vw;
+    }
+    .el-badge__content.is-fixed {
+        top: 10px;
+        right: 35px;
     }
 }

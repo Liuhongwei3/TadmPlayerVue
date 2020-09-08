@@ -12,22 +12,22 @@
         @click="updateDetailId(item.id)"
       >
         <el-tooltip
-          placement="right-start"
+          placement="right"
           :content="`${item.name}---${item.creator.nickname}`"
         >
           <div>
-            <div class="authorPlayCount">
-              <div class="top">
-                <i class="fa fa-headphones" aria-hidden="true"></i>
-                {{ item.playCount | roundW }}
-              </div>
+            <el-badge :value="item.playCount | roundW">
+              <!-- <div class="top">
+              <i class="fa fa-headphones" aria-hidden="true"></i>
+              {{ item.playCount | roundW }}
+            </div> -->
               <div class="bottom">
                 By
                 <span>{{ item.creator.nickname }}</span>
               </div>
-            </div>
-            <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
-            <p class="name">{{ item.name }}</p>
+              <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
+              <p class="name">{{ item.name }}</p>
+            </el-badge>
           </div>
         </el-tooltip>
       </div>
@@ -92,27 +92,14 @@ export default {
   margin: 10px 0;
 }
 
-.main:hover {
-  color: #ff6c80;
-  cursor: pointer;
-}
-
-.top {
-  top: 5px;
-  right: 25px;
-  z-index: 9;
-}
-
 .bottom {
-  bottom: 36px;
-  left: 30px;
-  z-index: 9;
+  bottom: 32px;
+  left: 15px;
 }
 
 @media screen and (max-width: 768px) {
-  .top {
-    top: 0;
-    right: 5px;
+  .bottom {
+    bottom: 25px;
   }
 
   img {

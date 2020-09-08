@@ -15,18 +15,10 @@
         >
           <el-tooltip :content="item.name" placement="top">
             <div class="main">
-              <div class="authorPlayCount">
-                <div class="top" title="播放次数">
-                  <i class="fa fa-headphones" aria-hidden="true"></i>
-                  {{ item.playCount | roundW }}
-                </div>
-                <div class="bottom" title="歌曲数">
-                  <i class="fa fa-list-alt" aria-hidden="true"></i>
-                  {{ item.trackCount | roundW }}
-                </div>
-              </div>
-              <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
-              <p class="name">{{ item.name }}</p>
+              <el-badge :value="item.trackCount | roundW">
+                <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
+                <p class="name">{{ item.name }}</p>
+              </el-badge>
             </div>
           </el-tooltip>
         </div>
@@ -41,8 +33,10 @@
         >
           <el-tooltip placement="top" :content="item.nickname">
             <div class="main">
-              <img v-lazy="item.avatarUrl" :key="item.avatarUrl" />
-              <p class="name">{{ item.nickname }}</p>
+              <el-badge :value="item.followeds | roundW">
+                <img v-lazy="item.avatarUrl" :key="item.avatarUrl" />
+                <p class="name">{{ item.nickname }}</p>
+              </el-badge>
             </div>
           </el-tooltip>
         </div>
@@ -123,42 +117,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-#user,
-#userFollow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-
-.main {
-  position: relative;
-}
-
-.top {
-  top: 5px;
-  right: 25px;
-  z-index: 9;
-}
-
-.bottom {
-  width: 100px;
-  bottom: 26px;
-  z-index: 9;
-}
-
-@media screen and (max-width: 768px) {
-  .top {
-    right: -12px;
-  }
-  .bottom {
-    bottom: 20px;
-    left: -20px;
-  }
-
-  .items {
-    margin: 10px 0;
-  }
-}
-</style>

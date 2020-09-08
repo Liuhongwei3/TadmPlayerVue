@@ -2,16 +2,20 @@
   <div id="play" :style="backImage">
     <div class="left">
       <img :src="imgs" alt="网易云音乐" />
-      <div id="name">
-        <el-tooltip content="歌曲名" placement="bottom">
-          <span>{{ name }}</span>
-        </el-tooltip>
-        ---
-        <el-tooltip content="点击查看歌手详情" placement="top">
-          <span @click.prevent="searchPlayer()">
-            {{ player }}
-          </span>
-        </el-tooltip>
+      <div class="song_singer">
+        <div class="name">
+          <el-tooltip content="歌曲名" placement="top">
+            <span>{{ name }}</span>
+          </el-tooltip>
+          <div>||</div>
+        </div>
+        <div class="name">
+          <el-tooltip content="点击查看歌手详情" placement="bottom">
+            <span @click.prevent="searchPlayer()">
+              {{ player }}
+            </span>
+          </el-tooltip>
+        </div>
       </div>
     </div>
     <audio
@@ -35,74 +39,88 @@
       <div class="song_name">{{ name }}</div>
       <div>|</div>
       <div class="singer">
-        <a title="点击查看歌手详情" @click.prevent="searchPlayer()">
-          {{ player }}
-        </a>
+        <el-tooltip content="点击查看歌手详情" placement="right">
+          <span @click="searchPlayer()">
+            {{ player }}
+          </span>
+        </el-tooltip>
       </div>
     </div>
     <r-lyric class="right" :songId="id" :cTime="cTime" />
     <div class="playControl">
       <div class="control">
-        <i
-          class="fa fa-random fa-2x"
-          aria-hidden="true"
-          title="随机播放"
-          v-if="random"
-          @click="changeList"
-        ></i>
-        <i
-          class="fa fa-bars fa-2x"
-          aria-hidden="true"
-          title="顺序播放"
-          v-if="order"
-          @click="changeList"
-        ></i>
-        <i
-          class="fa fa-step-backward fa-2x"
-          aria-hidden="true"
-          title="上一曲"
-          @click="prev"
-        ></i>
-        <i
-          class="fa fa-play fa-2x"
-          aria-hidden="true"
-          title="继续播放"
-          v-if="!status"
-          @click="play"
-        ></i>
-        <i
-          class="fa fa-pause fa-2x"
-          aria-hidden="true"
-          title="暂停播放"
-          @click="play"
-          v-if="status"
-        ></i>
-        <i
-          class="fa fa-step-forward fa-2x"
-          aria-hidden="true"
-          title="下一曲"
-          @click="next"
-        ></i>
-        <i
-          class="fa fa-commenting fa-2x"
-          aria-hidden="true"
-          title="查看热评"
-          @click="enjoyComment"
-        ></i>
-        <i
-          class="fa fa-download fa-2x"
-          aria-hidden="true"
-          title="下载"
-          @click="downloadMusic"
-        ></i>
+        <el-tooltip content="随机播放" placement="bottom">
+          <i
+            class="fa fa-random fa-2x"
+            aria-hidden="true"
+            v-if="random"
+            @click="changeList"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="顺序播放" placement="bottom">
+          <i
+            class="fa fa-bars fa-2x"
+            aria-hidden="true"
+            v-if="order"
+            @click="changeList"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="上一曲" placement="top">
+          <i
+            class="fa fa-step-backward fa-2x"
+            aria-hidden="true"
+            @click="prev"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="继续播放" placement="bottom">
+          <i
+            class="fa fa-play fa-2x"
+            aria-hidden="true"
+            v-if="!status"
+            @click="play"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="暂停播放" placement="bottom">
+          <i
+            class="fa fa-pause fa-2x"
+            aria-hidden="true"
+            @click="play"
+            v-if="status"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="下一曲" placement="top">
+          <i
+            class="fa fa-step-forward fa-2x"
+            aria-hidden="true"
+            @click="next"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="查看热评" placement="bottom">
+          <i
+            class="fa fa-commenting fa-2x"
+            aria-hidden="true"
+            @click="enjoyComment"
+          ></i>
+        </el-tooltip>
+        <el-tooltip content="下载" placement="top">
+          <i
+            class="fa fa-download fa-2x"
+            aria-hidden="true"
+            @click="downloadMusic"
+          ></i>
+        </el-tooltip>
       </div>
       <div class="timeProgress">
-        <div class="leftTime">{{ this.cTime | timeFormat }}</div>
+        <el-tooltip content="当前播放时间" placement="bottom">
+          <div class="leftTime">{{ this.cTime | timeFormat }}</div>
+        </el-tooltip>
         <div class="myProgress" @click="offsetX">
           <hr id="ori" ref="ori" />
           <hr id="cPro" :style="csty" />
         </div>
-        <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
+        <el-tooltip content="歌曲时长" placement="top">
+          <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
+        </el-tooltip>
       </div>
     </div>
   </div>
@@ -500,17 +518,19 @@ img {
   margin-top: 2vh;
 }
 
-#name {
+.song_singer {
+  z-index: 6;
+}
+
+.name {
+  max-width: 30vw;
   color: #f6506e;
-  font-size: 24px;
+  font-size: 20px;
   font-family: "Times New Roman", Times, serif;
   font-weight: 800;
-  line-height: 50px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  position: relative;
-  z-index: 2;
 }
 
 @keyframes imgRotate {

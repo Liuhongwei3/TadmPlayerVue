@@ -76,60 +76,81 @@
         :key="item.first"
         v-for="item in hotSearchResults"
       >
-        <el-tag type="success" @click="updateKeyword(item.first)">
-          {{ item.first }}
-        </el-tag>
+        <el-tooltip :content="item.first" placement="bottom">
+          <el-tag type="success" @click="updateKeyword(item.first)">
+            {{ item.first }}
+          </el-tag>
+        </el-tooltip>
       </span>
     </div>
     <div id="searchResult" v-show="showSongs">
       <no-result :result="searchResults"></no-result>
-      <div class="main" v-for="item in searchResults">
-        <img v-lazy="item.rUrl" :key="item.rUrl" @click="songId(item.id)" />
-        <p class="name">{{ item.name }}---{{ item.artists[0].name }}</p>
+      <div class="main" v-for="item in searchResults" :key="item.id">
+        <el-tooltip
+          :content="`${item.name} --- ${item.artists[0].name}`"
+          placement="right"
+        >
+          <div>
+            <img v-lazy="item.rUrl" :key="item.rUrl" @click="songId(item.id)" />
+            <p class="name">{{ item.name }}---{{ item.artists[0].name }}</p>
+          </div>
+        </el-tooltip>
       </div>
     </div>
     <div id="searchLyrics" v-show="showLyrics">
       <no-result :result="searchLyricsResults"></no-result>
-      <div class="main" v-for="item in searchLyricsResults">
-        <img
-          v-lazy="item.artists[0].img1v1Url"
-          :key="item.artists[0].img1v1Url"
-          @click="songId(item.id)"
-        />
-        <p class="name">{{ item.name }}</p>
+      <div class="main" v-for="item in searchLyricsResults" :key="item.id">
+        <el-tooltip
+          :content="`${item.name} --- ${item.name}`"
+          placement="right"
+        >
+          <div>
+            <img v-lazy="item.artists[0].img1v1Url" @click="songId(item.id)" />
+            <p class="name">{{ item.name }}</p>
+          </div>
+        </el-tooltip>
       </div>
     </div>
     <div id="searchDetails" v-show="showDetails">
       <no-result :result="searchDetailsResults"></no-result>
-      <div class="main" v-for="item in searchDetailsResults">
-        <img
-          v-lazy="item.coverImgUrl"
-          :key="item.coverImgUrl"
-          @click="updatePlaylist(item.id)"
-        />
-        <p class="name">{{ item.name }}</p>
+      <div class="main" v-for="item in searchDetailsResults" :key="item.id">
+        <el-tooltip
+          :content="`${item.name} --- ${item.name}`"
+          placement="right"
+        >
+          <div>
+            <img v-lazy="item.coverImgUrl" @click="updatePlaylist(item.id)" />
+            <p class="name">{{ item.name }}</p>
+          </div>
+        </el-tooltip>
       </div>
     </div>
     <div id="searchSingers" v-show="showSingers">
       <no-result :result="searchSingersResults"></no-result>
-      <div class="main" v-for="item in searchSingersResults">
-        <img
-          v-lazy="item.picUrl"
-          :key="item.picUrl"
-          @click="updateSingerName(item.name)"
-        />
-        <p class="name">{{ item.name }}</p>
+      <div class="main" v-for="item in searchSingersResults" :key="item.id">
+        <el-tooltip
+          :content="`${item.name} --- ${item.name}`"
+          placement="right"
+        >
+          <div>
+            <img v-lazy="item.picUrl" @click="updateSingerName(item.name)" />
+            <p class="name">{{ item.name }}</p>
+          </div>
+        </el-tooltip>
       </div>
     </div>
     <div id="searchUser" v-show="showUsers">
       <no-result :result="searchUserResults"></no-result>
-      <div class="main" v-for="item in searchUserResults">
-        <img
-          v-lazy="item.avatarUrl"
-          :key="item.avatarUrl"
-          @click="updateUserId(item.userId)"
-        />
-        <p class="name">{{ item.nickname }}</p>
+      <div class="main" v-for="item in searchUserResults" :key="item.userId">
+        <el-tooltip
+          :content="`${item.name} --- ${item.nickname}`"
+          placement="right"
+        >
+          <div>
+            <img v-lazy="item.avatarUrl" @click="updateUserId(item.userId)" />
+            <p class="name">{{ item.nickname }}</p>
+          </div>
+        </el-tooltip>
       </div>
     </div>
   </div>
@@ -283,14 +304,6 @@ export default {
 
 #hotSearchResults:hover {
   cursor: pointer;
-}
-
-.main {
-  flex: 1;
-}
-
-.main:hover {
-  color: #ff6c80;
 }
 
 .searchInput {
