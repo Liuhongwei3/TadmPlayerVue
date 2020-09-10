@@ -5,7 +5,7 @@
       <div class="home">
         <Play />
       </div>
-      <scroll
+      <vertical-scroll
         class="content"
         ref="scroll"
         :probe-type="3"
@@ -21,7 +21,7 @@
             </div>
           </transition>
         </div>
-      </scroll>
+      </vertical-scroll>
     </div>
     <back-top class="backTop" @backTop="backTop" v-show="showBackTop">
       <i class="fa fa-arrow-up fa-2x" aria-hidden="true"></i>
@@ -35,11 +35,11 @@ import { debounce } from "@/utils";
 import "@/css/App.css";
 import Play from "./views/Play";
 import About from "@/views/About";
-import Scroll from "@/components/common/scroll/Scroll";
+import VerticalScroll from "@/components/common/scroll/VerticalScroll";
 import BackTop from "@/components/common/backTop/BackTop";
 
 export default {
-  components: { Play, BackTop, About, NavBar, Scroll },
+  components: { Play, BackTop, About, NavBar, VerticalScroll },
   data() {
     return {
       showBackTop: false,
@@ -55,6 +55,7 @@ export default {
   },
   methods: {
     contentScroll(position) {
+      //  监听 scroll 达到一定位置显示回到顶部按钮
       this.showBackTop = -position.y > 300;
     },
     backTop() {
@@ -71,8 +72,10 @@ export default {
           break;
         }
       }
+      // 上面数据请求后页面会发生变化，就需要我们重新计算保证后续正常滚动
       const refresh = debounce(this.$refs.scroll.refresh, 500);
       refresh();
+      // 详见 scroll 组件的注释
       this.$refs.scroll.finishPullUp();
     },
   },

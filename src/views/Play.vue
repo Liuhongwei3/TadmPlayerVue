@@ -11,7 +11,7 @@
         </div>
         <div class="name">
           <el-tooltip content="点击查看歌手详情" placement="bottom">
-            <span @click.prevent="searchPlayer()">
+            <span @click="searchPlayer()">
               {{ player }}
             </span>
           </el-tooltip>
@@ -150,7 +150,6 @@ export default {
       urls: "",
       randomListIds: [],
       currentIndex: 0,
-      time: 0,
       currDuration: 0,
       order: true,
       random: false,
@@ -355,11 +354,18 @@ export default {
       this.$router.push("/singer");
     },
     offsetX(event) {
-      let audio = this.$refs.audio;
+      const audio = this.$refs.audio;
+      const video = this.$refs.video;
+
       this.percent = (event.offsetX / this.oWidth).toFixed(2);
       this.cTime = parseInt(this.percent * this.currDuration);
+
       audio.currentTime = this.cTime;
       audio.play();
+      if (this.hasMv) {
+        video.currentTime = this.cTime;
+        video.play();
+      }
     },
     enjoyComment() {
       this.$router.push("/comment");
@@ -385,16 +391,18 @@ export default {
 
       //	PC
       download(this.urls).then((res) => {
-        // application/vnd.ms-excel
-        let blob = new Blob([res.data], { type: "audio/mpeg;charset=utf-8" }); //指定格式为vnd.ms-excel
+        let blob = new Blob([res.data], { type: "audio/mpeg;charset=utf-8" });
         let downloadElement = document.createElement("a");
-        let href = window.URL.createObjectURL(blob); //创建下载的链接
+        let href = window.URL.createObjectURL(blob);
+
         downloadElement.href = href;
-        downloadElement.download = this.name + "-" + this.player + ".mp3"; //下载后文件名
+        downloadElement.download = this.name + "-" + this.player + ".mp3";
+
         document.body.appendChild(downloadElement);
-        downloadElement.click(); //点击下载
-        document.body.removeChild(downloadElement); //下载完成移除元素
-        window.URL.revokeObjectURL(href); //释放掉blob对象
+        downloadElement.click();
+
+        document.body.removeChild(downloadElement);
+        window.URL.revokeObjectURL(href);
       });
     },
     showAlert() {
