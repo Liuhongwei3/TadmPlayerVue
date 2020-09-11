@@ -22,6 +22,8 @@
       <router-link to="/user">用户</router-link>
       |
       <router-link to="/detail">歌单</router-link>
+      |
+      <router-link to="/comment">评论</router-link>
     </div>
   </horizontal-scroll>
 </template>
@@ -43,7 +45,7 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   position: sticky;
-  top: 0;
+  top: 5px;
   z-index: 1;
 }
 
@@ -63,7 +65,10 @@ a {
 
 a.router-link-exact-active {
   font-size: 18px;
-  color: #ff633c;
-  top: 5px;
+  font-weight: 700;
+  color: #8db946;
+  border: 1px solid #aa8e14;
+  border-radius: 10%;
+  background-color: #575555;
 }
 </style>

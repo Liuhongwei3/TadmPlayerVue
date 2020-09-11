@@ -32,7 +32,7 @@
       muted
       crossorigin="anonymous"
       :src="videos"
-      v-show="hasMv"
+      v-if="hasMv && isPc"
     />
     <!--    <canvas id="canvas"></canvas>-->
     <div class="rightS">
@@ -158,6 +158,7 @@ export default {
       oWidth: 0,
       status: false,
       hasMv: false,
+      isPc: false,
     };
   },
   created() {
@@ -174,8 +175,11 @@ export default {
     this.oWidth = ori.clientWidth;
     this.currDuration = parseInt(audio.duration) ? parseInt(audio.duration) : 0;
 
+    this.isPc = document.documentElement.clientWidth >= 1000;
+
     window.addEventListener("resize", () => {
       this.oWidth = ori.clientWidth;
+      this.isPc = document.documentElement.clientWidth >= 1000;
     });
     audio.addEventListener("play", () => {
       this.status = true;
@@ -530,29 +534,29 @@ img {
   z-index: 6;
 }
 
+.name,
+.song_name,
+.singer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .name {
   max-width: 30vw;
   color: #f6506e;
   font-size: 20px;
   font-family: "Times New Roman", Times, serif;
   font-weight: 800;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.rightS div {
+  max-width: 90vw;
 }
 
 @keyframes imgRotate {
   0% {
     transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(90deg);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
-  75% {
-    transform: rotate(270deg);
   }
   100% {
     transform: rotate(360deg);
@@ -591,6 +595,7 @@ i {
   background-color: #efeaea85;
   border-radius: 10px;
   transition: all 0.5s;
+  z-index: 9;
 }
 
 .timeProgress {

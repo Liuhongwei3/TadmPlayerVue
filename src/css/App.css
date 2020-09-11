@@ -60,6 +60,16 @@
     background-color: #9d9b9b;
     padding: 10px;
     border-radius: 50%;
+    animation: show 0.5s;
+}
+
+@keyframes show {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .fa-2x {
@@ -68,7 +78,7 @@
 
 .content {
     height: 53vh;
-    overflow-y: hidden;
+    overflow: hidden;
 }
 
 .main img {
