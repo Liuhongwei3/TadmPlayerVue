@@ -9,7 +9,7 @@
       <div id="user">
         <div
           class="items"
-          v-for="item in playlist"
+          v-for="item in filterList"
           :key="item.id"
           @click="playlistId(item.id)"
         >
@@ -23,6 +23,20 @@
           </el-tooltip>
         </div>
       </div>
+      <horizontal-scroll class="page-wrapper" :probe-type="3">
+        <div class="page-content">
+          <el-pagination
+            background
+            hide-on-single-page
+            layout="total, sizes, prev, pager, next"
+            :total="playlist.length"
+            :page-sizes="[15, 25, 30, 50, 100]"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          >
+          </el-pagination>
+        </div>
+      </horizontal-scroll>
       <div>关注的歌手</div>
       <div id="userFollow">
         <div
@@ -46,73 +60,94 @@
 </template>
 
 <script>
+import { mapMutations, mapState } from "vuex";
 import { userFollows, userMusic } from "@/network/Request";
 import LogContent from "@/components/content/LogContent";
+import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
 export default {
   name: "User",
-  components: { LogContent },
+  components: { LogContent, HorizontalScroll },
   data() {
     return {
       avatarUrl: "",
       playlist: [],
       ids: [],
       followList: [],
+      pageSize: 15,
+      curPage: 1,
     };
   },
   created() {
     if (this.uid) {
       this.requestUserM(this.uid);
-      userFollows(this.uid).then((res) => {
-        this.followList = res.data.follow;
-      });
+      this.requestUserFollows(this.uid);
     }
   },
   computed: {
-    uid() {
-      return this.$store.state.userId;
-    },
+    ...mapState({
+      uid: "userId",
+    }),
     username: {
       get() {
         return this.$store.state.username;
       },
       set(value) {
-        this.$store.commit("updateUserName", value);
+        this.updateUserName(value);
       },
+    },
+    filterList() {
+      return this.playlist.slice(
+        (this.curPage - 1) * this.pageSize,
+        this.pageSize * this.curPage
+      );
     },
   },
   watch: {
     uid(newValue) {
       if (newValue) {
-        newValue && this.requestUserM(newValue);
-        userFollows(newValue).then((res) => {
-          this.followList = res.data.follow;
-        });
+        this.requestUserM(newValue);
+        this.requestUserFollows(newValue);
       }
     },
   },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$emit("toTop");
+    });
+  },
   methods: {
+    ...mapMutations(["updateUserName", "updateDetailId", "updateSingerName"]),
     requestUserM(uid) {
-      uid &&
-        userMusic(uid).then((res) => {
-          this.avatarUrl = res.data.playlist[0].creator.avatarUrl;
-          this.username = res.data.playlist[0].creator.nickname;
-          if (this.username && this.username !== this.$store.state.userName) {
-            this.$store.commit("updateUserName", this.username);
-          }
-          this.playlist = res.data.playlist;
-          for (let i = 0; i < this.playlist.length; i++) {
-            this.ids[i] = this.playlist[i].id;
-          }
-        });
+      userMusic(uid).then((res) => {
+        this.avatarUrl = res.data.playlist[0].creator.avatarUrl;
+        this.username = res.data.playlist[0].creator.nickname;
+        this.playlist = res.data.playlist;
+        for (let i = 0; i < this.playlist.length; i++) {
+          this.ids[i] = this.playlist[i].id;
+        }
+      });
+    },
+    requestUserFollows(uid) {
+      userFollows(uid).then((res) => {
+        this.followList = res.data.follow;
+      });
     },
     playlistId(id) {
-      this.$store.commit("updateDetailId", id);
+      this.updateDetailId(id);
       this.$router.push("/detail");
     },
     singer(name) {
-      this.$store.commit("updateSingerName", name);
+      this.updateSingerName(name);
       this.$router.push("/singer");
+    },
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.$emit("toTop");
+    },
+    handleCurrentChange(val) {
+      this.curPage = val;
+      this.$emit("toTop");
     },
   },
 };

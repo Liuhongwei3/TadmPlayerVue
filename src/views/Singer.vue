@@ -26,7 +26,7 @@
       <div id="singerSongs" v-show="this.songsFlag">
         <div
           class="items main"
-          v-for="item in musiclist"
+          v-for="item in filterList"
           :key="item.id"
           @click="songId(item.id)"
         >
@@ -38,6 +38,18 @@
           </el-tooltip>
         </div>
       </div>
+      <horizontal-scroll class="page-wrapper" :probe-type="3">
+        <div class="page-content">
+          <el-pagination
+            background
+            layout="total, sizes, prev, pager, next"
+            :total="musiclist.length"
+            :page-sizes="[15, 25, 30, 50, 100]"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          >
+          </el-pagination></div
+      ></horizontal-scroll>
     </div>
     <el-tooltip placement="top" content="点击显示或隐藏详情">
       <el-tag @click="changeSingerFlag">热门歌手排行榜</el-tag>
@@ -62,10 +74,11 @@
 <script>
 import { hotSinger, searchSinger, singer } from "@/network/Request";
 import NoResult from "@/components/common/noResult/NoResult";
+import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
 export default {
   name: "Singer",
-  components: { NoResult },
+  components: { NoResult, HorizontalScroll },
   data() {
     return {
       singerFlag: false,
@@ -75,6 +88,8 @@ export default {
       briefDesc: "",
       hotSingers: [],
       musiclist: [],
+      pageSize: 15,
+      curPage: 1,
     };
   },
   created() {
@@ -92,7 +107,14 @@ export default {
       this.songsFlag = false;
     }
   },
-  computed: {},
+  computed: {
+    filterList() {
+      return this.musiclist.slice(
+        (this.curPage - 1) * this.pageSize,
+        this.pageSize * this.curPage
+      );
+    },
+  },
   watch: {
     singerId(newValue) {
       if (newValue !== 0) {
@@ -101,6 +123,11 @@ export default {
         this.requestSinger(newValue);
       }
     },
+  },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$emit("toTop");
+    });
   },
   methods: {
     requestSinger(sid) {
@@ -123,6 +150,14 @@ export default {
     },
     changeSongsFlag() {
       this.songsFlag = !this.songsFlag;
+    },
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.$emit("toTop");
+    },
+    handleCurrentChange(val) {
+      this.curPage = val;
+      this.$emit("toTop");
     },
   },
 };

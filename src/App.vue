@@ -16,10 +16,15 @@
         <div>
           <transition name="fade">
             <div>
-              <router-view />
-              <About />
+              <keep-alive>
+                <router-view v-if="$route.meta.keepAlive" @toTop="backTop" />
+              </keep-alive>
+              <router-view v-if="!$route.meta.keepAlive" />
             </div>
           </transition>
+          <keep-alive>
+            <About />
+          </keep-alive>
         </div>
       </vertical-scroll>
     </div>
@@ -59,9 +64,9 @@ export default {
       this.showBackTop = -position.y > 300;
     },
     backTop() {
-      this.$refs.scroll.scrollTo(0, 30, 400);
+      this.$refs.scroll.scrollTo(0, 10, 400);
     },
-    loadMore() {
+    loadMore: debounce(function() {
       switch (this.$route.path) {
         case "/comment": {
           this.$bus.$emit("loadMoreComments");
@@ -77,7 +82,7 @@ export default {
       refresh();
       // 详见 scroll 组件的注释
       this.$refs.scroll.finishPullUp();
-    },
+    }, 1000),
   },
 };
 </script>

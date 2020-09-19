@@ -94,6 +94,11 @@ export default {
       this.requestHComments(newValue);
     },
   },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$emit("toTop");
+    });
+  },
   methods: {
     requestComments(sid) {
       songComment(sid).then((res) => {

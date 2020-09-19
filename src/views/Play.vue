@@ -1,52 +1,54 @@
 <template>
-  <div id="play" :style="backImage">
-    <div class="left">
-      <img :src="imgs" alt="网易云音乐" />
-      <div class="song_singer">
-        <div class="name">
-          <el-tooltip content="歌曲名" placement="top">
-            <span>{{ name }}</span>
-          </el-tooltip>
-          <div>||</div>
+  <div>
+    <div id="play" :style="backImage">
+      <div class="left">
+        <img :src="imgs" alt="网易云音乐" />
+        <div class="song_singer">
+          <div class="name">
+            <el-tooltip content="歌曲名" placement="top">
+              <span>{{ name }}</span>
+            </el-tooltip>
+            <div>||</div>
+          </div>
+          <div class="name">
+            <el-tooltip content="点击查看歌手详情" placement="bottom">
+              <span @click="searchPlayer()">
+                {{ player }}
+              </span>
+            </el-tooltip>
+          </div>
         </div>
-        <div class="name">
-          <el-tooltip content="点击查看歌手详情" placement="bottom">
+      </div>
+      <audio
+        id="audio"
+        ref="audio"
+        :src="urls"
+        autoplay
+        muted
+        crossorigin="anonymous"
+      />
+      <video
+        ref="video"
+        autoplay
+        muted
+        crossorigin="anonymous"
+        :src="videos"
+        v-if="hasMv && isPc"
+      />
+      <canvas id="canvas"></canvas>
+      <div class="rightS">
+        <div class="song_name">{{ name }}</div>
+        <div>|</div>
+        <div class="singer">
+          <el-tooltip content="点击查看歌手详情" placement="right">
             <span @click="searchPlayer()">
               {{ player }}
             </span>
           </el-tooltip>
         </div>
       </div>
+      <r-lyric class="right" :songId="id" :cTime="cTime" />
     </div>
-    <audio
-      id="audio"
-      ref="audio"
-      :src="urls"
-      autoplay
-      muted
-      crossorigin="anonymous"
-    />
-    <video
-      ref="video"
-      autoplay
-      muted
-      crossorigin="anonymous"
-      :src="videos"
-      v-if="hasMv && isPc"
-    />
-    <!--    <canvas id="canvas"></canvas>-->
-    <div class="rightS">
-      <div class="song_name">{{ name }}</div>
-      <div>|</div>
-      <div class="singer">
-        <el-tooltip content="点击查看歌手详情" placement="right">
-          <span @click="searchPlayer()">
-            {{ player }}
-          </span>
-        </el-tooltip>
-      </div>
-    </div>
-    <r-lyric class="right" :songId="id" :cTime="cTime" />
     <div class="playControl">
       <div class="control">
         <el-tooltip content="随机播放" placement="bottom">
@@ -164,9 +166,7 @@ export default {
   created() {
     this.id = this.$store.state.songId;
     this.requestCover(this.id);
-    musicUrl(this.id).then((res) => {
-      this.urls = res.data.data[0].url;
-    });
+    this.requestMusicUrl(this.id);
   },
   mounted() {
     let audio = this.$refs.audio;
@@ -254,6 +254,9 @@ export default {
       });
     },
     status(newValue) {
+      if (!this.hasMv || !this.isPc) {
+        return;
+      }
       let video = this.$refs.video;
       if (newValue) {
         this.videos && video.play();
@@ -266,15 +269,13 @@ export default {
         this.id = newValue;
         this.playlistIds = this.order ? this.playlistIds : this.randomListIds;
         this.$store.commit("updateSongId", newValue);
-        musicUrl(newValue).then((res) => {
-          this.urls = res.data.data[0].url;
-          if (!this.urls) {
-            this.showAlert();
-          } else {
-            this.requestCover(newValue);
-            this.play();
-          }
-        });
+        this.requestMusicUrl();
+        if (this.urls) {
+          this.requestCover(newValue);
+          this.play();
+        } else {
+          this.showAlert();
+        }
       } else {
         this.showAlert();
       }
@@ -307,6 +308,11 @@ export default {
           this.name = database.name;
           this.player = database.ar[0].name;
         }
+      });
+    },
+    requestMusicUrl(id) {
+      musicUrl(this.id).then((res) => {
+        this.urls = res.data.data[0].url;
       });
     },
     doRandom() {
@@ -366,7 +372,7 @@ export default {
 
       audio.currentTime = this.cTime;
       audio.play();
-      if (this.hasMv) {
+      if (this.hasMv && this.isPc) {
         video.currentTime = this.cTime;
         video.play();
       }
@@ -421,58 +427,59 @@ export default {
       });
       this.next();
     },
-    // onLoadAudio() {
-    //   let context = new (window.AudioContext || window.webkitAudioContext)();
-    //   let analyser = context.createAnalyser();
-    //   analyser.fftSize = 512;
-    //   let source = context.createMediaElementSource(audio);
-    //
-    //   source.connect(analyser);
-    //   analyser.connect(context.destination);
-    //
-    //   let bufferLength = analyser.frequencyBinCount;
-    //   let dataArray = new Uint8Array(bufferLength);
-    //
-    //   let canvas = document.getElementById("canvas");
-    //   canvas.width = window.innerWidth;
-    //   canvas.height = window.innerHeight;
-    //
-    //   let ctx = canvas.getContext("2d");
-    //   let WIDTH = canvas.width;
-    //   let HEIGHT = canvas.height;
-    //
-    //   let barWidth = (WIDTH / bufferLength) * 1.5;
-    //   let barHeight;
-    //
-    //   function renderFrame() {
-    //     requestAnimationFrame(renderFrame);
-    //
-    //     analyser.getByteFrequencyData(dataArray);
-    //
-    //     ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    //
-    //     for (let i = 0, x = 0; i < bufferLength; i++) {
-    //       barHeight = dataArray[i];
-    //
-    //       let r = barHeight + 25 * (i / bufferLength);
-    //       // let r = Math.round(Math.random()*255);
-    //
-    //       let g = 250 * (i / bufferLength);
-    //       // let g = Math.round(Math.random()*255);
-    //
-    //       let b = 50;
-    //       // let b = Math.round(Math.random()*255);
-    //
-    //       ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-    //       ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
-    //
-    //       x += barWidth + 2;
-    //     }
-    //   }
-    //
-    //   renderFrame();
-    //   // setInterval(renderFrame, 44);
-    // }
+    onLoadAudio() {
+      let context = new (window.AudioContext || window.webkitAudioContext)();
+      let analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      let source = context.createMediaElementSource(audio);
+
+      source.connect(analyser);
+      analyser.connect(context.destination);
+
+      let bufferLength = analyser.frequencyBinCount;
+      let dataArray = new Uint8Array(bufferLength);
+
+      let canvas = document.getElementById("canvas");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let ctx = canvas.getContext("2d");
+      let WIDTH = canvas.width;
+      let HEIGHT = canvas.height;
+
+      let barWidth = (WIDTH / bufferLength) * 1.5;
+      let barHeight;
+
+      function renderFrame() {
+        requestAnimationFrame(renderFrame);
+
+        analyser.getByteFrequencyData(dataArray);
+
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        for (let i = 0, x = 0; i < bufferLength; i++) {
+          barHeight = dataArray[i];
+
+          let r = barHeight + 25 * (i / bufferLength);
+          // let r = Math.round(Math.random()*255);
+
+          let g = 250 * (i / bufferLength);
+          // let g = Math.round(Math.random()*255);
+
+          let b = 50;
+          // let b = Math.round(Math.random()*255);
+
+          ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+          // ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+          ctx.arc(x, HEIGHT, 50, 2 * Math.PI, false);
+
+          x += barWidth + 2;
+        }
+      }
+
+      renderFrame();
+      // setInterval(renderFrame, 44);
+    },
   },
 };
 </script>
@@ -490,11 +497,11 @@ video {
 
 #canvas {
   position: absolute;
-  left: 5%;
-  bottom: 80px;
   width: 90%;
-  height: 200%;
+  height: 32vh;
+  left: 5%;
   opacity: 0.75;
+  z-index: 1;
 }
 
 img {
@@ -587,9 +594,7 @@ i {
 .playControl {
   width: 96%;
   margin: 0 2vw;
-  padding: 10px;
-  position: absolute;
-  bottom: 10px;
+  padding: 5px;
   display: flex;
   justify-content: center;
   background-color: #efeaea85;
@@ -684,8 +689,7 @@ hr {
 
   #canvas {
     width: 100%;
-    height: 35vh;
-    position: fixed;
+    height: 20vh;
     left: 0;
     top: 0;
   }

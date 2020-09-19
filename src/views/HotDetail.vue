@@ -17,10 +17,6 @@
         >
           <div>
             <el-badge :value="item.playCount | roundW">
-              <!-- <div class="top">
-              <i class="fa fa-headphones" aria-hidden="true"></i>
-              {{ item.playCount | roundW }}
-            </div> -->
               <div class="bottom">
                 By
                 <span>{{ item.creator.nickname }}</span>
@@ -37,6 +33,7 @@
 
 <script>
 import { hotDetails } from "@/network/Request";
+import { debounce } from "../utils";
 
 export default {
   name: "hotDetail",
@@ -54,7 +51,18 @@ export default {
       if (this.limit <= 100) {
         this.limit += 24;
         this.requestHotDetails(this.limit);
+      } else {
+        this.$notify({
+          title: "警告",
+          message: "已经加载了全部歌单啦！",
+          type: "warning",
+        });
       }
+    });
+  },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$emit("toTop");
     });
   },
   methods: {
@@ -63,7 +71,11 @@ export default {
         if (res.data.code === 200) {
           this.hotDetailLists = res.data.playlists;
         } else {
-          console.log("There is some errors~");
+          this.$notify({
+            title: "错误",
+            message: "There is some errors~",
+            type: "error",
+          });
         }
       });
     },
@@ -73,7 +85,8 @@ export default {
     },
   },
   beforeDestroy() {
-    this.$bus.$off("loadMoreHotDetails"); //当这个组件销毁的时候bus也跟着一起销毁
+    //当这个组件销毁的时候bus也跟着一起销毁
+    this.$bus.$off("loadMoreHotDetails");
   },
 };
 </script>
@@ -100,10 +113,6 @@ export default {
 @media screen and (max-width: 768px) {
   .bottom {
     bottom: 25px;
-  }
-
-  img {
-    margin: 5px;
   }
 }
 </style>

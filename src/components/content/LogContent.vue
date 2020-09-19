@@ -1,9 +1,6 @@
 <template>
   <div>
-    <el-button
-      type="primary"
-      v-if="username.length === 0"
-      @click="dialogVisible = true"
+    <el-button type="primary" v-if="!userId" @click="dialogVisible = true"
       >进入我的网易云
     </el-button>
     <el-dropdown
@@ -81,6 +78,7 @@ export default {
       this.username = "";
       this.$store.commit("updateUserId", "");
       this.$store.commit("updateUserName", "");
+      window.localStorage.clear();
     },
   },
 };

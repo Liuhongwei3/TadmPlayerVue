@@ -189,6 +189,11 @@ export default {
       newValue && this.showSongs && this.searchSongs();
     },
   },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$emit("toTop");
+    });
+  },
   methods: {
     songId(sid) {
       this.$store.commit("updateSongId", sid);

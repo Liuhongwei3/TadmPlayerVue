@@ -4,7 +4,9 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
+    strict: true,
     state: {
+        toplists: [],
         username: "",
         userId: 537069044,
         detailId: 3778678,
@@ -30,8 +32,14 @@ export default new Vuex.Store({
         },
         updateUserName: (state, payload) => {
             state.username = payload
+        },
+        updateTopLists: (state, payload) => {
+            state.toplists = payload
+        },
+    },
+    actions: {
+        updateTopLists({ commit }, data) {
+            commit("updateTopLists", data.list)
         }
     },
-    actions: {},
-    modules: {}
 })

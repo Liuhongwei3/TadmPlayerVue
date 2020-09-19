@@ -23,6 +23,7 @@
     background-color: #282c34;
 }
 
+#top,
 #user,
 #userFollow {
     display: flex;
@@ -73,11 +74,11 @@
 }
 
 .fa-2x {
-    font-size: 1.8em;
+    font-size: 1.6em;
 }
 
 .content {
-    height: 53vh;
+    height: 52vh;
     overflow: hidden;
 }
 
@@ -171,6 +172,24 @@
     top: 15px;
     right: 40px;
     z-index: 6;
+}
+
+.el-pagination {
+    margin-top: 15px;
+}
+
+.el-pagination__total {
+    color: white;
+}
+
+.page-wrapper {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.page-content {
+    display: inline-block;
 }
 
 .user-info {

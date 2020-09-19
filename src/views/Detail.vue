@@ -24,7 +24,7 @@
     <div id="detail">
       <div
         class="items main"
-        v-for="(item, index) in detailList"
+        v-for="(item, index) in filterList"
         :key="index"
         @click="updateSongId(item.id)"
       >
@@ -47,14 +47,30 @@
         <!--        <img class="play" src="@/assets/play_icon.png" alt="">-->
       </div>
     </div>
+    <horizontal-scroll class="page-wrapper" :probe-type="3">
+      <div class="page-content">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="detailList.length"
+          :page-sizes="[15, 25, 30, 50, 100]"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
+        </el-pagination></div
+    ></horizontal-scroll>
   </div>
 </template>
 
 <script>
 import { playlistdetail, musicCover } from "@/network/Request";
+import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
 export default {
   name: "Detail",
+  components: {
+    HorizontalScroll,
+  },
   data() {
     return {
       detailName: "",
@@ -64,11 +80,26 @@ export default {
       detailList: [],
       playlistIds: [],
       imgUrls: [],
+      pageSize: 15,
+      curPage: 1,
     };
   },
   created() {
     let pdlId = this.$store.state.detailId;
     this.requestPlaylistDetail(pdlId);
+  },
+  computed: {
+    filterList() {
+      return this.detailList.slice(
+        (this.curPage - 1) * this.pageSize,
+        this.pageSize * this.curPage
+      );
+    },
+  },
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$emit("toTop");
+    });
   },
   methods: {
     async requestPlaylistDetail(pdlId) {
@@ -108,6 +139,14 @@ export default {
     updateUserId() {
       this.$store.commit("updateUserId", this.detailAuthorId);
       this.$router.push("/user");
+    },
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.$emit("toTop");
+    },
+    handleCurrentChange(val) {
+      this.curPage = val;
+      this.$emit("toTop");
     },
   },
 };
