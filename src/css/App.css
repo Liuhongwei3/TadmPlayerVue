@@ -36,6 +36,12 @@
     font-size: 14px;
 }
 
+#controlPc {
+    position: absolute;
+    z-index: 66;
+    right: 5px;
+}
+
 .items:hover {
     color: #ff6c80;
 }

@@ -1,6 +1,20 @@
 <template>
   <div>
     <div id="play" :style="backImage">
+      <el-tooltip
+        id="controlPc"
+        :content="'显示 MV: ' + showMv"
+        placement="bottom"
+      >
+        <el-switch
+          v-model="showMv"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+          :active-value="true"
+          :inactive-value="false"
+        >
+        </el-switch>
+      </el-tooltip>
       <div class="left">
         <img :src="imgs" alt="网易云音乐" />
         <div class="song_singer">
@@ -33,7 +47,7 @@
         muted
         crossorigin="anonymous"
         :src="videos"
-        v-if="hasMv && isPc"
+        v-show="hasMv && showMv"
       />
       <canvas id="canvas"></canvas>
       <div class="rightS">
@@ -55,7 +69,7 @@
           <i
             class="fa fa-random fa-2x"
             aria-hidden="true"
-            v-if="random"
+            v-if="!order"
             @click="changeList"
           ></i>
         </el-tooltip>
@@ -150,17 +164,16 @@ export default {
       imgs: "",
       videos: "",
       urls: "",
-      randomListIds: [],
       currentIndex: 0,
       currDuration: 0,
       order: true,
-      random: false,
       cTime: 0,
       percent: 0,
       oWidth: 0,
       status: false,
       hasMv: false,
       isPc: false,
+      showMv: false,
     };
   },
   created() {
@@ -198,11 +211,7 @@ export default {
       this.cTime = 0;
       this.percent = 0;
       this.currDuration = 0;
-      this.currentIndex++;
-    });
-    audio.addEventListener("error", () => {
-      console.log("error");
-      this.showAlert();
+      this.next();
     });
   },
   computed: {
@@ -229,7 +238,12 @@ export default {
     },
     playlistIds: {
       get() {
-        return this.$store.state.playlistIds;
+        let lists = [...this.$store.state.playlistIds];
+        if (this.order) {
+          return lists;
+        } else {
+          return shuffle([...lists]);
+        }
       },
       set(val) {
         this.$store.commit("updatePlaylistIds", val);
@@ -238,20 +252,21 @@ export default {
   },
   watch: {
     name(newValue) {
-      search(newValue + " " + this.player, 1004).then((res) => {
-        let {
-          data: { result },
-        } = res;
-        this.hasMv =
-          Object.keys(result).length !== 0 && result.mvs.length !== 0;
-        if (this.hasMv) {
-          let mvid = result.mvs[0].id;
-          mvid &&
-            getMv(mvid).then((res) => {
-              this.videos = res.data.data.url;
-            });
-        }
-      });
+      this.isPc &&
+        search(newValue + " " + this.player, 1004).then((res) => {
+          let {
+            data: { result },
+          } = res;
+          this.hasMv =
+            Object.keys(result).length !== 0 && result.mvs.length !== 0;
+          if (this.hasMv) {
+            let mvid = result.mvs[0].id;
+            mvid &&
+              getMv(mvid).then((res) => {
+                this.videos = res.data.data.url;
+              });
+          }
+        });
     },
     status(newValue) {
       if (!this.hasMv || !this.isPc) {
@@ -267,15 +282,9 @@ export default {
     id(newValue) {
       if (newValue) {
         this.id = newValue;
-        this.playlistIds = this.order ? this.playlistIds : this.randomListIds;
         this.$store.commit("updateSongId", newValue);
-        this.requestMusicUrl();
-        if (this.urls) {
-          this.requestCover(newValue);
-          this.play();
-        } else {
-          this.showAlert();
-        }
+        this.requestCover(newValue);
+        this.requestMusicUrl(newValue);
       } else {
         this.showAlert();
       }
@@ -283,41 +292,31 @@ export default {
     currentIndex() {
       this.id = this.playlistIds[this.currentIndex];
     },
-    order() {
-      if (this.order) {
-        this.playlistIds = this.$store.state.playlistIds;
-      } else {
-        this.doRandom();
-      }
-    },
-    random() {
-      if (this.random) {
-        this.doRandom();
-      } else {
-        this.playlistIds = this.$store.state.playlistIds;
-      }
-    },
   },
   methods: {
-    requestCover(newValue) {
-      musicCover(newValue).then((res) => {
-        if (res.data.code === 200) {
-          let database = res.data.songs[0];
-          this.imgs = database.al.picUrl;
-          this.$store.state.imgUrl = this.imgs;
-          this.name = database.name;
-          this.player = database.ar[0].name;
-        }
-      });
+    async requestCover(newValue) {
+      this.imgs = "";
+      this.name = "";
+      this.player = "";
+      let { data } = await musicCover(newValue);
+      if (data.code === 200) {
+        let database = data.songs[0];
+        this.imgs = database.al.picUrl;
+        this.$store.state.imgUrl = this.imgs;
+        this.name = database.name;
+        this.player = database.ar[0].name;
+      }
     },
-    requestMusicUrl(id) {
-      musicUrl(this.id).then((res) => {
-        this.urls = res.data.data[0].url;
-      });
-    },
-    doRandom() {
-      this.randomListIds = [...this.playlistIds];
-      this.playlistIds = shuffle(this.randomListIds);
+    async requestMusicUrl(id) {
+      this.urls = "";
+      let res = await musicUrl(id);
+      let url = res.data.data[0].url;
+      if (url) {
+        this.urls = url;
+        this.play();
+      } else {
+        this.showAlert();
+      }
     },
     jumpIndex() {
       if (this.id !== this.playlistIds[this.currentIndex]) {
@@ -330,7 +329,7 @@ export default {
       this.status = true;
       let audio = this.$refs.audio;
       if (audio.paused) {
-        audio.play();
+        this.$nextTick(() => audio.play());
       } else {
         audio.pause();
       }
@@ -351,12 +350,14 @@ export default {
     next() {
       this.jumpIndex();
       this.currentIndex++;
-      if (this.currentIndex >= this.playlistIds.length) {
+      if (
+        this.playlistIds.length === 1 ||
+        this.currentIndex >= this.playlistIds.length
+      ) {
         this.currentIndex = 0;
       }
     },
     changeList() {
-      this.random = !this.random;
       this.order = !this.order;
     },
     searchPlayer() {
