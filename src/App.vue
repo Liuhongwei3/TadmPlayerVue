@@ -1,38 +1,32 @@
 <template>
   <div id="app">
     <nav-bar />
-    <v-touch @swipeleft="toLeft" @swiperight="toRight">
-      <div class="center">
-        <div class="home">
-          <Play />
-        </div>
-        <vertical-scroll
-          class="content"
-          ref="scroll"
-          :probe-type="3"
-          :pull-up-load="true"
-          @scroll="contentScroll"
-          @pullingUp="loadMore"
-        >
-          <div>
-            <transition name="fade">
-              <div>
-                <keep-alive>
-                  <router-view v-if="$route.meta.keepAlive" @toTop="backTop" />
-                </keep-alive>
-                <router-view v-if="!$route.meta.keepAlive" @toTop="backTop" />
-              </div>
-            </transition>
-            <keep-alive>
-              <About />
-            </keep-alive>
-          </div>
-        </vertical-scroll>
+    <div class="center">
+      <div class="home">
+        <Play />
       </div>
-    </v-touch>
-    <back-top class="backTop" @backTop="backTop" v-show="showBackTop">
-      <i class="fa fa-arrow-up fa-2x" aria-hidden="true"></i>
-    </back-top>
+      <vertical-scroll
+        class="content"
+        ref="scroll"
+        :probe-type="3"
+        :pull-up-load="true"
+        @scroll="contentScroll"
+        @pullingUp="loadMore"
+      >
+        <transition name="fade">
+          <div>
+            <keep-alive>
+              <router-view v-if="$route.meta.keepAlive" @to-top="backTop" />
+            </keep-alive>
+            <router-view v-if="!$route.meta.keepAlive" @to-top="backTop" />
+          </div>
+        </transition>
+        <keep-alive>
+          <About />
+        </keep-alive>
+      </vertical-scroll>
+    </div>
+    <back-top class="backTop" @backTop="backTop" v-show="showBackTop" />
   </div>
 </template>
 
@@ -58,16 +52,6 @@ export default {
   data() {
     return {
       showBackTop: false,
-      routes: [
-        "/",
-        "/top",
-        "/hotDetail",
-        "/search",
-        "/singer",
-        "/user",
-        "/detail",
-        "comment",
-      ],
     };
   },
   mounted() {
@@ -103,26 +87,6 @@ export default {
       // 详见 scroll 组件的注释
       this.$refs.scroll.finishPullUp();
     }, 1000),
-    findRouteIndex() {
-      return this.routes.findIndex((item) => item === this.$route.path);
-    },
-    toLeft() {
-      let route = this.findRouteIndex();
-      if (route === 0) {
-        route = this.routes.length;
-      }
-      if (route === -1) {
-        route = this.routes.length - 1;
-      }
-      this.$router.push(this.routes[route - 1]);
-    },
-    toRight() {
-      let route = this.findRouteIndex();
-      if (route > this.routes.length - 1) {
-        route = 0;
-      }
-      this.$router.push(this.routes[route + 1]);
-    },
   },
 };
 </script>

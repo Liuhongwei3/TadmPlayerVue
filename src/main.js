@@ -15,7 +15,7 @@ Vue.prototype.$notify = ElementUI.Notification;
 Vue.use(VueLazyLoad, {
     preLoad: 1.3,
     attempt: 6,
-    error: '@/assets/404.jpg'
+    error: require('@/assets/404.jpg')
 });
 
 Vue.use(VueTouch, { name: "v-touch" });

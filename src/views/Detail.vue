@@ -1,29 +1,25 @@
 <template>
   <div>
-    <div class="title">
+    <div>
       <el-tooltip placement="top" :content="this.detailName">
-        <el-tag class="author" type="info">
+        <el-tag type="primary">
           {{ this.detailName }}
         </el-tag>
       </el-tooltip>
-      &nbsp;&nbsp;
       <el-tooltip placement="top" :content="this.detailAuthorName">
         <el-tag type="success" title="点击查看用户详情" @click="updateUserId()">
           {{ this.detailAuthorName }}
         </el-tag>
       </el-tooltip>
     </div>
-    <!-- <el-card class="box-card" v-if="description">
-      {{ this.description }}
-    </el-card> -->
     <el-collapse class="box-card" v-if="description">
       <el-collapse-item class="desc" title="歌单简介">
         {{ this.description }}
       </el-collapse-item>
     </el-collapse>
-    <div id="detail">
+    <div class="main">
       <div
-        class="items main"
+        class="items"
         v-for="(item, index) in filterList"
         :key="index"
         @click="updateSongId(item.id)"
@@ -44,7 +40,6 @@
             </p>
           </div>
         </el-tooltip>
-        <!--        <img class="play" src="@/assets/play_icon.png" alt="">-->
       </div>
     </div>
     <horizontal-scroll class="page-wrapper" :probe-type="3">
@@ -79,7 +74,6 @@ export default {
       description: "",
       detailList: [],
       playlistIds: [],
-      imgUrls: [],
       pageSize: 15,
       curPage: 1,
     };
@@ -102,7 +96,12 @@ export default {
     });
   },
   methods: {
-    async requestPlaylistDetail(pdlId) {
+    requestPlaylistDetail(pdlId) {
+      this.$notify({
+        title: "信息提示",
+        message: "加载歌单数据中！",
+        type: "info",
+      });
       playlistdetail(pdlId).then((res) => {
         let {
           data: { playlist },
@@ -123,7 +122,6 @@ export default {
           this.detailList = data.songs;
           for (let i = 0; i < this.detailList.length; i++) {
             this.playlistIds[i] = this.detailList[i].id;
-            this.imgUrls[i] = this.detailList[i].al.picUrl;
           }
         });
       });
@@ -151,36 +149,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.author {
-  color: #ff2b2b;
-}
-
-#detail,
-.play {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-
-.items {
-  position: relative;
-}
-
-.play {
-  width: 150px;
-  height: 150px;
-  position: absolute;
-  top: 0;
-  left: 5px;
-  opacity: 0;
-}
-
-@media screen and (max-width: 768px) {
-  .play {
-    width: 100px;
-    height: 100px;
-  }
-}
-</style>

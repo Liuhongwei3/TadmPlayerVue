@@ -16,7 +16,7 @@
         </el-switch>
       </el-tooltip>
       <div class="left">
-        <img :src="imgs" alt="网易云音乐" />
+        <img :src="imgs" :onerror="defaultImgs" alt="网易云音乐" />
         <div class="song_singer">
           <div class="name">
             <el-tooltip content="歌曲名" placement="top">
@@ -162,6 +162,7 @@ export default {
       name: "",
       player: "",
       imgs: "",
+      defaultImgs: 'this.src="' + require("@/assets/404.jpg") + '"',
       videos: "",
       urls: "",
       currentIndex: 0,
@@ -252,7 +253,7 @@ export default {
   },
   watch: {
     name(newValue) {
-      this.isPc &&
+      this.showMv &&
         search(newValue + " " + this.player, 1004).then((res) => {
           let {
             data: { result },
@@ -417,10 +418,6 @@ export default {
       });
     },
     showAlert() {
-      // this.$message.error({
-      //   showClose: true,
-      //   message: "好像出错误了！尝试自动切换到下一首！",
-      // });
       this.$notify({
         title: "错误",
         message: "好像出错误了！尝试自动切换到下一首 ~",

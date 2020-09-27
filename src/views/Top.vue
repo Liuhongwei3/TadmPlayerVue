@@ -2,7 +2,7 @@
   <div>
     <el-tag type="danger">热门排行榜</el-tag>
     <el-tag type="danger">网易云音乐</el-tag>
-    <div id="top" class="main">
+    <div class="main">
       <div v-for="(item, index) in toplists" :key="index">
         <el-tooltip placement="top" :content="item.name">
           <div>

@@ -106,6 +106,11 @@ export default {
       });
     },
     requestHComments(sid, limit = 20) {
+      this.$notify({
+        title: "信息提示",
+        message: "加载热门评论中！",
+        type: "info",
+      });
       songHotComment(sid, limit).then((res) => {
         this.hotComments = res.data.hotComments;
       });

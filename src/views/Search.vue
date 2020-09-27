@@ -1,182 +1,60 @@
 <template>
   <div id="search">
-    <input
+    <el-input
       type="text"
-      class="form-control searchInput"
+      class="searchInput"
       placeholder="Please Input your search content~"
-      v-model.lazy="keyword"
-    />
-    <div class="choose">
-      <div class="form-check" @click="searchSongs">
-        <input
-          class="form-check-input"
-          type="radio"
-          name="exampleRadios"
-          id="Radios1"
-          value="option1"
-          checked
-        />
-        <label class="form-check-label" for="Radios1">
-          歌曲
-        </label>
-      </div>
-      <div class="form-check" @click="searchLyrics">
-        <input
-          class="form-check-input"
-          type="radio"
-          name="exampleRadios"
-          id="Radios2"
-          value="option2"
-        />
-        <label class="form-check-label" for="Radios2">
-          歌词
-        </label>
-      </div>
-      <div class="form-check" @click="searchDetails">
-        <input
-          class="form-check-input"
-          type="radio"
-          name="exampleRadios"
-          id="Radios3"
-          value="option2"
-        />
-        <label class="form-check-label" for="Radios3">
-          歌单
-        </label>
-      </div>
-      <div class="form-check" @click="searchSingers">
-        <input
-          class="form-check-input"
-          type="radio"
-          name="exampleRadios"
-          id="Radios4"
-          value="option2"
-        />
-        <label class="form-check-label" for="Radios4">
-          歌手
-        </label>
-      </div>
-      <div class="form-check" @click="searchUsers">
-        <input
-          class="form-check-input"
-          type="radio"
-          name="exampleRadios"
-          id="Radios5"
-          value="option2"
-        />
-        <label class="form-check-label" for="Radios5">
-          用户
-        </label>
-      </div>
-    </div>
-
+      v-model.lazy.trim="keyword"
+      clearable
+    >
+      <el-select v-model="select" slot="prepend" placeholder="请选择">
+        <el-option label="歌曲" value="1"></el-option>
+        <el-option label="歌词" value="2"></el-option>
+        <el-option label="歌单" value="3"></el-option>
+        <el-option label="歌手" value="4"></el-option>
+        <el-option label="用户" value="5"></el-option>
+      </el-select>
+      <el-button
+        slot="append"
+        icon="el-icon-search"
+        @click="doSearch"
+      ></el-button>
+    </el-input>
     <div id="hotSearch">
       <span
         id="hotSearchResults"
         :key="item.first"
         v-for="item in hotSearchResults"
       >
-        <el-tooltip :content="item.first" placement="bottom">
-          <el-tag type="success" @click="updateKeyword(item.first)">
-            {{ item.first }}
-          </el-tag>
-        </el-tooltip>
+        <el-tag type="success" @click="updateKeyword(item.first)">
+          {{ item.first }}
+        </el-tag>
       </span>
     </div>
-    <div id="searchResult" v-show="showSongs">
-      <no-result :result="searchResults"></no-result>
-      <div class="main" v-for="item in searchResults" :key="item.id">
-        <el-tooltip
-          :content="`${item.name} --- ${item.artists[0].name}`"
-          placement="right"
-        >
-          <div>
-            <img v-lazy="item.rUrl" :key="item.rUrl" @click="songId(item.id)" />
-            <p class="name">{{ item.name }}---{{ item.artists[0].name }}</p>
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
-    <div id="searchLyrics" v-show="showLyrics">
-      <no-result :result="searchLyricsResults"></no-result>
-      <div class="main" v-for="item in searchLyricsResults" :key="item.id">
-        <el-tooltip
-          :content="`${item.name} --- ${item.name}`"
-          placement="right"
-        >
-          <div>
-            <img v-lazy="item.artists[0].img1v1Url" @click="songId(item.id)" />
-            <p class="name">{{ item.name }}</p>
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
-    <div id="searchDetails" v-show="showDetails">
-      <no-result :result="searchDetailsResults"></no-result>
-      <div class="main" v-for="item in searchDetailsResults" :key="item.id">
-        <el-tooltip
-          :content="`${item.name} --- ${item.name}`"
-          placement="right"
-        >
-          <div>
-            <img v-lazy="item.coverImgUrl" @click="updatePlaylist(item.id)" />
-            <p class="name">{{ item.name }}</p>
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
-    <div id="searchSingers" v-show="showSingers">
-      <no-result :result="searchSingersResults"></no-result>
-      <div class="main" v-for="item in searchSingersResults" :key="item.id">
-        <el-tooltip
-          :content="`${item.name} --- ${item.name}`"
-          placement="right"
-        >
-          <div>
-            <img v-lazy="item.picUrl" @click="updateSingerName(item.name)" />
-            <p class="name">{{ item.name }}</p>
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
-    <div id="searchUser" v-show="showUsers">
-      <no-result :result="searchUserResults"></no-result>
-      <div class="main" v-for="item in searchUserResults" :key="item.userId">
-        <el-tooltip
-          :content="`${item.name} --- ${item.nickname}`"
-          placement="right"
-        >
-          <div>
-            <img v-lazy="item.avatarUrl" @click="updateUserId(item.userId)" />
-            <p class="name">{{ item.nickname }}</p>
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
+    <Items :lists="searchResults" @newId="updateId" />
   </div>
 </template>
 
 <script>
-import { hotSearch, musicCover, searchMusic, search } from "@/network/Request";
-import NoResult from "@/components/common/noResult/NoResult";
+import {
+  hotSearch,
+  musicCover,
+  searchMusic,
+  search,
+  singer,
+} from "@/network/Request";
+import Items from "@/components/common/items/Items";
 
 export default {
   name: "search",
-  components: { NoResult },
+  components: { Items },
   data() {
     return {
-      showSongs: true,
-      showLyrics: false,
-      showDetails: false,
-      showSingers: false,
-      showUsers: false,
+      select: "1",
       keyword: "",
-      searchResults: [],
+      tempKeyword: "",
       hotSearchResults: [],
-      searchDetailsResults: [],
-      searchLyricsResults: [],
-      searchSingersResults: [],
-      searchUserResults: [],
+      searchResults: [],
     };
   },
   created() {
@@ -185,8 +63,8 @@ export default {
     });
   },
   watch: {
-    keyword(newValue) {
-      newValue && this.showSongs && this.searchSongs();
+    select(newValue) {
+      this.doSearch();
     },
   },
   beforeRouteEnter(to, from, next) {
@@ -195,114 +73,161 @@ export default {
     });
   },
   methods: {
-    songId(sid) {
-      this.$store.commit("updateSongId", sid);
+    async updateId(id) {
+      switch (+this.select) {
+        case 1:
+        case 2: {
+          this.$store.commit("updateSongId", id);
+          break;
+        }
+        case 3: {
+          this.$store.commit("updateDetailId", id);
+          this.$router.push("/detail");
+          break;
+        }
+        case 4: {
+          let {
+            data: {
+              artist: { name },
+            },
+          } = await singer(id);
+          this.$store.commit("updateSingerName", name);
+          this.$router.push("/singer");
+          break;
+        }
+        case 5: {
+          this.$store.commit("updateUserId", id);
+          this.$router.push("/user");
+          break;
+        }
+      }
     },
     updateKeyword(keyword) {
       this.keyword = keyword;
+      this.doSearch();
     },
-    searchSongs() {
-      this.showLyrics = false;
-      this.showDetails = false;
-      this.showSingers = false;
-      this.showUsers = false;
-      this.showSongs = true;
-      this.keyword &&
-        searchMusic(this.keyword).then((res) => {
-          this.searchResults = res.data.result.songs;
-          for (let i = 0; i < this.searchResults.length; i++) {
-            musicCover(this.searchResults[i].id).then((res) => {
-              if (res.data.code === 200) {
-                let database = res.data.songs[0];
-                this.searchResults[i].rUrl = database.al.picUrl;
-              }
-            });
-          }
+    doSearch() {
+      let select = +this.select;
+      if (!select) {
+        this.$message.warning({
+          showClose: true,
+          message: "请选择搜索选项！",
         });
-    },
-    searchLyrics() {
-      this.showSongs = false;
-      this.showLyrics = true;
-      this.showDetails = false;
-      this.showUsers = false;
-      this.showSingers = false;
-      this.keyword &&
-        search(this.keyword, 1006).then((res) => {
-          this.searchLyricsResults = res.data.result.songs;
-        });
-    },
-    searchDetails() {
-      this.showSongs = false;
-      this.showLyrics = false;
-      this.showDetails = true;
-      this.showUsers = false;
-      this.showSingers = false;
-      this.keyword &&
-        search(this.keyword, 1000).then((res) => {
-          this.searchDetailsResults = res.data.result.playlists;
-        });
-    },
-    searchSingers() {
-      this.showSongs = false;
-      this.showLyrics = false;
-      this.showDetails = false;
-      this.showUsers = false;
-      this.showSingers = true;
-      this.keyword &&
-        search(this.keyword, 100).then((res) => {
-          this.searchSingersResults = res.data.result.artists;
-        });
-    },
-    searchUsers() {
-      this.showSongs = false;
-      this.showLyrics = false;
-      this.showDetails = false;
-      this.showSingers = false;
-      this.showUsers = true;
-      this.keyword &&
-        search(this.keyword, 1002).then((res) => {
-          this.searchUserResults = res.data.result.userprofiles;
-        });
-    },
-    updatePlaylist(id) {
-      this.$store.commit("updatePlaylistCurrentId", id);
-      this.$router.push("/detail");
-    },
-    updateSingerName(name) {
-      this.$store.commit("updateSingerName", name);
-      this.$router.push("/singer");
-    },
-    updateUserId(uid) {
-      this.$store.commit("updateUserId", uid);
-      this.showCommentsFlag = !this.showCommentsFlag;
-      if (this.$route.path === "/user") {
-        this.$router.push("/home");
-        setTimeout(() => {
-          this.$router.push("/user").then((err) => {
-            console.log(err);
-          });
-        }, 350);
-      } else {
-        this.$router.push("/user").then((err) => {
-          console.log(err);
-        });
+        return;
       }
+      if (!this.keyword) {
+        this.$message.warning({
+          showClose: true,
+          message: "请输入关键词后搜索！",
+        });
+        this.tempKeyword = "";
+        return;
+      }
+      if (this.tempKeyword === this.select + this.keyword) {
+        this.$message.warning({
+          showClose: true,
+          message: "该关键词搜索结果已显示在下方！本次将不再搜索！",
+        });
+        return;
+      }
+      switch (select) {
+        case 1: {
+          this.searchSongs();
+          break;
+        }
+        case 2: {
+          this.searchLyrics();
+          break;
+        }
+        case 3: {
+          this.searchDetails();
+          break;
+        }
+        case 4: {
+          this.searchSingers();
+          break;
+        }
+        case 5: {
+          this.searchUsers();
+          break;
+        }
+      }
+      this.tempKeyword = this.select + this.keyword;
+    },
+    handleData(songs = [], flag = 1) {
+      let lists = [];
+      for (let v of songs) {
+        let obj = {};
+        if (flag === 5) {
+          obj.id = v.userId;
+          obj.name = v.nickname;
+          obj.imgUrl = v.avatarUrl;
+          lists.push(obj);
+          continue;
+        }
+        obj.id = v.id;
+        obj.name = v.name;
+        if (flag === 4) {
+          obj.imgUrl = v.picUrl;
+          lists.push(obj);
+          continue;
+        }
+        obj.mvid = v.mvid;
+        if (flag === 1 || flag === 2) {
+          obj.nickname = v.artists[0].name;
+        } else if (flag === 3) {
+          obj.nickname = v.creator.nickname;
+          obj.imgUrl = v.coverImgUrl;
+        }
+        lists.push(obj);
+      }
+      this.searchResults = lists;
+    },
+    async searchSongs() {
+      let {
+        data: {
+          result: { songs },
+        },
+      } = await searchMusic(this.keyword);
+      this.handleData(songs, 1);
+    },
+    async searchLyrics() {
+      let {
+        data: {
+          result: { songs },
+        },
+      } = await search(this.keyword, 1006);
+      this.handleData(songs, 2);
+    },
+    async searchDetails() {
+      let {
+        data: {
+          result: { playlists },
+        },
+      } = await search(this.keyword, 1000);
+      this.handleData(playlists, 3);
+    },
+    async searchSingers() {
+      let {
+        data: {
+          result: { artists },
+        },
+      } = await search(this.keyword, 100);
+      this.handleData(artists, 4);
+    },
+    async searchUsers() {
+      let {
+        data: {
+          result: { userprofiles },
+        },
+      } = await search(this.keyword, 1002);
+      this.handleData(userprofiles, 5);
     },
   },
 };
 </script>
 
 <style scoped>
-#searchResult,
-#searchSingers,
-#searchLyrics,
-#searchDetails,
-#searchUser {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-}
-
 #hotSearchResults {
   color: #ff572b;
 }
@@ -313,17 +238,10 @@ export default {
 
 .searchInput {
   width: 50%;
-  margin: 0 auto;
 }
 
-.choose {
-  display: inline-flex;
-  margin: 10px;
-  color: #ff0057;
-}
-
-.form-check {
-  margin-left: 10px;
+.el-select {
+  width: 80px;
 }
 
 @media screen and (max-width: 768px) {
@@ -337,7 +255,7 @@ export default {
   }
 
   .searchInput {
-    width: 75%;
+    width: 90%;
   }
 }
 </style>

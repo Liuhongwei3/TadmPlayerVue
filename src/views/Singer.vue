@@ -22,10 +22,9 @@
           {{ this.briefDesc }}
         </el-collapse-item>
       </el-collapse>
-      <!-- <el-card class="box-card">{{ this.briefDesc }}</el-card> -->
-      <div id="singerSongs" v-show="this.songsFlag">
+      <div class="main" v-show="this.songsFlag">
         <div
-          class="items main"
+          class="items"
           v-for="item in filterList"
           :key="item.id"
           @click="songId(item.id)"
@@ -54,8 +53,8 @@
     <el-tooltip placement="top" content="点击显示或隐藏详情">
       <el-tag @click="changeSingerFlag">热门歌手排行榜</el-tag>
     </el-tooltip>
-    <div id="singer" v-show="this.singerFlag">
-      <div class="items main" v-for="item in hotSingers" :key="item.id">
+    <div class="main" v-show="this.singerFlag">
+      <div class="items" v-for="item in hotSingers" :key="item.id">
         <el-tooltip placement="top" content="点击查看歌手详情">
           <div>
             <img
@@ -162,18 +161,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-#singer,
-#singerSongs {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-@media screen and (max-width: 768px) {
-  img {
-    margin: 5px;
-  }
-}
-</style>

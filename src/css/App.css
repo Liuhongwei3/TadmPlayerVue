@@ -23,16 +23,20 @@
     background-color: #282c34;
 }
 
-#top,
-#user,
-#userFollow {
+#searchResult,
+#searchSingers,
+#searchLyrics,
+#searchDetails,
+#searchUser {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
 }
 
 .main {
-    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
     font-size: 14px;
 }
 
@@ -43,12 +47,7 @@
 }
 
 .items:hover {
-    color: #ff6c80;
-}
-
-.items:hover .play {
-    cursor: pointer;
-    opacity: 0.75;
+    color: #1ba2f0;
 }
 
 .name {
@@ -174,7 +173,7 @@
     background-color: rgb(200, 100, 100);
 }
 
-.el-badge__content.is-fixed {
+.items .el-badge__content.is-fixed {
     top: 15px;
     right: 40px;
     z-index: 6;
@@ -206,6 +205,7 @@
     .main img {
         width: 100px;
         height: 100px;
+        margin: 5px;
     }
     .bottom {
         width: 80px;

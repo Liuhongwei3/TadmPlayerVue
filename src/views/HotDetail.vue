@@ -4,9 +4,9 @@
     <el-tag type="info">放松心情</el-tag>
     <el-tag type="success">动感节奏</el-tag>
     <el-tag type="primary">轻松纯音乐</el-tag>
-    <div id="hotDetail">
+    <div class="main">
       <div
-        class="main"
+        class="items"
         v-for="item in hotDetailLists"
         :key="item.id"
         @click="updateDetailId(item.id)"
@@ -15,16 +15,13 @@
           placement="right"
           :content="`${item.name}---${item.creator.nickname}`"
         >
-          <div>
-            <el-badge :value="item.playCount | roundW">
-              <div class="bottom">
-                By
-                <span>{{ item.creator.nickname }}</span>
-              </div>
-              <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
-              <p class="name">{{ item.name }}</p>
-            </el-badge>
-          </div>
+          <el-badge :value="item.playCount | roundW">
+            <div class="bottom">
+              <span>By&nbsp;&nbsp;{{ item.creator.nickname }}</span>
+            </div>
+            <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
+            <p class="name">{{ item.name }}</p>
+          </el-badge>
         </el-tooltip>
       </div>
     </div>
@@ -92,16 +89,8 @@ export default {
 </script>
 
 <style scoped>
-#hotDetail {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-
-.main {
+.items {
   position: relative;
-  text-align: center;
   margin: 10px 0;
 }
 

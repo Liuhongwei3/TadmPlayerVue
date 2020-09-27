@@ -6,7 +6,7 @@
         <el-avatar size="medium" v-if="avatarUrl" :src="avatarUrl" />
         <span>创建的歌单</span>
       </div>
-      <div id="user">
+      <div class="main">
         <div
           class="items"
           v-for="item in filterList"
@@ -14,12 +14,10 @@
           @click="playlistId(item.id)"
         >
           <el-tooltip :content="item.name" placement="top">
-            <div class="main">
-              <el-badge :value="item.trackCount | roundW">
-                <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
-                <p class="name">{{ item.name }}</p>
-              </el-badge>
-            </div>
+            <el-badge :value="item.trackCount | roundW">
+              <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
+              <p class="name">{{ item.name }}</p>
+            </el-badge>
           </el-tooltip>
         </div>
       </div>
@@ -38,7 +36,7 @@
         </div>
       </horizontal-scroll>
       <div>关注的歌手</div>
-      <div id="userFollow">
+      <div class="main">
         <div
           class="items"
           v-for="item in followList"
@@ -46,12 +44,10 @@
           @click="singer(item.nickname)"
         >
           <el-tooltip placement="top" :content="item.nickname">
-            <div class="main">
-              <el-badge :value="item.followeds | roundW">
-                <img v-lazy="item.avatarUrl" :key="item.avatarUrl" />
-                <p class="name">{{ item.nickname }}</p>
-              </el-badge>
-            </div>
+            <el-badge :value="item.followeds | roundW">
+              <img v-lazy="item.avatarUrl" :key="item.avatarUrl" />
+              <p class="name">{{ item.nickname }}</p>
+            </el-badge>
           </el-tooltip>
         </div>
       </div>
@@ -119,6 +115,11 @@ export default {
   methods: {
     ...mapMutations(["updateUserName", "updateDetailId", "updateSingerName"]),
     requestUserM(uid) {
+      this.$notify({
+        title: "信息提示",
+        message: "加载用户数据中！",
+        type: "info",
+      });
       userMusic(uid).then((res) => {
         this.avatarUrl = res.data.playlist[0].creator.avatarUrl;
         this.username = res.data.playlist[0].creator.nickname;
