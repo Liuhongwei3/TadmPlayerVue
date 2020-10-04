@@ -1,20 +1,14 @@
 <template>
   <div>
     <div id="play" :style="backImage">
-      <el-tooltip
-        id="controlPc"
-        :content="'显示 MV: ' + showMv"
-        placement="bottom"
-      >
-        <el-switch
-          v-model="showMv"
-          active-color="#13ce66"
-          inactive-color="#ff4949"
-          :active-value="true"
-          :inactive-value="false"
-        >
-        </el-switch>
+      <el-tooltip id="controlPc" content="站点选项配置" placement="bottom">
+        <i
+          class="fa fa-arrow-circle-o-left fa-2x"
+          aria-hidden="true"
+          @click="drawer = true"
+        ></i>
       </el-tooltip>
+      <Drawer :drawer.sync="drawer" :showMv.sync="showMv" :isPc="isPc" />
       <div class="left">
         <img :src="imgs" :onerror="defaultImgs" alt="网易云音乐" />
         <div class="song_singer">
@@ -49,7 +43,7 @@
         :src="videos"
         v-show="hasMv && showMv"
       />
-      <canvas id="canvas"></canvas>
+      <!-- <canvas id="canvas"></canvas> -->
       <div class="rightS">
         <div class="song_name">{{ name }}</div>
         <div>|</div>
@@ -152,11 +146,13 @@ import {
   getMv,
 } from "@/network/Request";
 import RLyric from "@/components/content/RLyric";
+import Drawer from "@/components/content/Drawer";
 import { shuffle } from "../utils";
+import { onLoadAudio } from "../features";
 
 export default {
   name: "Play",
-  components: { RLyric },
+  components: { RLyric, Drawer },
   data() {
     return {
       name: "",
@@ -175,6 +171,7 @@ export default {
       hasMv: false,
       isPc: false,
       showMv: false,
+      drawer: false,
     };
   },
   created() {
@@ -349,12 +346,14 @@ export default {
       }
     },
     next() {
+      if (this.playlistIds.length === 1) {
+        this.currentIndex = 0;
+        this.play();
+        return;
+      }
       this.jumpIndex();
       this.currentIndex++;
-      if (
-        this.playlistIds.length === 1 ||
-        this.currentIndex >= this.playlistIds.length
-      ) {
+      if (this.currentIndex >= this.playlistIds.length) {
         this.currentIndex = 0;
       }
     },
@@ -363,6 +362,14 @@ export default {
     },
     searchPlayer() {
       this.$store.commit("updateSingerName", this.player);
+      if (this.$route.path === "/singer") {
+        this.$notify({
+          title: "警告信息",
+          message: "你已经在当前页面，本次跳转不做处理！",
+          type: "warning",
+        });
+        return;
+      }
       this.$router.push("/singer");
     },
     offsetX(event) {
@@ -400,19 +407,15 @@ export default {
       // });
       // //dtask.addEventListener("statechanged", onStateChanged, false);
       // dtask.start();
-
       //	PC
       download(this.urls).then((res) => {
         let blob = new Blob([res.data], { type: "audio/mpeg;charset=utf-8" });
         let downloadElement = document.createElement("a");
         let href = window.URL.createObjectURL(blob);
-
         downloadElement.href = href;
         downloadElement.download = this.name + "-" + this.player + ".mp3";
-
         document.body.appendChild(downloadElement);
         downloadElement.click();
-
         document.body.removeChild(downloadElement);
         window.URL.revokeObjectURL(href);
       });
@@ -424,59 +427,6 @@ export default {
         type: "error",
       });
       this.next();
-    },
-    onLoadAudio() {
-      let context = new (window.AudioContext || window.webkitAudioContext)();
-      let analyser = context.createAnalyser();
-      analyser.fftSize = 512;
-      let source = context.createMediaElementSource(audio);
-
-      source.connect(analyser);
-      analyser.connect(context.destination);
-
-      let bufferLength = analyser.frequencyBinCount;
-      let dataArray = new Uint8Array(bufferLength);
-
-      let canvas = document.getElementById("canvas");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      let ctx = canvas.getContext("2d");
-      let WIDTH = canvas.width;
-      let HEIGHT = canvas.height;
-
-      let barWidth = (WIDTH / bufferLength) * 1.5;
-      let barHeight;
-
-      function renderFrame() {
-        requestAnimationFrame(renderFrame);
-
-        analyser.getByteFrequencyData(dataArray);
-
-        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-        for (let i = 0, x = 0; i < bufferLength; i++) {
-          barHeight = dataArray[i];
-
-          let r = barHeight + 25 * (i / bufferLength);
-          // let r = Math.round(Math.random()*255);
-
-          let g = 250 * (i / bufferLength);
-          // let g = Math.round(Math.random()*255);
-
-          let b = 50;
-          // let b = Math.round(Math.random()*255);
-
-          ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-          // ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
-          ctx.arc(x, HEIGHT, 50, 2 * Math.PI, false);
-
-          x += barWidth + 2;
-        }
-      }
-
-      renderFrame();
-      // setInterval(renderFrame, 44);
     },
   },
 };
@@ -528,6 +478,7 @@ img {
 
 .left img {
   opacity: 0.7;
+  border: 1px solid #bfbfbf;
   border-radius: 50%;
   animation: imgRotate 6s linear infinite normal;
   position: relative;

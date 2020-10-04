@@ -29,3 +29,17 @@ Vue.filter("timeFormat", (timeIn = 0) => {
         return "0 : 00";
     }
 })
+Vue.filter("dateFormat", (dateIn = 0) => {
+    const date = dateIn ? new Date(dateIn) : 0;
+    if (date) {
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+        let hour = date.getHours();
+        let minutes = date.getMinutes();
+        let seconds = date.getSeconds();
+        return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
+    } else {
+        return "Private";
+    }
+})

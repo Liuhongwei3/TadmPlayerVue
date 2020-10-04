@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import VueLazyLoad from 'vue-lazyload';
 import ElementUI from 'element-ui';
-import VueTouch from "vue-touch";
 
 import App from './App.vue';
 import router from './router';
@@ -17,8 +16,6 @@ Vue.use(VueLazyLoad, {
     attempt: 6,
     error: require('@/assets/404.jpg')
 });
-
-Vue.use(VueTouch, { name: "v-touch" });
 
 Vue.prototype.$bus = new Vue();
 

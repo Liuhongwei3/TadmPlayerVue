@@ -42,7 +42,7 @@
         </el-tooltip>
       </div>
     </div>
-    <horizontal-scroll class="page-wrapper" :probe-type="3">
+    <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
       <div class="page-content">
         <el-pagination
           background
@@ -97,11 +97,11 @@ export default {
   },
   methods: {
     requestPlaylistDetail(pdlId) {
-      this.$notify({
-        title: "信息提示",
-        message: "加载歌单数据中！",
-        type: "info",
-      });
+      // this.$notify({
+      //   title: "信息提示",
+      //   message: "加载歌单数据中！",
+      //   type: "info",
+      // });
       playlistdetail(pdlId).then((res) => {
         let {
           data: { playlist },
@@ -123,6 +123,7 @@ export default {
           for (let i = 0; i < this.detailList.length; i++) {
             this.playlistIds[i] = this.detailList[i].id;
           }
+          this.$nextTick(() => this.$refs.page.refresh());
         });
       });
     },
@@ -141,10 +142,12 @@ export default {
     handleSizeChange(val) {
       this.pageSize = val;
       this.$emit("toTop");
+      this.$nextTick(() => this.$refs.page.refresh());
     },
     handleCurrentChange(val) {
       this.curPage = val;
       this.$emit("toTop");
+      this.$nextTick(() => this.$refs.page.refresh());
     },
   },
 };

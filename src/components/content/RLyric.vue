@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="topLyric" ref="topLyric" v-show="showTop"></div>
+    <div class="topLyric active" v-show="showTop">{{ activeLyric }}</div>
     <div class="rightL" ref="musicLyric" v-show="!showTop">
       <div :style="lyricTop">
         <div class="lyrics" v-for="(item, index) in lyrics" :key="index">
@@ -18,6 +18,7 @@
 
 <script>
 import { musicLyric } from "@/network/Request";
+import { parseLyric } from "@/features";
 
 export default {
   name: "RLyric",
@@ -25,6 +26,7 @@ export default {
     return {
       lyrics: [],
       lyricIndex: 0,
+      activeLyric: "暂无歌词",
       top: 0,
       showTop: false,
     };
@@ -46,7 +48,6 @@ export default {
   },
   mounted() {
     let audio = document.getElementById("audio");
-    let topLyric = this.$refs.topLyric;
 
     window.addEventListener("resize", () => {
       clearTimeout(this.resizeTimer);
@@ -55,7 +56,6 @@ export default {
         (this.resizeTimer = setTimeout(() => this.calcTop(), 60));
     });
 
-    this.showTop && (topLyric.innerText = "加载中");
     let lyric = "正在加载歌词！";
     !this.showTop && this.$nextTick(() => this.calcTop());
     audio.addEventListener("timeupdate", () => {
@@ -74,7 +74,7 @@ export default {
       ) {
         lyric = this.lyrics[this.lyricIndex].text;
       }
-      this.showTop && (topLyric.innerText = lyric);
+      this.activeLyric = lyric;
     });
   },
   computed: {
@@ -98,31 +98,10 @@ export default {
       } else {
         let lyric = res.data.lrc.lyric;
         if (lyric.length > 0 || res.data.nolyric) {
-          this.lyrics = this.parseLyric(lyric);
+          this.lyrics = parseLyric(lyric);
           this.lyrics.length === 0 && (this.lyrics = lyric);
         }
       }
-    },
-    parseLyric(lrc) {
-      let lyrics = lrc.split("\n");
-      let lrcObj = [];
-      for (let i = 0; i < lyrics.length; i++) {
-        let lyric = decodeURIComponent(lyrics[i]);
-        let timeReg = /\[\d*:\d*((\.|\:)\d*)*\]/g;
-        let timeRegExpArr = lyric.match(timeReg);
-        if (!timeRegExpArr) continue;
-        let clause = lyric.replace(timeReg, "");
-        for (let k = 0, h = timeRegExpArr.length; k < h; k++) {
-          let t = timeRegExpArr[k];
-          let min = Number(String(t.match(/\[\d*/i)).slice(1)),
-            sec = Number(String(t.match(/\:\d*/i)).slice(1));
-          let time = min * 60 + sec;
-          if (clause !== "") {
-            lrcObj.push({ time: time, text: clause });
-          }
-        }
-      }
-      return lrcObj;
     },
     calcTop() {
       const dom = this.$refs.musicLyric;
@@ -159,8 +138,8 @@ export default {
   color: transparent;
   background: linear-gradient(to right, #0af, #2fff39);
   -webkit-background-clip: text;
-  font-size: calc(10px + 1vmin);
-  font-weight: 600;
+  font-size: calc(12px + 1vmin);
+  font-weight: 700;
 }
 
 @media screen and (max-width: 768px) {
@@ -174,7 +153,6 @@ export default {
     text-align: center;
     margin: 0 auto;
     z-index: 3;
-    color: #fa6666;
     font-size: 16px;
     white-space: nowrap;
     text-overflow: ellipsis;

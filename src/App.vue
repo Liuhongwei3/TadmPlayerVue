@@ -16,14 +16,14 @@
         <transition name="fade">
           <div>
             <keep-alive>
-              <router-view v-if="$route.meta.keepAlive" @to-top="backTop" />
+              <router-view v-if="$route.meta.keepAlive" @toTop="backTop" />
             </keep-alive>
-            <router-view v-if="!$route.meta.keepAlive" @to-top="backTop" />
+            <router-view v-if="!$route.meta.keepAlive" @toTop="backTop" />
+            <keep-alive>
+              <About />
+            </keep-alive>
           </div>
         </transition>
-        <keep-alive>
-          <About />
-        </keep-alive>
       </vertical-scroll>
     </div>
     <back-top class="backTop" @backTop="backTop" v-show="showBackTop" />
@@ -62,13 +62,33 @@ export default {
     %cGithub: https://github.com/Liuhongwei3`;
     console.info(msg, "color:green", "color:blue", "", "color:orange");
   },
+  watch: {
+    $route(to, from) {
+      this.$nextTick(() => this.$refs.scroll.refresh());
+      if (to.path === "/") {
+        return;
+      }
+      this.$notify({
+        title: "信息提示",
+        message: "数据加载中~",
+        type: "info",
+      });
+      // 确保加载慢的数据也能进行重新计算
+      setTimeout(() => {
+        this.$refs.scroll.refresh();
+      }, 500);
+      setTimeout(() => {
+        this.$refs.scroll.refresh();
+      }, 1000);
+    },
+  },
   methods: {
     contentScroll(position) {
       //  监听 scroll 达到一定位置显示回到顶部按钮
       this.showBackTop = -position.y > 300;
     },
     backTop() {
-      this.$refs.scroll.scrollTo(0, 10, 400);
+      this.$refs.scroll.scrollTo(0, 0, 500);
     },
     loadMore: debounce(function() {
       switch (this.$route.path) {

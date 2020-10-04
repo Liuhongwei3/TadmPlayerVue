@@ -42,6 +42,7 @@
           <i class="fa fa-heart like" aria-hidden="true"></i>
           {{ item.likedCount | roundW }}
         </span>
+        <span class="comment-time">({{ item.time | dateFormat }})</span>
       </div>
     </div>
   </div>
@@ -106,11 +107,11 @@ export default {
       });
     },
     requestHComments(sid, limit = 20) {
-      this.$notify({
-        title: "信息提示",
-        message: "加载热门评论中！",
-        type: "info",
-      });
+      // this.$notify({
+      //   title: "信息提示",
+      //   message: "加载热门评论中！",
+      //   type: "info",
+      // });
       songHotComment(sid, limit).then((res) => {
         this.hotComments = res.data.hotComments;
       });
@@ -164,6 +165,11 @@ export default {
 .count {
   margin-left: 10px;
   color: #ef5476;
+}
+
+.comment-time {
+  margin: 0 5px;
+  color: rgb(214, 170, 117);
 }
 
 @media screen and (max-width: 768px) {

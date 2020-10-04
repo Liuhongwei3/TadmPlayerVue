@@ -115,11 +115,11 @@ export default {
   methods: {
     ...mapMutations(["updateUserName", "updateDetailId", "updateSingerName"]),
     requestUserM(uid) {
-      this.$notify({
-        title: "信息提示",
-        message: "加载用户数据中！",
-        type: "info",
-      });
+      // this.$notify({
+      //   title: "信息提示",
+      //   message: "加载用户数据中！",
+      //   type: "info",
+      // });
       userMusic(uid).then((res) => {
         this.avatarUrl = res.data.playlist[0].creator.avatarUrl;
         this.username = res.data.playlist[0].creator.nickname;
