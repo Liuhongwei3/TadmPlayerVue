@@ -15,7 +15,8 @@
 </template>
 
 <script>
-import { toplist } from "../network/Request";
+import { toplist } from "@/network/Request";
+import { to } from "@/utils";
 
 export default {
   name: "Top",
@@ -29,24 +30,33 @@ export default {
       },
     },
   },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$emit("toTop");
-    });
-  },
   methods: {
     async requestTopList() {
-      let res = await toplist();
-      let { data } = res;
-      if (data.code === 200) {
-        this.$store.dispatch("updateTopLists", { list: data.list });
-      } else {
+      this.$notify({
+        title: "信息提示",
+        message: "加载排行榜榜单数据中！",
+        type: "info",
+        offset: 50,
+        duration: 1500,
+      });
+      let [
+        err,
+        {
+          data: { list },
+        },
+      ] = await to(toplist());
+      if (err) {
         this.$notify({
-          title: "失败",
-          message: "获取排行榜单数据失败！",
+          title: "加载失败",
+          message: "获取排行榜榜单数据失败！",
           type: "error",
+          offset: 50,
+          duration: 2000,
         });
+        return;
       }
+      this.$store.dispatch("updateTopLists", { list });
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     updateDetail(id) {
       this.$store.commit("updateDetailId", id);

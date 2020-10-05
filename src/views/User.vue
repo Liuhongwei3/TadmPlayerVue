@@ -21,7 +21,7 @@
           </el-tooltip>
         </div>
       </div>
-      <horizontal-scroll class="page-wrapper" :probe-type="3">
+      <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
         <div class="page-content">
           <el-pagination
             background
@@ -58,6 +58,7 @@
 <script>
 import { mapMutations, mapState } from "vuex";
 import { userFollows, userMusic } from "@/network/Request";
+import { to } from "@/utils";
 import LogContent from "@/components/content/LogContent";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
@@ -68,17 +69,13 @@ export default {
     return {
       avatarUrl: "",
       playlist: [],
-      ids: [],
       followList: [],
       pageSize: 15,
       curPage: 1,
     };
   },
   created() {
-    if (this.uid) {
-      this.requestUserM(this.uid);
-      this.requestUserFollows(this.uid);
-    }
+    this.requestUserData(this.uid);
   },
   computed: {
     ...mapState({
@@ -101,38 +98,50 @@ export default {
   },
   watch: {
     uid(newValue) {
-      if (newValue) {
-        this.requestUserM(newValue);
-        this.requestUserFollows(newValue);
-      }
+      this.requestUserData(newValue);
     },
-  },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$emit("toTop");
-    });
   },
   methods: {
     ...mapMutations(["updateUserName", "updateDetailId", "updateSingerName"]),
-    requestUserM(uid) {
-      // this.$notify({
-      //   title: "信息提示",
-      //   message: "加载用户数据中！",
-      //   type: "info",
-      // });
-      userMusic(uid).then((res) => {
-        this.avatarUrl = res.data.playlist[0].creator.avatarUrl;
-        this.username = res.data.playlist[0].creator.nickname;
-        this.playlist = res.data.playlist;
-        for (let i = 0; i < this.playlist.length; i++) {
-          this.ids[i] = this.playlist[i].id;
+    async requestUserData(uid) {
+      if (uid) {
+        this.$notify({
+          title: "信息提示",
+          message: "加载用户数据中！",
+          type: "info",
+          offset: 50,
+          duration: 1500,
+        });
+        let [err, data] = await to(
+          Promise.all([userMusic(uid), userFollows(uid)])
+        );
+        if (err) {
+          this.$notify({
+            title: "加载错误",
+            message: err.response.statusText,
+            type: "error",
+            offset: 50,
+            duration: 2000,
+          });
+          return;
         }
-      });
-    },
-    requestUserFollows(uid) {
-      userFollows(uid).then((res) => {
-        this.followList = res.data.follow;
-      });
+        let [
+          {
+            data: { playlist },
+          },
+          {
+            data: { follow },
+          },
+        ] = data;
+        this.avatarUrl = playlist[0].creator.avatarUrl;
+        this.username = playlist[0].creator.nickname;
+        this.playlist = playlist;
+        this.followList = follow;
+        this.$nextTick(() => {
+          this.$bus.$emit("refresh");
+          this.$refs.page.refresh();
+        });
+      }
     },
     playlistId(id) {
       this.updateDetailId(id);
@@ -150,6 +159,9 @@ export default {
       this.curPage = val;
       this.$emit("toTop");
     },
+  },
+  beforeDestroy() {
+    this.$bus.$off("refresh");
   },
 };
 </script>

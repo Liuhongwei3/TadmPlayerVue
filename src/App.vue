@@ -16,9 +16,8 @@
         <transition name="fade">
           <div>
             <keep-alive>
-              <router-view v-if="$route.meta.keepAlive" @toTop="backTop" />
+              <router-view @toTop="backTop" />
             </keep-alive>
-            <router-view v-if="!$route.meta.keepAlive" @toTop="backTop" />
             <keep-alive>
               <About />
             </keep-alive>
@@ -61,22 +60,17 @@ export default {
     If you think well,thanks to star ~\n
     %cGithub: https://github.com/Liuhongwei3`;
     console.info(msg, "color:green", "color:blue", "", "color:orange");
+
+    this.$bus.$on("refresh", () => {
+      console.log("emit refresh");
+      this.$refs.scroll.refresh();
+    });
   },
   watch: {
     $route(to, from) {
+      this.backTop();
       this.$nextTick(() => this.$refs.scroll.refresh());
-      if (to.path === "/") {
-        return;
-      }
-      this.$notify({
-        title: "信息提示",
-        message: "数据加载中~",
-        type: "info",
-      });
       // 确保加载慢的数据也能进行重新计算
-      setTimeout(() => {
-        this.$refs.scroll.refresh();
-      }, 500);
       setTimeout(() => {
         this.$refs.scroll.refresh();
       }, 1000);

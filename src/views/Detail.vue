@@ -47,7 +47,7 @@
         <el-pagination
           background
           layout="total, sizes, prev, pager, next"
-          :total="detailList.length"
+          :total="songs.length"
           :page-sizes="[15, 25, 30, 50, 100]"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -60,6 +60,8 @@
 <script>
 import { playlistdetail, musicCover } from "@/network/Request";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
+import { mapState } from "vuex";
+import { to } from "@/utils";
 
 export default {
   name: "Detail",
@@ -72,44 +74,58 @@ export default {
       detailAuthorId: 0,
       detailAuthorName: "",
       description: "",
-      detailList: [],
+      songs: [],
       playlistIds: [],
       pageSize: 15,
       curPage: 1,
     };
   },
   created() {
-    let pdlId = this.$store.state.detailId;
-    this.requestPlaylistDetail(pdlId);
+    this.requestPlaylistDetail(this.detailId);
   },
   computed: {
+    ...mapState(["detailId"]),
     filterList() {
-      return this.detailList.slice(
+      return this.songs.slice(
         (this.curPage - 1) * this.pageSize,
         this.pageSize * this.curPage
       );
     },
   },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$emit("toTop");
-    });
+  watch: {
+    detailId(newValue) {
+      this.requestPlaylistDetail(newValue);
+    },
   },
   methods: {
-    requestPlaylistDetail(pdlId) {
-      // this.$notify({
-      //   title: "信息提示",
-      //   message: "加载歌单数据中！",
-      //   type: "info",
-      // });
-      playlistdetail(pdlId).then((res) => {
+    async requestPlaylistDetail(pdlId) {
+      if (pdlId) {
+        this.$notify({
+          title: "信息提示",
+          message: "加载歌单数据中！",
+          type: "info",
+          offset: 50,
+          duration: 1500,
+        });
+        let [err, data] = await to(playlistdetail(pdlId));
+        if (err) {
+          this.$notify({
+            title: "加载错误",
+            message: err.response.statusText,
+            type: "error",
+            offset: 50,
+            duration: 2000,
+          });
+          return;
+        }
         let {
           data: { playlist },
-        } = res;
+        } = data;
         this.detailName = playlist.name;
         this.detailAuthorId = playlist.creator.userId;
         this.detailAuthorName = playlist.creator.nickname;
         this.description = playlist.description;
+
         let temp = playlist.trackIds;
         let songIds = "";
         temp.forEach((item) => {
@@ -117,15 +133,31 @@ export default {
         });
         let last = songIds.length - 1;
         songIds = songIds.substring(0, last);
-        musicCover(songIds).then((res) => {
-          let { data } = res;
-          this.detailList = data.songs;
-          for (let i = 0; i < this.detailList.length; i++) {
-            this.playlistIds[i] = this.detailList[i].id;
-          }
-          this.$nextTick(() => this.$refs.page.refresh());
+
+        [err, data] = await to(musicCover(songIds));
+        if (err) {
+          this.$notify({
+            title: "加载错误",
+            message: err.response.statusText,
+            type: "error",
+            offset: 50,
+            duration: 2000,
+          });
+          return;
+        }
+        let {
+          data: { songs },
+        } = data;
+        this.songs = songs;
+        for (let i = 0; i < songs.length; i++) {
+          this.playlistIds[i] = songs[i].id;
+        }
+
+        this.$nextTick(() => {
+          this.$bus.$emit("refresh");
+          this.$refs.page.refresh();
         });
-      });
+      }
     },
     updateSongId(sid) {
       this.$store.commit("updateSongId", sid);
@@ -142,13 +174,14 @@ export default {
     handleSizeChange(val) {
       this.pageSize = val;
       this.$emit("toTop");
-      this.$nextTick(() => this.$refs.page.refresh());
     },
     handleCurrentChange(val) {
       this.curPage = val;
       this.$emit("toTop");
-      this.$nextTick(() => this.$refs.page.refresh());
     },
+  },
+  beforeDestroy() {
+    this.$bus.$off("refresh");
   },
 };
 </script>

@@ -37,7 +37,12 @@
           </el-tooltip>
         </div>
       </div>
-      <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
+      <horizontal-scroll
+        v-show="this.songsFlag"
+        class="page-wrapper"
+        :probe-type="3"
+        ref="page"
+      >
         <div class="page-content">
           <el-pagination
             background
@@ -72,8 +77,10 @@
 
 <script>
 import { hotSinger, searchSinger, singer } from "@/network/Request";
+import { to } from "@/utils";
 import NoResult from "@/components/common/noResult/NoResult";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
+import { mapState } from "vuex";
 
 export default {
   name: "Singer",
@@ -83,7 +90,6 @@ export default {
       singerFlag: false,
       songsFlag: true,
       singerId: 0,
-      singerName: "",
       briefDesc: "",
       hotSingers: [],
       musiclist: [],
@@ -92,21 +98,17 @@ export default {
     };
   },
   created() {
-    hotSinger().then((res) => {
-      this.hotSingers = res.data.artists;
-    });
-    let name = this.$store.state.singerName;
-    name &&
-      searchSinger(name).then((res) => {
-        this.singerId = res.data.result.artists[0].id;
-        this.requestSinger(this.singerId);
-      });
-    if (this.singerId === 0) {
-      this.singerFlag = true;
-      this.songsFlag = false;
-    }
+    this.getSingerId(this.singerName);
   },
   computed: {
+    singerName: {
+      get() {
+        return this.$store.state.singerName;
+      },
+      set(val) {
+        this.$store.commit("updateSingerName", val);
+      },
+    },
     filterList() {
       return this.musiclist.slice(
         (this.curPage - 1) * this.pageSize,
@@ -115,27 +117,64 @@ export default {
     },
   },
   watch: {
+    singerName(newValue) {
+      this.getSingerId(newValue);
+    },
     singerId(newValue) {
       if (newValue !== 0) {
         this.singerFlag = false;
         this.songsFlag = true;
         this.requestSinger(newValue);
+      } else {
+        this.singerFlag = true;
+        this.songsFlag = false;
+      }
+    },
+    singerFlag(newValue) {
+      if (newValue && this.hotSingers.length === 0) {
+        hotSinger().then((res) => {
+          this.hotSingers = res.data.artists;
+          this.$bus.$emit("refresh");
+        });
       }
     },
   },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$emit("toTop");
-    });
-  },
   methods: {
-    requestSinger(sid) {
-      singer(sid).then((res) => {
-        this.singerName = res.data.artist.name;
-        this.briefDesc = res.data.artist.briefDesc;
-        this.musiclist = res.data.hotSongs;
-        this.$nextTick(() => this.$refs.page.refresh());
-      });
+    getSingerId(name) {
+      name &&
+        searchSinger(name).then((res) => {
+          this.singerId = res.data.result.artists[0].id;
+          this.requestSinger(this.singerId);
+        });
+    },
+    async requestSinger(sid) {
+      if (sid) {
+        this.$notify({
+          title: "信息提示",
+          message: "加载歌手详情数据中！",
+          type: "info",
+          offset: 50,
+          duration: 1500,
+        });
+        let [err, { data }] = await to(singer(sid));
+        if (err) {
+          this.$notify({
+            title: "加载错误",
+            message: err.response.statusText,
+            type: "error",
+            offset: 50,
+            duration: 2000,
+          });
+          return;
+        }
+        this.singerName = data.artist.name;
+        this.briefDesc = data.artist.briefDesc;
+        this.musiclist = data.hotSongs;
+        this.$nextTick(() => {
+          this.$bus.$emit("refresh");
+          this.$refs.page.refresh();
+        });
+      }
     },
     songId(sid) {
       this.$store.commit("updateSongId", sid);

@@ -15,6 +15,7 @@
         :active-value="true"
         :inactive-value="false"
         @change="$emit('update:showMv', $event)"
+        :disabled="!hasMv"
       >
       </el-switch>
       <span v-if="showMv">开</span>
@@ -45,6 +46,10 @@ export default {
       default: false,
     },
     showMv: {
+      type: Boolean,
+      default: false,
+    },
+    hasMv: {
       type: Boolean,
       default: false,
     },

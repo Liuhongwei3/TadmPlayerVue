@@ -8,7 +8,12 @@
           @click="drawer = true"
         ></i>
       </el-tooltip>
-      <Drawer :drawer.sync="drawer" :showMv.sync="showMv" :isPc="isPc" />
+      <Drawer
+        :drawer.sync="drawer"
+        :showMv.sync="showMv"
+        :isPc="isPc"
+        :hasMv="hasMv"
+      />
       <div class="left">
         <img :src="imgs" :onerror="defaultImgs" alt="网易云音乐" />
         <div class="song_singer">
@@ -249,20 +254,26 @@ export default {
     },
   },
   watch: {
+    hasMv(newValue) {
+      if (!newValue) {
+        this.showMv = false;
+      }
+    },
     name(newValue) {
-      this.showMv &&
+      newValue &&
         search(newValue + " " + this.player, 1004).then((res) => {
           let {
             data: { result },
           } = res;
-          this.hasMv =
-            Object.keys(result).length !== 0 && result.mvs.length !== 0;
+          this.hasMv = result.mvCount !== 0;
           if (this.hasMv) {
             let mvid = result.mvs[0].id;
             mvid &&
               getMv(mvid).then((res) => {
                 this.videos = res.data.data.url;
               });
+          } else {
+            this.videos = "";
           }
         });
     },
@@ -381,7 +392,7 @@ export default {
 
       audio.currentTime = this.cTime;
       audio.play();
-      if (this.hasMv && this.isPc) {
+      if (this.hasMv) {
         video.currentTime = this.cTime;
         video.play();
       }

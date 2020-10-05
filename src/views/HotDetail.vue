@@ -30,7 +30,7 @@
 
 <script>
 import { hotDetails } from "@/network/Request";
-import { debounce } from "../utils";
+import { debounce, to } from "@/utils";
 
 export default {
   name: "hotDetail",
@@ -50,31 +50,48 @@ export default {
         this.requestHotDetails(this.limit);
       } else {
         this.$notify({
-          title: "警告",
+          title: "信息警告",
           message: "已经加载了全部歌单啦！",
           type: "warning",
+          offset: 50,
+          duration: 1500,
         });
       }
     });
   },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$emit("toTop");
-    });
-  },
   methods: {
-    requestHotDetails(limit) {
-      hotDetails(limit).then((res) => {
-        if (res.data.code === 200) {
-          this.hotDetailLists = res.data.playlists;
-        } else {
-          this.$notify({
-            title: "错误",
-            message: "There is some errors~",
-            type: "error",
-          });
-        }
-      });
+    notify() {
+      return debounce(
+        this.$notify({
+          title: "信息提示",
+          message: "加载更多热门歌单数据中！",
+          type: "info",
+          offset: 50,
+          duration: 1500,
+        }),
+        500
+      );
+    },
+    async requestHotDetails(limit) {
+      this.notify();
+      let [
+        err,
+        {
+          data: { playlists },
+        },
+      ] = await to(hotDetails(limit));
+      if (err) {
+        this.$notify({
+          title: "加载错误",
+          message: err.response.statusText,
+          type: "error",
+          offset: 50,
+          duration: 1500,
+        });
+        return;
+      }
+      this.hotDetailLists = playlists;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     updateDetailId(id) {
       this.$store.commit("updateDetailId", id);

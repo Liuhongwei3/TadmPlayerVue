@@ -11,23 +11,31 @@ import NProgress from 'nprogress'
 
 export function request(config) {
     const instance = axios.create({
-        // baseURL: 'http://localhost:3000/',
-        baseURL: 'https://api.mtnhao.com/',
-        timeout: 3000,
+        baseURL: 'http://localhost:3000/',
+        // baseURL: 'https://api.mtnhao.com/',
+        timeout: 5000,
     });
 
     instance.interceptors.request.use(config => {
         NProgress.start();
-        return config
+        return config;
     }, error => {
-        console.error(error)
+        const { response } = error;
+        if (!response) {
+            error = { response: { statusText: "网络错误，请检查您的网络连接！" } };
+        }
+        return Promise.reject(error);
     });
 
     instance.interceptors.response.use(response => {
         NProgress.done();
-        return response
+        return response;
     }, error => {
-        console.error(error)
+        const { response } = error;
+        if (!response) {
+            error = { response: { statusText: "网络错误，请检查您的网络连接！" } };
+        }
+        return Promise.reject(error);
     });
 
     return instance(config) //  Promise

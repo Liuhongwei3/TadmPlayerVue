@@ -54,6 +54,7 @@ import {
   songComment,
   songHotComment,
 } from "@/network/Request";
+import { to } from "@/utils";
 
 export default {
   name: "Comment",
@@ -106,15 +107,36 @@ export default {
         this.comments = res.data.comments;
       });
     },
-    requestHComments(sid, limit = 20) {
-      // this.$notify({
-      //   title: "信息提示",
-      //   message: "加载热门评论中！",
-      //   type: "info",
-      // });
-      songHotComment(sid, limit).then((res) => {
-        this.hotComments = res.data.hotComments;
-      });
+    async requestHComments(sid, limit = 20) {
+      if (sid) {
+        this.$notify({
+          title: "信息提示",
+          message: "加载歌曲热评数据中！",
+          type: "info",
+          offset: 50,
+          duration: 1500,
+        });
+        let [
+          err,
+          {
+            data: { hotComments },
+          },
+        ] = await to(songHotComment(sid, limit));
+        if (err) {
+          this.$notify({
+            title: "加载错误",
+            message: err.response.statusText,
+            type: "error",
+            offset: 50,
+            duration: 2000,
+          });
+          return;
+        }
+        this.hotComments = hotComments;
+        this.$nextTick(() => {
+          this.$bus.$emit("refresh");
+        });
+      }
     },
     changeshowCloudCommentsFlag() {
       this.showCloudCommentsFlag = !this.showCloudCommentsFlag;
@@ -122,18 +144,11 @@ export default {
     updateUserId(uid) {
       this.$store.commit("updateUserId", uid);
       this.showCommentsFlag = !this.showCommentsFlag;
-      if (this.$route.path === "/user") {
-        this.$router.push("/home");
-        setTimeout(() => {
-          this.$router.push("/user").then((err) => {});
-        }, 350);
-      } else {
-        this.$router.push("/user").then((err) => {});
-      }
+      this.$router.push("/user").then((err) => {});
     },
   },
   beforeDestroy() {
-    this.$bus.$off("loadMoreComments"); //当这个组件销毁的时候bus也跟着一起销毁
+    this.$bus.$off("loadMoreComments");
   },
 };
 </script>

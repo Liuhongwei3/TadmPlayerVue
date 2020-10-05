@@ -46,3 +46,12 @@ export function shuffle(arr) {
     }
     return arr;
 }
+
+export function to(promise) {
+    return promise.then(data => {
+            return [null, data];
+        })
+        .catch(err => {
+            return [err]
+        });
+}
