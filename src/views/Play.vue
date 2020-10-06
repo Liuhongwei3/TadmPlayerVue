@@ -148,6 +148,7 @@ import {
   musicCover,
   musicUrl,
   search,
+  searchSinger,
   getMv,
 } from "@/network/Request";
 import RLyric from "@/components/content/RLyric";
@@ -291,7 +292,6 @@ export default {
     id(newValue) {
       if (newValue) {
         this.id = newValue;
-        this.$store.commit("updateSongId", newValue);
         this.requestCover(newValue);
         this.requestMusicUrl(newValue);
       } else {
@@ -311,7 +311,6 @@ export default {
       if (data.code === 200) {
         let database = data.songs[0];
         this.imgs = database.al.picUrl;
-        this.$store.state.imgUrl = this.imgs;
         this.name = database.name;
         this.player = database.ar[0].name;
       }
@@ -342,7 +341,6 @@ export default {
       } else {
         audio.pause();
       }
-      this.$store.commit("updateSingerName", this.player);
     },
     prev() {
       this.status = false;
@@ -371,17 +369,24 @@ export default {
     changeList() {
       this.order = !this.order;
     },
-    searchPlayer() {
-      this.$store.commit("updateSingerName", this.player);
-      if (this.$route.path === "/singer") {
+    async searchPlayer() {
+      let {
+        data: {
+          result: { artists },
+        },
+      } = await searchSinger(this.player);
+      if (artists.length === 0) {
         this.$notify({
           title: "警告信息",
-          message: "你已经在当前页面，本次跳转不做处理！",
+          message: "暂未找到该歌手的信息，本次将不进行跳转！",
           type: "warning",
         });
         return;
       }
-      this.$router.push("/singer");
+      this.$store.commit("updateSingerId", artists[0].id);
+      if (this.$route.path !== "/singer") {
+        this.$router.push("/singer");
+      }
     },
     offsetX(event) {
       const audio = this.$refs.audio;
@@ -552,7 +557,6 @@ i {
 }
 
 .playControl {
-  width: 96%;
   margin: 0 2vw;
   padding: 5px;
   display: flex;

@@ -20,17 +20,24 @@
         @click="doSearch"
       ></el-button>
     </el-input>
+    <el-divider></el-divider>
+    <el-badge value="hot">
+      <el-button size="small" type="primary">热搜榜</el-button>
+    </el-badge>
     <div id="hotSearch">
       <span
         id="hotSearchResults"
-        :key="item.first"
         v-for="item in hotSearchResults"
+        :key="item.searchWord"
       >
-        <el-tag type="success" @click="updateKeyword(item.first)">
-          {{ item.first }}
-        </el-tag>
+        <el-tooltip placement="bottom" :content="item.content">
+          <el-tag type="success" @click="updateKeyword(item.searchWord)">
+            {{ item.searchWord }}
+          </el-tag>
+        </el-tooltip>
       </span>
     </div>
+    <el-divider></el-divider>
     <Items :lists="searchResults" @newId="updateId" />
   </div>
 </template>
@@ -57,10 +64,11 @@ export default {
       searchResults: [],
     };
   },
-  created() {
-    hotSearch().then((res) => {
-      this.hotSearchResults = res.data.result.hots;
-    });
+  async created() {
+    let {
+      data: { data },
+    } = await hotSearch();
+    this.hotSearchResults = data;
   },
   watch: {
     select(newValue) {
@@ -182,6 +190,7 @@ export default {
         lists.push(obj);
       }
       this.searchResults = lists;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async searchSongs() {
       let {

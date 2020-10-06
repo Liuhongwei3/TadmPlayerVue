@@ -22,6 +22,7 @@
           {{ this.briefDesc }}
         </el-collapse-item>
       </el-collapse>
+      <el-divider></el-divider>
       <div class="main" v-show="this.songsFlag">
         <div
           class="items"
@@ -55,6 +56,7 @@
           </el-pagination></div
       ></horizontal-scroll>
     </div>
+    <el-divider></el-divider>
     <el-tooltip placement="top" content="点击显示或隐藏详情">
       <el-tag @click="changeSingerFlag">热门歌手排行榜</el-tag>
     </el-tooltip>
@@ -68,8 +70,8 @@
               @click.prevent="searchPlayer(item.id, item.name)"
             />
             <p>{{ item.name }}</p>
-          </div></el-tooltip
-        >
+          </div>
+        </el-tooltip>
       </div>
     </div>
   </div>
@@ -89,7 +91,7 @@ export default {
     return {
       singerFlag: false,
       songsFlag: true,
-      singerId: 0,
+      singerName: "",
       briefDesc: "",
       hotSingers: [],
       musiclist: [],
@@ -98,15 +100,15 @@ export default {
     };
   },
   created() {
-    this.getSingerId(this.singerName);
+    this.singerId && this.requestSinger(this.singerId);
   },
   computed: {
-    singerName: {
+    singerId: {
       get() {
-        return this.$store.state.singerName;
+        return this.$store.state.singerId;
       },
       set(val) {
-        this.$store.commit("updateSingerName", val);
+        this.$store.commit("updateSingerId", val);
       },
     },
     filterList() {
@@ -117,11 +119,8 @@ export default {
     },
   },
   watch: {
-    singerName(newValue) {
-      this.getSingerId(newValue);
-    },
     singerId(newValue) {
-      if (newValue !== 0) {
+      if (newValue) {
         this.singerFlag = false;
         this.songsFlag = true;
         this.requestSinger(newValue);
@@ -140,13 +139,6 @@ export default {
     },
   },
   methods: {
-    getSingerId(name) {
-      name &&
-        searchSinger(name).then((res) => {
-          this.singerId = res.data.result.artists[0].id;
-          this.requestSinger(this.singerId);
-        });
-    },
     async requestSinger(sid) {
       if (sid) {
         this.$notify({
@@ -173,6 +165,7 @@ export default {
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
           this.$refs.page.refresh();
+          this.$emit("toTop");
         });
       }
     },

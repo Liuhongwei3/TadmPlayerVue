@@ -18,6 +18,7 @@
             <keep-alive>
               <router-view @toTop="backTop" />
             </keep-alive>
+            <el-divider></el-divider>
             <keep-alive>
               <About />
             </keep-alive>
@@ -62,8 +63,10 @@ export default {
     console.info(msg, "color:green", "color:blue", "", "color:orange");
 
     this.$bus.$on("refresh", () => {
-      console.log("emit refresh");
       this.$refs.scroll.refresh();
+    });
+    this.$bus.$on("toTop", () => {
+      this.backTop();
     });
   },
   watch: {

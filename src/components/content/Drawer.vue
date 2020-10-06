@@ -27,8 +27,18 @@
       </el-checkbox>
     </div>
     <el-divider></el-divider>
-    <div class="switch-item">关于我</div>
-    <div>Tadm：前端爱好者 · 喜爱音乐与文学</div>
+    <div class="switch-item">
+      <div>关于我</div>
+      <div>Tadm：前端爱好者 · 喜爱音乐与文学</div>
+    </div>
+    <el-divider></el-divider>
+    <div class="switch-item">
+      <div>帮助与反馈</div>
+      <div>
+        使用过程中如果您有任何疑问或者建议，您可以选择任何能联系到我的方式进行交流沟通！
+      </div>
+      <div>Email: 2873126657@qq.com</div>
+    </div>
   </el-drawer>
 </template>
 

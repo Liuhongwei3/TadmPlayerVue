@@ -206,7 +206,11 @@
 }
 
 .switch-item {
-    margin: 10px;
+    margin: 6px;
+}
+
+.switch-item div {
+    margin: 5px;
 }
 
 .switch-item span {
@@ -236,7 +240,9 @@
 }
 
 .user-info {
-    display: inline-flex;
+    margin-left: 30px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 @media screen and (max-width: 768px) {

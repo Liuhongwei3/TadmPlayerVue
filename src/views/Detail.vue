@@ -18,18 +18,17 @@
       </el-collapse-item>
     </el-collapse>
     <div class="main">
-      <div
-        class="items"
-        v-for="(item, index) in filterList"
-        :key="index"
-        @click="updateSongId(item.id)"
-      >
+      <div class="items" v-for="(item, index) in filterList" :key="index">
         <el-tooltip
           placement="top"
           :content="`${item.name}---${item.ar[0].name}`"
         >
           <div>
-            <img v-lazy="item.al.picUrl" alt="img" />
+            <img
+              v-lazy="item.al.picUrl"
+              alt="img"
+              @click="updateSongId(item.id)"
+            />
             <p class="name">
               {{ item.name }}---
               <el-tooltip placement="top" content="点击歌手名查看歌手">
@@ -58,7 +57,7 @@
 </template>
 
 <script>
-import { playlistdetail, musicCover } from "@/network/Request";
+import { playlistdetail, musicCover, searchSinger } from "@/network/Request";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 import { mapState } from "vuex";
 import { to } from "@/utils";
@@ -75,7 +74,6 @@ export default {
       detailAuthorName: "",
       description: "",
       songs: [],
-      playlistIds: [],
       pageSize: 15,
       curPage: 1,
     };
@@ -149,9 +147,11 @@ export default {
           data: { songs },
         } = data;
         this.songs = songs;
+        let ids = [];
         for (let i = 0; i < songs.length; i++) {
-          this.playlistIds[i] = songs[i].id;
+          ids[i] = songs[i].id;
         }
+        this.$store.commit("updatePlaylistIds", ids);
 
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
@@ -161,11 +161,25 @@ export default {
     },
     updateSongId(sid) {
       this.$store.commit("updateSongId", sid);
-      this.$store.commit("updatePlaylistIds", this.playlistIds);
     },
-    searchPlayer(player) {
-      this.$store.commit("updateSingerName", player);
-      this.$router.push("/singer");
+    async searchPlayer(player) {
+      let {
+        data: {
+          result: { artists },
+        },
+      } = await searchSinger(this.player);
+      if (artists.length === 0) {
+        this.$notify({
+          title: "警告信息",
+          message: "暂未找到该歌手的信息，本次将不进行跳转！",
+          type: "warning",
+        });
+        return;
+      }
+      this.$store.commit("updateSingerId", artists[0].id);
+      if (this.$route.path !== "/singer") {
+        this.$router.push("/singer");
+      }
     },
     updateUserId() {
       this.$store.commit("updateUserId", this.detailAuthorId);

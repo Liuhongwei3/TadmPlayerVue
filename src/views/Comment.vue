@@ -22,8 +22,9 @@
         {{ item.likedCount | roundW }}
       </span>
     </div>
+    <el-divider></el-divider>
     <div id="hotComments">
-      <el-tag type="success">精彩评论</el-tag>
+      <el-tag type="success">听友精彩评论</el-tag>
       <div
         class="commentItems"
         v-for="item in hotComments"

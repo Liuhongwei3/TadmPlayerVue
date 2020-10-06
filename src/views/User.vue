@@ -1,55 +1,65 @@
 <template>
   <div>
-    <LogContent />
+    <div>
+      <LogContent />
+    </div>
     <div v-if="username.length !== 0">
       <div class="user-info">
-        <el-avatar size="medium" v-if="avatarUrl" :src="avatarUrl" />
-        <span>创建的歌单</span>
-      </div>
-      <div class="main">
-        <div
-          class="items"
-          v-for="item in filterList"
-          :key="item.id"
-          @click="playlistId(item.id)"
+        <el-avatar
+          size="medium"
+          v-if="profile.avatarUrl"
+          :src="profile.avatarUrl"
+        />
+        <el-tooltip placement="bottom" content="性别">
+          <el-tag v-if="profile.gender === 1">男</el-tag>
+          <el-tag type="danger" v-else>女</el-tag>
+        </el-tooltip>
+        <el-tooltip placement="bottom" content="出生日期">
+          <el-tag type="info">{{ profile.birthday | dateFormat }}</el-tag>
+        </el-tooltip>
+        <el-tooltip placement="bottom" content="用户类别">
+          <el-tag type="warning" v-if="profile.userType === 0">普通用户</el-tag>
+          <el-tag type="warning" v-else-if="profile.userType === 2">
+            {{ profile.allAuthTypes[0].desc }}
+          </el-tag>
+          <el-tag type="warning" v-else-if="profile.userType === 4">
+            {{ profile.allAuthTypes[0].desc }}
+          </el-tag>
+        </el-tooltip>
+        <el-tag type="primary" v-if="profile.vipType === 11">黑胶 VIP</el-tag>
+        <el-tag
+          type="success"
+          v-if="profile.artistId"
+          @click="toSinger(profile.artistId)"
+          >查看歌手页</el-tag
         >
-          <el-tooltip :content="item.name" placement="top">
-            <el-badge :value="item.trackCount | roundW">
-              <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
-              <p class="name">{{ item.name }}</p>
-            </el-badge>
-          </el-tooltip>
-        </div>
       </div>
-      <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
-        <div class="page-content">
-          <el-pagination
-            background
-            hide-on-single-page
-            layout="total, sizes, prev, pager, next"
-            :total="playlist.length"
-            :page-sizes="[15, 25, 30, 50, 100]"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          >
-          </el-pagination>
-        </div>
-      </horizontal-scroll>
-      <div>关注的歌手</div>
-      <div class="main">
-        <div
-          class="items"
-          v-for="item in followList"
-          :key="item.userId"
-          @click="singer(item.nickname)"
-        >
-          <el-tooltip placement="top" :content="item.nickname">
-            <el-badge :value="item.followeds | roundW">
-              <img v-lazy="item.avatarUrl" :key="item.avatarUrl" />
-              <p class="name">{{ item.nickname }}</p>
-            </el-badge>
-          </el-tooltip>
-        </div>
+      <el-collapse class="box-card" v-if="profile.signature">
+        <el-collapse-item class="desc" title="个人介绍">
+          {{ profile.signature }}
+        </el-collapse-item>
+      </el-collapse>
+      <el-divider></el-divider>
+      <div v-if="playlist.length !== 0">
+        <el-tag type="success">歌单列表</el-tag>
+        <user-content
+          :list="playlist"
+          id="id"
+          name="name"
+          count="playCount"
+          imgUrl="coverImgUrl"
+          method="detail"
+        ></user-content>
+        <el-divider></el-divider>
+      </div>
+      <div v-if="followList.length !== 0">
+        <el-tag type="primary">关注列表</el-tag>
+        <user-content :list="followList"></user-content>
+        <el-divider></el-divider>
+      </div>
+      <div v-if="fansList.length !== 0">
+        <el-tag type="primary">粉丝列表</el-tag>
+        <user-content :list="fansList"></user-content>
       </div>
     </div>
   </div>
@@ -57,21 +67,25 @@
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import { userFollows, userMusic } from "@/network/Request";
+import {
+  userDetail,
+  userFollows,
+  userMusic,
+  userFans,
+} from "@/network/Request";
 import { to } from "@/utils";
 import LogContent from "@/components/content/LogContent";
-import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
+import UserContent from "@/components/content/UserContent";
 
 export default {
   name: "User",
-  components: { LogContent, HorizontalScroll },
+  components: { LogContent, UserContent },
   data() {
     return {
-      avatarUrl: "",
+      profile: {},
       playlist: [],
       followList: [],
-      pageSize: 15,
-      curPage: 1,
+      fansList: [],
     };
   },
   created() {
@@ -89,12 +103,6 @@ export default {
         this.updateUserName(value);
       },
     },
-    filterList() {
-      return this.playlist.slice(
-        (this.curPage - 1) * this.pageSize,
-        this.pageSize * this.curPage
-      );
-    },
   },
   watch: {
     uid(newValue) {
@@ -102,7 +110,7 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateUserName", "updateDetailId", "updateSingerName"]),
+    ...mapMutations(["updateUserName", "updateSingerId"]),
     async requestUserData(uid) {
       if (uid) {
         this.$notify({
@@ -113,7 +121,12 @@ export default {
           duration: 1500,
         });
         let [err, data] = await to(
-          Promise.all([userMusic(uid), userFollows(uid)])
+          Promise.all([
+            userDetail(uid),
+            userMusic(uid),
+            userFollows(uid),
+            userFans(uid),
+          ])
         );
         if (err) {
           this.$notify({
@@ -127,37 +140,32 @@ export default {
         }
         let [
           {
+            data: { profile },
+          },
+          {
             data: { playlist },
           },
           {
             data: { follow },
           },
+          {
+            data: { followeds },
+          },
         ] = data;
-        this.avatarUrl = playlist[0].creator.avatarUrl;
-        this.username = playlist[0].creator.nickname;
+        this.profile = profile;
+        this.username = profile.nickname;
         this.playlist = playlist;
         this.followList = follow;
+        this.fansList = followeds;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
-          this.$refs.page.refresh();
+          this.$emit("toTop");
         });
       }
     },
-    playlistId(id) {
-      this.updateDetailId(id);
-      this.$router.push("/detail");
-    },
-    singer(name) {
-      this.updateSingerName(name);
+    toSinger(sid) {
+      this.updateSingerId(sid);
       this.$router.push("/singer");
-    },
-    handleSizeChange(val) {
-      this.pageSize = val;
-      this.$emit("toTop");
-    },
-    handleCurrentChange(val) {
-      this.curPage = val;
-      this.$emit("toTop");
     },
   },
   beforeDestroy() {

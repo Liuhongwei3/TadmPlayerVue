@@ -12,7 +12,7 @@ export default new Vuex.Store({
         detailId: 3778678,
         playlistIds: [],
         songId: 1407551413,
-        singerName: "李荣浩",
+        singerId: 4292,
     },
     mutations: {
         updateDetailId: (state, payload) => {
@@ -23,6 +23,9 @@ export default new Vuex.Store({
         },
         updateSongId: (state, payload) => {
             state.songId = payload
+        },
+        updateSingerId(state, payload) {
+            state.singerId = payload;
         },
         updateSingerName(state, payload) {
             state.singerName = payload

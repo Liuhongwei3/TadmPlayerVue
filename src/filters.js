@@ -1,6 +1,7 @@
 import Vue from "vue";
 
-Vue.filter("roundW", function(value) {
+Vue.filter("roundW", function(valueIn = 0) {
+    const value = valueIn ? valueIn : 0;
     if (value < 1000) {
         return value
     } else if (value > 1000 && value < 10000) {
@@ -38,6 +39,15 @@ Vue.filter("dateFormat", (dateIn = 0) => {
         let hour = date.getHours();
         let minutes = date.getMinutes();
         let seconds = date.getSeconds();
+        if (hour.toString().length === 1) {
+            hour = "0" + hour;
+        }
+        if (minutes.toString().length === 1) {
+            minutes = "0" + minutes;
+        }
+        if (seconds.toString().length === 1) {
+            seconds = "0" + seconds;
+        }
         return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
     } else {
         return "Private";
