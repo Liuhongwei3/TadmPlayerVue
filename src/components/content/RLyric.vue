@@ -25,6 +25,8 @@ export default {
   data() {
     return {
       lyrics: [],
+      lyricsMap: new Map(),
+      lyricsTime: new Map(),
       lyricIndex: 0,
       activeLyric: "暂无歌词",
       top: 0,
@@ -56,25 +58,21 @@ export default {
         (this.resizeTimer = setTimeout(() => this.calcTop(), 60));
     });
 
-    let lyric = "正在加载歌词！";
     !this.showTop && this.$nextTick(() => this.calcTop());
     audio.addEventListener("timeupdate", () => {
-      let lyricIndex = 0;
-      for (let i = 0; i < this.lyrics.length; i++) {
-        if (audio.currentTime >= this.lyrics[i].time) {
-          lyricIndex = i;
-        }
+      let curTime = Math.floor(audio.currentTime);
+
+      // 使用 map 代替之前的 for 循环比较，避免不必要的性能消耗
+      if (this.lyricsMap.has(curTime)) {
+        this.activeLyric = this.lyricsMap.get(curTime);
       }
-      this.lyricIndex = lyricIndex;
-      if (
-        this.lyrics.length !== 0 &&
-        Array.isArray(this.lyrics) &&
-        this.lyrics[this.lyricIndex] &&
-        this.lyrics[this.lyricIndex].hasOwnProperty("text")
-      ) {
-        lyric = this.lyrics[this.lyricIndex].text;
+      if (this.lyricsTime.has(curTime)) {
+        this.lyricIndex = this.lyricsTime.get(curTime);
       }
-      this.activeLyric = lyric;
+    });
+    audio.addEventListener("ended", () => {
+      this.lyricIndex = 0;
+      this.activeLyric = this.lyrics[0];
     });
   },
   computed: {
@@ -87,6 +85,11 @@ export default {
   },
   watch: {
     songId(newValue) {
+      this.lyrics = [];
+      this.activeLyric = "暂无歌词";
+      this.lyricIndex = 0;
+      this.lyricsMap = new Map();
+      this.lyricsTime = new Map();
       this.requestLyric(newValue);
     },
   },
@@ -98,8 +101,10 @@ export default {
       } else {
         let lyric = res.data.lrc.lyric;
         if (lyric.length > 0 || res.data.nolyric) {
-          this.lyrics = parseLyric(lyric);
-          this.lyrics.length === 0 && (this.lyrics = lyric);
+          let tempLyric = parseLyric(lyric);
+          this.lyrics = tempLyric[0];
+          this.lyricsMap = tempLyric[1];
+          this.lyricsTime = tempLyric[2];
         }
       }
     },

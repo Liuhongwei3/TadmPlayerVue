@@ -1,6 +1,9 @@
 export function parseLyric(lrc) {
     let lyrics = lrc.split("\n");
     let lrcObj = [];
+    let lrcMap = new Map();
+    let lrcTime = new Map();
+    let j = 0;
     for (let i = 0; i < lyrics.length; i++) {
         let lyric = decodeURIComponent(lyrics[i]);
         let timeReg = /\[\d*:\d*((\.|\:)\d*)*\]/g;
@@ -12,14 +15,16 @@ export function parseLyric(lrc) {
             let min = Number(String(t.match(/\[\d*/i)).slice(1)),
                 sec = Number(String(t.match(/\:\d*/i)).slice(1));
             let time = min * 60 + sec;
-            if (clause !== "") {
+            if (clause) {
+                lrcTime.set(time, j++);
+                lrcMap.set(time, clause);
                 lrcObj.push({ time: time, text: clause });
             }
         }
     }
-    return lrcObj;
-}
 
+    return [lrcObj, lrcMap, lrcTime];
+}
 
 export function onLoadAudio(audio, MEDIA_ELEMENT_NODES) {
     let context = new(window.AudioContext || window.webkitAudioContext)();
