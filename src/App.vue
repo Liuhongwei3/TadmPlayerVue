@@ -54,6 +54,16 @@ export default {
       showBackTop: false,
     };
   },
+  computed: {
+    isPc: {
+      get() {
+        return this.$store.state.isPc;
+      },
+      set(val) {
+        this.$store.commit("updateIsPc", val);
+      },
+    },
+  },
   mounted() {
     let msg = `%c^-^    ^-^    ^-^    ^-^    ^-^    ^-^\n
     %cWelcome to Tadm-Player-Vue!\n
@@ -61,6 +71,12 @@ export default {
     If you think well,thanks to star ~\n
     %cGithub: https://github.com/Liuhongwei3`;
     console.info(msg, "color:green", "color:blue", "", "color:orange");
+
+    this.isPc = document.documentElement.clientWidth >= 768;
+
+    window.addEventListener("resize", () => {
+      this.isPc = document.documentElement.clientWidth >= 768;
+    });
 
     this.$bus.$on("refresh", () => {
       this.$refs.scroll.refresh();

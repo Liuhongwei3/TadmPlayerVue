@@ -21,11 +21,8 @@ Vue.filter("timeFormat", (timeIn = 0) => {
     if (time) {
         let minute = time.getMinutes();
         let second = time.getSeconds();
-        if (second / 10 < 1) {
-            return `${minute} : 0${second}`;
-        } else {
-            return `${minute} : ${second}`;
-        }
+        second = second.toString().padStart(2, "0")
+        return `${minute} : ${second}`;
     } else {
         return "0 : 00";
     }
@@ -39,16 +36,11 @@ Vue.filter("dateFormat", (dateIn = 0) => {
         let hour = date.getHours();
         let minutes = date.getMinutes();
         let seconds = date.getSeconds();
-        if (hour.toString().length === 1) {
-            hour = "0" + hour;
-        }
-        if (minutes.toString().length === 1) {
-            minutes = "0" + minutes;
-        }
-        if (seconds.toString().length === 1) {
-            seconds = "0" + seconds;
-        }
-        return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
+
+        month = month.toString().padStart(2, "0");
+        day = day.toString().padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
     } else {
         return "Private";
     }

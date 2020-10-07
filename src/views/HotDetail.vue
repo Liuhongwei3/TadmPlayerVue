@@ -4,7 +4,13 @@
     <el-tag type="info">放松心情</el-tag>
     <el-tag type="success">动感节奏</el-tag>
     <el-tag type="primary">轻松纯音乐</el-tag>
-    <div class="main">
+    <div
+      class="main"
+      v-loading.fullscreen.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
       <div
         class="items"
         v-for="item in hotDetailLists"
@@ -25,6 +31,16 @@
         </el-tooltip>
       </div>
     </div>
+    <div v-if="loading">
+      <el-divider></el-divider>
+      <el-button type="primary">
+        <i class="el-icon-loading"></i>加载中...
+      </el-button>
+    </div>
+    <div v-if="noMore">
+      <el-divider></el-divider>
+      <el-button type="warning">没有更多了</el-button>
+    </div>
   </div>
 </template>
 
@@ -38,6 +54,8 @@ export default {
     return {
       hotDetailLists: [],
       limit: 24,
+      loading: false,
+      noMore: false,
     };
   },
   created() {
@@ -47,8 +65,10 @@ export default {
     this.$bus.$on("loadMoreHotDetails", () => {
       if (this.limit <= 100) {
         this.limit += 24;
+        this.loading = true;
         this.requestHotDetails(this.limit);
       } else {
+        this.noMore = true;
         this.$notify({
           title: "信息警告",
           message: "已经加载了全部歌单啦！",
@@ -73,6 +93,7 @@ export default {
       );
     },
     async requestHotDetails(limit) {
+      this.loading = true;
       this.notify();
       let [
         err,
@@ -91,6 +112,7 @@ export default {
         return;
       }
       this.hotDetailLists = playlists;
+      this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     updateDetailId(id) {

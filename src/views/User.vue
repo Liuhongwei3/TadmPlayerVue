@@ -1,5 +1,10 @@
 <template>
-  <div>
+  <div
+    v-loading.fullscreen.lock="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
     <div>
       <LogContent />
     </div>
@@ -86,6 +91,7 @@ export default {
       playlist: [],
       followList: [],
       fansList: [],
+      loading: false,
     };
   },
   created() {
@@ -113,6 +119,7 @@ export default {
     ...mapMutations(["updateUserName", "updateSingerId"]),
     async requestUserData(uid) {
       if (uid) {
+        this.loading = true;
         this.$notify({
           title: "信息提示",
           message: "加载用户数据中！",
@@ -157,6 +164,8 @@ export default {
         this.playlist = playlist;
         this.followList = follow;
         this.fansList = followeds;
+
+        this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
           this.$emit("toTop");

@@ -17,7 +17,62 @@
         {{ this.description }}
       </el-collapse-item>
     </el-collapse>
-    <div class="main">
+
+    <el-table
+      v-if="isPc"
+      class="detail-table"
+      ref="detailTable"
+      :data="filterList"
+      highlight-current-row
+      @current-change="handleTableCurrentChange"
+      v-loading.fullscreen.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <el-table-column label="封面">
+        <template slot-scope="scope">
+          <el-avatar :src="scope.row.al.picUrl"></el-avatar>
+        </template>
+      </el-table-column>
+      <el-table-column prop="name" label="歌曲名"> </el-table-column>
+      <el-table-column label="歌手">
+        <template slot-scope="scope">
+          <el-tooltip placement="top" content="点击歌手名查看歌手">
+            <span @click="searchPlayer(scope.row.ar[0].name)">{{
+              scope.row.ar[0].name
+            }}</span>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+      <el-table-column label="专辑">
+        <template slot-scope="scope">
+          <span>{{ scope.row.al.name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="时长">
+        <template slot-scope="scope">
+          <i class="el-icon-time"></i>
+          <span style="margin-left: 10px">
+            {{ Math.floor(scope.row.dt / 1000) | timeFormat }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="发行日期">
+        <template slot-scope="scope">
+          <span>{{ scope.row.publishTime | dateFormat }}</span>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div
+      v-else
+      class="main"
+      v-loading.fullscreen.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
       <div class="items" v-for="(item, index) in filterList" :key="index">
         <el-tooltip
           placement="top"
@@ -41,6 +96,7 @@
         </el-tooltip>
       </div>
     </div>
+
     <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
       <div class="page-content">
         <el-pagination
@@ -51,8 +107,9 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         >
-        </el-pagination></div
-    ></horizontal-scroll>
+        </el-pagination>
+      </div>
+    </horizontal-scroll>
   </div>
 </template>
 
@@ -76,13 +133,14 @@ export default {
       songs: [],
       pageSize: 15,
       curPage: 1,
+      loading: false,
     };
   },
   created() {
     this.requestPlaylistDetail(this.detailId);
   },
   computed: {
-    ...mapState(["detailId"]),
+    ...mapState(["isPc", "detailId"]),
     filterList() {
       return this.songs.slice(
         (this.curPage - 1) * this.pageSize,
@@ -98,6 +156,7 @@ export default {
   methods: {
     async requestPlaylistDetail(pdlId) {
       if (pdlId) {
+        this.loading = true;
         this.$notify({
           title: "信息提示",
           message: "加载歌单数据中！",
@@ -153,6 +212,7 @@ export default {
         }
         this.$store.commit("updatePlaylistIds", ids);
 
+        this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
           this.$refs.page.refresh();
@@ -192,6 +252,10 @@ export default {
     handleCurrentChange(val) {
       this.curPage = val;
       this.$emit("toTop");
+    },
+    handleTableCurrentChange(row) {
+      this.updateSongId(row.id);
+      this.$refs.detailTable.setCurrentRow(row);
     },
   },
   beforeDestroy() {

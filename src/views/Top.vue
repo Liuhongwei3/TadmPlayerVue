@@ -2,7 +2,13 @@
   <div>
     <el-tag type="danger">热门排行榜</el-tag>
     <el-tag type="danger">网易云音乐</el-tag>
-    <div class="main">
+    <div
+      class="main"
+      v-loading.fullscreen.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
       <div v-for="(item, index) in toplists" :key="index">
         <el-tooltip placement="top" :content="item.name">
           <div>
@@ -20,6 +26,11 @@ import { to } from "@/utils";
 
 export default {
   name: "Top",
+  data() {
+    return {
+      loading: false,
+    };
+  },
   created() {
     this.toplists.length === 0 && this.requestTopList();
   },
@@ -32,6 +43,7 @@ export default {
   },
   methods: {
     async requestTopList() {
+      this.loading = true;
       this.$notify({
         title: "信息提示",
         message: "加载排行榜榜单数据中！",
@@ -56,6 +68,7 @@ export default {
         return;
       }
       this.$store.dispatch("updateTopLists", { list });
+      this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     updateDetail(id) {

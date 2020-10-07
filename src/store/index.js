@@ -6,6 +6,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     strict: true,
     state: {
+        isPc: true,
         toplists: [],
         username: "",
         userId: 537069044,
@@ -15,6 +16,9 @@ export default new Vuex.Store({
         singerId: 4292,
     },
     mutations: {
+        updateIsPc: (state, payload) => {
+            state.isPc = payload
+        },
         updateDetailId: (state, payload) => {
             state.detailId = payload
         },

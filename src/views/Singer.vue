@@ -1,5 +1,10 @@
 <template>
-  <div>
+  <div
+    v-loading.fullscreen.lock="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
     <el-tag
       type="success"
       @click="changeSongsFlag"
@@ -97,6 +102,7 @@ export default {
       musiclist: [],
       pageSize: 15,
       curPage: 1,
+      loading: false,
     };
   },
   created() {
@@ -141,6 +147,7 @@ export default {
   methods: {
     async requestSinger(sid) {
       if (sid) {
+        this.loading = true;
         this.$notify({
           title: "信息提示",
           message: "加载歌手详情数据中！",
@@ -162,6 +169,7 @@ export default {
         this.singerName = data.artist.name;
         this.briefDesc = data.artist.briefDesc;
         this.musiclist = data.hotSongs;
+        this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
           this.$refs.page.refresh();

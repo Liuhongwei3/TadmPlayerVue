@@ -38,7 +38,14 @@
       </span>
     </div>
     <el-divider></el-divider>
-    <Items :lists="searchResults" @newId="updateId" />
+    <Items
+      :lists="searchResults"
+      @newId="updateId"
+      v-loading.fullscreen.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    />
   </div>
 </template>
 
@@ -62,6 +69,7 @@ export default {
       tempKeyword: "",
       hotSearchResults: [],
       searchResults: [],
+      loading: false,
     };
   },
   async created() {
@@ -138,6 +146,7 @@ export default {
         });
         return;
       }
+      this.loading = true;
       switch (select) {
         case 1: {
           this.searchSongs();
@@ -190,6 +199,7 @@ export default {
         lists.push(obj);
       }
       this.searchResults = lists;
+      this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async searchSongs() {

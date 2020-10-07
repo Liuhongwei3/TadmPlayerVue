@@ -229,6 +229,39 @@
     width: 50vw !important;
 }
 
+
+/* 表头，行，列 */
+
+.detail-table th,
+.detail-table th.is-leaf,
+.detail-table td {
+    color: white !important;
+    background-color: #282c34 !important;
+    border: none !important;
+    text-align: center;
+    margin: 0 auto;
+}
+
+
+/* 表格外下边框 */
+
+.el-table::before {
+    height: 0;
+}
+
+.el-table th.gutter {
+    display: table-cell !important;
+}
+
+.detail-table tbody tr:hover>td {
+    color: #3cdbd3 !important;
+    background-color: #5a5959 !important;
+}
+
+.current-row>td {
+    background-color: #76a5d6 !important;
+}
+
 .page-wrapper {
     width: 100%;
     white-space: nowrap;

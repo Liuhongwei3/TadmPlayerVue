@@ -23,7 +23,13 @@
       </span>
     </div>
     <el-divider></el-divider>
-    <div id="hotComments">
+    <div
+      id="hotComments"
+      v-loading.fullscreen.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
       <el-tag type="success">听友精彩评论</el-tag>
       <div
         class="commentItems"
@@ -46,6 +52,16 @@
         <span class="comment-time">({{ item.time | dateFormat }})</span>
       </div>
     </div>
+    <div v-if="loading">
+      <el-divider></el-divider>
+      <el-button type="primary">
+        <i class="el-icon-loading"></i>加载中...
+      </el-button>
+    </div>
+    <div v-if="noMore">
+      <el-divider></el-divider>
+      <el-button type="warning">没有更多了</el-button>
+    </div>
   </div>
 </template>
 
@@ -66,6 +82,8 @@ export default {
       showCloudCommentsFlag: false,
       comments: [],
       cloudHotComments: [],
+      loading: false,
+      noMore: false,
     };
   },
   created() {
@@ -96,6 +114,11 @@ export default {
     songId(newValue) {
       this.requestHComments(newValue);
     },
+    hotComments(newValue, oldValue) {
+      if (newValue.length === oldValue.length) {
+        this.noMore = true;
+      }
+    },
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
@@ -110,6 +133,10 @@ export default {
     },
     async requestHComments(sid, limit = 20) {
       if (sid) {
+        if (this.noMore) {
+          return;
+        }
+        this.loading = true;
         this.$notify({
           title: "信息提示",
           message: "加载歌曲热评数据中！",
@@ -134,6 +161,7 @@ export default {
           return;
         }
         this.hotComments = hotComments;
+        this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
         });

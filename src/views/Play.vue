@@ -11,7 +11,6 @@
       <Drawer
         :drawer.sync="drawer"
         :showMv.sync="showMv"
-        :isPc="isPc"
         :hasMv="hasMv"
       />
       <div class="left">
@@ -155,6 +154,7 @@ import RLyric from "@/components/content/RLyric";
 import Drawer from "@/components/content/Drawer";
 import { shuffle } from "../utils";
 import { onLoadAudio } from "../features";
+import { mapState } from "vuex";
 
 export default {
   name: "Play",
@@ -175,7 +175,6 @@ export default {
       oWidth: 0,
       status: false,
       hasMv: false,
-      isPc: false,
       showMv: false,
       drawer: false,
     };
@@ -192,11 +191,8 @@ export default {
     this.oWidth = ori.clientWidth;
     this.currDuration = parseInt(audio.duration) ? parseInt(audio.duration) : 0;
 
-    this.isPc = document.documentElement.clientWidth >= 1000;
-
     window.addEventListener("resize", () => {
       this.oWidth = ori.clientWidth;
-      this.isPc = document.documentElement.clientWidth >= 1000;
     });
     audio.addEventListener("play", () => {
       this.status = true;
@@ -219,6 +215,7 @@ export default {
     });
   },
   computed: {
+    ...mapState(["isPc"]),
     backImage() {
       return {
         backgroundImage: "url(" + this.imgs + ")",
