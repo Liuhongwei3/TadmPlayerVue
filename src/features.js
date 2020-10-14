@@ -1,7 +1,43 @@
-export function parseLyric(lrc) {
+export function createDownload(name, player, data) {
+    //	Phone
+    // let name = this.name + '-' + this.player + '.mp3';
+    // let dtask = plus.downloader.createDownload(this.urls, {
+    //   method: 'post',
+    //   filename: `_downloads/${this.name}`,
+    //   retry: 3
+    // }, function(d, status){
+    //   if(status === 200){
+    //     alert("下载成功: " + d.filename);
+    //     // _this.showPluginAuto();
+    //     plus.runtime.openFile(d.filename);
+    //   } else {
+    //     alert("下载失败: " + status);
+    //   }
+    // });
+    // //dtask.addEventListener("statechanged", onStateChanged, false);
+    // dtask.start();
+
+    //	PC
+    let blob = new Blob([data], { type: "audio/mpeg;charset=utf-8" });
+    let downloadElement = document.createElement("a");
+    let href = window.URL.createObjectURL(blob);
+    downloadElement.href = href;
+    downloadElement.download = name + "-" + player + ".mp3";
+    document.body.appendChild(downloadElement);
+    downloadElement.click();
+    document.body.removeChild(downloadElement);
+    window.URL.revokeObjectURL(href);
+}
+
+export function parseLyric(data) {
+    let lrc = data.lrc.lyric;
+    let tlrc = data.tlyric.lyric;
     let lyrics = lrc.split("\n");
+    let tlyrics = tlrc ? tlrc.split("\n") : [];
+
     let lrcObj = [];
     let lrcMap = new Map();
+    let tlrcMap = new Map();
     let lrcTime = new Map();
     let j = 0;
     for (let i = 0; i < lyrics.length; i++) {
@@ -23,22 +59,68 @@ export function parseLyric(lrc) {
         }
     }
 
-    return [lrcObj, lrcMap, lrcTime];
+    for (let i = 0; i < tlyrics.length; i++) {
+        let tlyric = decodeURIComponent(tlyrics[i]);
+        let timeReg = /\[\d*:\d*((\.|\:)\d*)*\]/g;
+        let timeRegExpArr1 = tlyric.match(timeReg);
+        if (!timeRegExpArr1) continue;
+        let clause1 = tlyric.replace(timeReg, "");
+
+        for (let k = 0, h = timeRegExpArr1.length; k < h; k++) {
+            let t = timeRegExpArr1[k];
+            let min = Number(String(t.match(/\[\d*/i)).slice(1)),
+                sec = Number(String(t.match(/\:\d*/i)).slice(1));
+            let time = min * 60 + sec;
+            if (clause1) {
+                tlrcMap.set(time, clause1);
+            }
+        }
+    }
+
+    return [lrcObj, lrcMap, tlrcMap, lrcTime];
 }
 
-export function onLoadAudio(audio, MEDIA_ELEMENT_NODES) {
+export function parseLyricByQq(data) {
+    let { lyric: lyrics } = data;
+    let { translate: tlyrics } = data;
+
+    let lrcObj = [];
+    let lrcMap = new Map();
+    let tlrcMap = new Map();
+    let lrcTime = new Map();
+    for (let i = 0; i < lyrics.length; i++) {
+        let lyric = decodeURIComponent(lyrics[i][1]);
+        let t = lyrics[i][0];
+        let min = Number(String(t.match(/\d*/i)).slice(0)),
+            sec = Number(String(t.match(/\:\d*/i)).slice(1));
+        let time = min * 60 + sec;
+        if (lyric) {
+            lrcTime.set(time, i);
+            lrcMap.set(time, lyric);
+            lrcObj.push({ time: time, text: lyric });
+        }
+    }
+
+    for (let i = 0; i < tlyrics.length; i++) {
+        let tlyric = decodeURIComponent(tlyrics[i][1]);
+        let t = lyrics[i][0];
+        let min = Number(String(t.match(/\d*/i)).slice(0)),
+            sec = Number(String(t.match(/\:\d*/i)).slice(1));
+        let time = min * 60 + sec;
+        if (tlyric && tlyric !== "//") {
+            tlrcMap.set(time, tlyric);
+        }
+    }
+
+    return [lrcObj, lrcMap, tlrcMap, lrcTime];
+}
+
+export function onLoadAudio(audio) {
     let context = new(window.AudioContext || window.webkitAudioContext)();
     let analyser = context.createAnalyser();
     analyser.fftSize = 512;
 
-    // let source;
-    // if (MEDIA_ELEMENT_NODES.has(audio)) {
-    //     source = MEDIA_ELEMENT_NODES.get(audio);
-    // } else {
-    //     source = context.createMediaElementSource(audio);
-    //     MEDIA_ELEMENT_NODES.set(audio, source);
-    // }
-    let source = context.createMediaElementSource(audio);
+    let source = context.createMediaElementSource(document.getElementById("audio"));
 
     source.connect(analyser);
     analyser.connect(context.destination);

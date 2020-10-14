@@ -27,7 +27,7 @@ Vue.filter("timeFormat", (timeIn = 0) => {
         return "0 : 00";
     }
 })
-Vue.filter("dateFormat", (dateIn = 0) => {
+Vue.filter("dateFormat", (dateIn = 0, type = "less") => {
     const date = dateIn ? new Date(dateIn) : 0;
     if (date) {
         let year = date.getFullYear();
@@ -39,8 +39,15 @@ Vue.filter("dateFormat", (dateIn = 0) => {
 
         month = month.toString().padStart(2, "0");
         day = day.toString().padStart(2, "0");
+        hour = hour.toString().padStart(2, "0");
+        minutes = minutes.toString().padStart(2, "0");
+        seconds = seconds.toString().padStart(2, "0");
 
-        return `${year}-${month}-${day}`;
+        if (type === "more") {
+            return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
+        } else {
+            return `${year}-${month}-${day}`;
+        }
     } else {
         return "Private";
     }

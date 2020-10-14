@@ -1,47 +1,43 @@
 <template>
   <div id="search">
-    <el-input
-      type="text"
+    <el-autocomplete
       class="searchInput"
-      placeholder="Please Input your search content~"
-      v-model.lazy.trim="keyword"
+      v-model.lazy="keyword"
       clearable
+      v-model="keyword"
+      :fetch-suggestions="querySearch"
+      placeholder="请输入搜索关键词"
+      @select="handleSelect"
+      @keyup.enter.native="doSearch"
     >
-      <el-select v-model="select" slot="prepend" placeholder="请选择">
+      <el-select
+        class="type-select"
+        v-model="type"
+        slot="prepend"
+        placeholder="请选择"
+      >
         <el-option label="歌曲" value="1"></el-option>
         <el-option label="歌词" value="2"></el-option>
         <el-option label="歌单" value="3"></el-option>
         <el-option label="歌手" value="4"></el-option>
         <el-option label="用户" value="5"></el-option>
+        <el-option label="MV" value="6"></el-option>
       </el-select>
       <el-button
         slot="append"
         icon="el-icon-search"
         @click="doSearch"
       ></el-button>
-    </el-input>
-    <el-divider></el-divider>
-    <el-badge value="hot">
-      <el-button size="small" type="primary">热搜榜</el-button>
-    </el-badge>
-    <div id="hotSearch">
-      <span
-        id="hotSearchResults"
-        v-for="item in hotSearchResults"
-        :key="item.searchWord"
-      >
-        <el-tooltip placement="bottom" :content="item.content">
-          <el-tag type="success" @click="updateKeyword(item.searchWord)">
-            {{ item.searchWord }}
-          </el-tag>
-        </el-tooltip>
-      </span>
-    </div>
-    <el-divider></el-divider>
+      <template slot-scope="{ item }">
+        <div class="searchWord">{{ item.searchWord }}</div>
+        <span class="content">{{ item.content }}</span>
+      </template>
+    </el-autocomplete>
+
     <Items
       :lists="searchResults"
       @newId="updateId"
-      v-loading.fullscreen.lock="loading"
+      v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -50,36 +46,38 @@
 </template>
 
 <script>
-import {
-  hotSearch,
-  musicCover,
-  searchMusic,
-  search,
-  singer,
-} from "@/network/Request";
+import req from "@/network/req";
+import { to } from "@/utils";
 import Items from "@/components/common/items/Items";
+import { mapState } from "vuex";
 
 export default {
   name: "search",
   components: { Items },
   data() {
     return {
-      select: "1",
+      type: "1",
       keyword: "",
       tempKeyword: "",
-      hotSearchResults: [],
+      hotSearchKeywords: [],
       searchResults: [],
       loading: false,
     };
   },
+  computed: {
+    ...mapState(["source"]),
+  },
   async created() {
     let {
       data: { data },
-    } = await hotSearch();
-    this.hotSearchResults = data;
+    } = await req.netease.hotSearch();
+    this.hotSearchKeywords = data;
   },
   watch: {
-    select(newValue) {
+    source(newValue) {
+      this.doSearch();
+    },
+    type(newValue) {
       this.doSearch();
     },
   },
@@ -89,8 +87,25 @@ export default {
     });
   },
   methods: {
-    async updateId(id) {
-      switch (+this.select) {
+    querySearch(queryString, cb) {
+      let hotKeywords = this.hotSearchKeywords;
+      let results = queryString
+        ? hotKeywords.filter(this.createFilter(queryString))
+        : hotKeywords;
+      // 调用 callback 返回建议列表的数据
+      cb(results);
+    },
+    createFilter(queryString) {
+      return (keyword) => {
+        return keyword.searchWord.trim().indexOf(queryString.trim()) !== -1;
+      };
+    },
+    handleSelect(item) {
+      this.keyword = item.searchWord;
+      this.doSearch();
+    },
+    async updateId({ id, name, nickname }) {
+      switch (+this.type) {
         case 1:
         case 2: {
           this.$store.commit("updateSongId", id);
@@ -102,12 +117,7 @@ export default {
           break;
         }
         case 4: {
-          let {
-            data: {
-              artist: { name },
-            },
-          } = await singer(id);
-          this.$store.commit("updateSingerName", name);
+          this.$store.commit("updateSingerId", id);
           this.$router.push("/singer");
           break;
         }
@@ -116,15 +126,24 @@ export default {
           this.$router.push("/user");
           break;
         }
+        case 6: {
+          this.$router.push({
+            path: "/showMv",
+            query: { mvId: id, name, artName: nickname },
+          });
+          break;
+        }
       }
     },
     updateKeyword(keyword) {
       this.keyword = keyword;
       this.doSearch();
     },
-    doSearch() {
-      let select = +this.select;
-      if (!select) {
+    async doSearch() {
+      let source = this.source;
+      let type = +this.type;
+
+      if (!type) {
         this.$message.warning({
           showClose: true,
           message: "请选择搜索选项！",
@@ -139,15 +158,62 @@ export default {
         this.tempKeyword = "";
         return;
       }
-      if (this.tempKeyword === this.select + this.keyword) {
+      if (this.tempKeyword === this.source + this.type + this.keyword) {
         this.$message.warning({
           showClose: true,
           message: "该关键词搜索结果已显示在下方！本次将不再搜索！",
         });
         return;
       }
+      if (type !== 1 && source === "qq") {
+        this.$message.warning({
+          showClose: true,
+          message: "QQ 数据源暂时只支持歌曲搜索！",
+        });
+        return;
+      }
+
       this.loading = true;
-      switch (select) {
+      this.tempKeyword = this.source + this.type + this.keyword;
+      switch (source) {
+        case "netease": {
+          this.doNetEaseSearch(type);
+          break;
+        }
+        case "qq": {
+          this.doQqSearch(type);
+          break;
+        }
+      }
+    },
+    async doQqSearch(type = 1) {
+      if (type === 1) {
+        let [err, data] = await to(req.qq.searchMusicByQq(this.keyword));
+        this.loading = false;
+        if (err) {
+          return;
+        }
+        let {
+          data: {
+            data: { songs },
+          },
+        } = data;
+        let lists = [];
+        for (let v of songs) {
+          lists.push({
+            id: v.id,
+            name: v.name,
+            nickname: v.artists[0].name,
+            imgUrl: v.album.cover,
+          });
+        }
+        this.searchResults = lists;
+        this.loading = false;
+        this.$nextTick(() => this.$bus.$emit("refresh"));
+      }
+    },
+    doNetEaseSearch(type = 1) {
+      switch (type) {
         case 1: {
           this.searchSongs();
           break;
@@ -168,13 +234,17 @@ export default {
           this.searchUsers();
           break;
         }
+        case 6: {
+          this.searchMvs();
+          break;
+        }
       }
-      this.tempKeyword = this.select + this.keyword;
     },
     handleData(songs = [], flag = 1) {
       let lists = [];
       for (let v of songs) {
         let obj = {};
+
         if (flag === 5) {
           obj.id = v.userId;
           obj.name = v.nickname;
@@ -182,15 +252,21 @@ export default {
           lists.push(obj);
           continue;
         }
+
         obj.id = v.id;
         obj.name = v.name;
+
         if (flag === 4) {
           obj.imgUrl = v.picUrl;
           lists.push(obj);
           continue;
         }
-        obj.mvid = v.mvid;
-        if (flag === 1 || flag === 2) {
+
+        if (flag === 6) {
+          obj.imgUrl = v.cover;
+        }
+
+        if (flag === 1 || flag === 2 || flag === 6) {
           obj.nickname = v.artists[0].name;
         } else if (flag === 3) {
           obj.nickname = v.creator.nickname;
@@ -207,7 +283,7 @@ export default {
         data: {
           result: { songs },
         },
-      } = await searchMusic(this.keyword);
+      } = await req.netease.search(this.keyword);
       this.handleData(songs, 1);
     },
     async searchLyrics() {
@@ -215,7 +291,7 @@ export default {
         data: {
           result: { songs },
         },
-      } = await search(this.keyword, 1006);
+      } = await req.netease.search(this.keyword, 1006);
       this.handleData(songs, 2);
     },
     async searchDetails() {
@@ -223,7 +299,7 @@ export default {
         data: {
           result: { playlists },
         },
-      } = await search(this.keyword, 1000);
+      } = await req.netease.search(this.keyword, 1000);
       this.handleData(playlists, 3);
     },
     async searchSingers() {
@@ -231,7 +307,7 @@ export default {
         data: {
           result: { artists },
         },
-      } = await search(this.keyword, 100);
+      } = await req.netease.search(this.keyword, 100);
       this.handleData(artists, 4);
     },
     async searchUsers() {
@@ -239,8 +315,16 @@ export default {
         data: {
           result: { userprofiles },
         },
-      } = await search(this.keyword, 1002);
+      } = await req.netease.search(this.keyword, 1002);
       this.handleData(userprofiles, 5);
+    },
+    async searchMvs() {
+      let {
+        data: {
+          result: { mvs },
+        },
+      } = await req.netease.search(this.keyword, 1004);
+      this.handleData(mvs, 6);
     },
   },
 };
@@ -259,8 +343,17 @@ export default {
   width: 50%;
 }
 
-.el-select {
+.type-select {
   width: 80px;
+}
+
+.searchWord {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.content {
+  font-size: 12px;
+  color: #b4b4b4;
 }
 
 @media screen and (max-width: 768px) {
@@ -274,7 +367,11 @@ export default {
   }
 
   .searchInput {
-    width: 90%;
+    width: 70%;
+  }
+
+  .type-select {
+    width: 60px;
   }
 }
 </style>

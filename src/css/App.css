@@ -5,9 +5,16 @@
     text-align: center;
     color: white;
     margin: 0 auto;
-    background-color: #282c34;
     min-height: 100vh;
     overflow: hidden;
+}
+
+#app-bg {
+    width: 100vw;
+    height: 100vh;
+    filter: blur(50px) brightness(60%);
+    position: relative;
+    z-index: -2;
 }
 
 
@@ -41,24 +48,22 @@
     display: none;
 }
 
-.home {
-    position: sticky;
-    height: 42vh;
-    overflow: hidden;
+.top-info {
+    position: fixed;
+    top: 0;
+    left: 45%;
+    margin: 0;
 }
 
 .center {
-    background-color: #282c34;
-}
-
-#searchResult,
-#searchSingers,
-#searchLyrics,
-#searchDetails,
-#searchUser {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    /* background-color: #282c34; */
+    position: absolute;
+    top: 40px;
+    left: 10vw;
+    background: rgba(0, 0, 0, 0.2);
+    transition: 0.3s;
+    border-radius: 20px;
+    padding-top: 10px;
 }
 
 .main {
@@ -66,60 +71,37 @@
     flex-wrap: wrap;
     justify-content: space-around;
     font-size: 14px;
-}
-
-#controlPc {
-    position: absolute;
-    z-index: 66;
-    right: 5px;
+    color: #d9d9d9;
 }
 
 .items:hover {
-    color: #1ba2f0;
+    color: #fff;
 }
 
 .name {
-    width: 150px;
+    width: 180px;
     margin: 0 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.backTop {
-    position: fixed;
-    right: 15px;
-    bottom: 30px;
-    color: rgba(5, 124, 190, 0.87);
-    background-color: #9d9b9b;
-    padding: 10px;
-    border-radius: 50%;
-    animation: show 0.5s;
-}
-
-@keyframes show {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
 .fa-2x {
-    font-size: 1.6em;
+    font-size: 1.5em;
+    color: #fefefe;
 }
 
 .content {
-    height: 52vh;
+    width: 88vw;
+    height: 77vh;
     overflow: hidden;
 }
 
 .main img {
-    width: 150px;
-    height: 150px;
-    border-radius: 20%;
-    opacity: 0.75;
+    width: 200px;
+    height: 200px;
+    border-radius: 10%;
+    opacity: 0.7;
     margin: 10px;
 }
 
@@ -131,13 +113,12 @@
 
 .bottom {
     position: absolute;
-    margin: 5px;
-    font-size: 14px;
-    width: 120px;
+    width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     z-index: 9;
+    text-align: left;
 }
 
 .fade-enter-active,
@@ -155,123 +136,6 @@
     opacity: 1;
 }
 
-.el-tag {
-    margin: 5px;
-}
-
-.el-tag:hover {
-    cursor: pointer;
-}
-
-.box-card {
-    width: 80vw;
-    margin: 10px auto;
-    color: #f8dd0d !important;
-    background-color: #9d9b9b !important;
-}
-
-.el-collapse-item__header {
-    background-color: #c7c6c6 !important;
-    text-align: center;
-    padding: 0 10%;
-}
-
-.el-collapse-item__content {
-    color: #ef788d;
-    padding: 10px;
-}
-
-.el-avatar {
-    margin-right: 5px;
-}
-
-.el-button {
-    padding: 10px 15px;
-}
-
-.el-badge__content {
-    background-color: rgb(200, 100, 100);
-}
-
-.items .el-badge__content.is-fixed {
-    top: 15px;
-    right: 40px;
-    z-index: 6;
-}
-
-.el-drawer {
-    color: black;
-    background-color: #bfbfbf;
-    text-align: center;
-}
-
-.switch-item {
-    margin: 6px;
-}
-
-.switch-item div {
-    margin: 5px;
-}
-
-.switch-item span {
-    margin-right: 10px;
-}
-
-.el-pagination {
-    margin-top: 15px;
-}
-
-.el-pagination__total {
-    color: white;
-}
-
-.el-drawer {
-    width: 50vw !important;
-}
-
-
-/* 表头，行，列 */
-
-.detail-table th,
-.detail-table th.is-leaf,
-.detail-table td {
-    color: white !important;
-    background-color: #282c34 !important;
-    border: none !important;
-    text-align: center;
-    margin: 0 auto;
-}
-
-
-/* 表格外下边框 */
-
-.el-table::before {
-    height: 0;
-}
-
-.el-table th.gutter {
-    display: table-cell !important;
-}
-
-.detail-table tbody tr:hover>td {
-    color: #3cdbd3 !important;
-    background-color: #5a5959 !important;
-}
-
-.current-row>td {
-    background-color: #76a5d6 !important;
-}
-
-.page-wrapper {
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.page-content {
-    display: inline-block;
-}
-
 .user-info {
     margin-left: 30px;
     display: flex;
@@ -279,6 +143,9 @@
 }
 
 @media screen and (max-width: 768px) {
+    .top-info {
+        left: 25%;
+    }
     .main img {
         width: 100px;
         height: 100px;
@@ -288,26 +155,15 @@
         width: 80px;
         font-size: 12px;
     }
-    .home {
-        height: 30vh;
+    .center {
+        left: 18vw;
     }
     .content {
-        height: 64vh;
+        width: 80vw;
+        height: 74vh;
     }
     .name {
         width: 100px;
         font-size: 12px;
-    }
-    .el-dialog,
-    .el-card {
-        width: 80vw;
-    }
-    .el-badge__content.is-fixed {
-        top: 10px;
-        right: 35px;
-    }
-    .el-drawer {
-        width: 80vw !important;
-        height: 100vh !important;
     }
 }

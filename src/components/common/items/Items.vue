@@ -1,19 +1,22 @@
 <template>
   <div>
     <no-result :result="lists" />
-    <div class="main">
-      <div class="items" v-for="item in lists" :key="item.id">
+
+    <div class="main" v-if="lists.length !== 0">
+      <el-divider></el-divider>
+      <div
+        class="items"
+        v-for="item in lists"
+        :key="item.id"
+        @click="updateId(item.id, item.name, item.name || item.nickname)"
+      >
         <el-tooltip
           placement="right"
           :content="`${item.name} --- ${item.nickname}`"
           v-if="item.name && item.nickname"
         >
           <div>
-            <img
-              v-lazy="item.imgUrl"
-              :key="item.imgUrl"
-              @click="updateId(item.id)"
-            />
+            <img v-lazy="item.imgUrl" :key="item.imgUrl" />
             <p class="name">
               {{ item.name }}
               <span v-if="item.name && item.nickname">---</span>
@@ -22,11 +25,7 @@
           </div>
         </el-tooltip>
         <div v-else>
-          <img
-            v-lazy="item.imgUrl"
-            :key="item.imgUrl"
-            @click="updateId(item.id)"
-          />
+          <img v-lazy="item.imgUrl" :key="item.imgUrl" />
           <p class="name">
             {{ item.name }}
             {{ item.nickname }}
@@ -38,7 +37,6 @@
 </template>
 <script>
 import NoResult from "@/components/common/noResult/NoResult";
-import { listId } from "../../../network/Request";
 
 export default {
   name: "Items",
@@ -53,8 +51,8 @@ export default {
     },
   },
   methods: {
-    updateId(id) {
-      this.$emit("newId", id);
+    updateId(id, name, nickname) {
+      this.$emit("newId", { id, name, nickname });
     },
   },
 };

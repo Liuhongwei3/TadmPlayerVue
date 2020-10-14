@@ -7,68 +7,64 @@
   -->
 
 <template>
-  <horizontal-scroll class="nav-wrapper" :probe-type="3">
+  <div class="nav-wrapper">
     <div class="nav-content">
-      <router-link to="/">Home</router-link>
-      |
-      <router-link to="/top">巅峰榜</router-link>
-      |
+      <router-link to="/top">
+        <span> 巅峰榜</span>
+      </router-link>
       <router-link to="/hotDetail">热门歌单</router-link>
-      |
       <router-link to="/search">搜索</router-link>
-      |
       <router-link to="/singer">歌手</router-link>
-      |
       <router-link to="/user">用户</router-link>
-      |
       <router-link to="/detail">歌单</router-link>
-      |
       <router-link to="/comment">评论</router-link>
+      <router-link to="/mv">MV</router-link>
     </div>
-  </horizontal-scroll>
+  </div>
 </template>
 
 <script>
-import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
-
 export default {
   name: "NavBar",
-  components: {
-    HorizontalScroll,
-  },
 };
 </script>
 
 <style scoped>
 .nav-wrapper {
-  width: 100%;
-  white-space: nowrap;
+  position: absolute;
+  left: 0;
+  top: 32px;
+  width: 10vw;
   overflow: hidden;
-  position: sticky;
-  top: 5px;
-  z-index: 1;
 }
 
 .nav-content {
-  display: inline-block;
   font-size: 16px;
-  text-align: center;
-  padding: 0 10%;
+  white-space: nowrap;
+}
+
+i {
+  color: #fff;
 }
 
 a {
-  display: inline-block;
+  display: block;
   height: 32px;
   line-height: 32px;
   color: #c0c0c0;
+  text-decoration: none;
+  margin: 10px 0;
 }
 
 a.router-link-exact-active {
   font-size: 18px;
   font-weight: 700;
-  color: #8db946;
-  border: 1px solid #aa8e14;
-  border-radius: 10%;
-  background-color: #575555;
+  color: #e5e5e5;
+}
+
+@media screen and (max-width: 768px) {
+  .nav-wrapper {
+    width: 18vw;
+  }
 }
 </style>

@@ -4,6 +4,10 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 
 const routes = [{
+        path: "/",
+        redirect: "/top"
+    },
+    {
         path: "/top",
         name: "Top",
         component: () =>
@@ -44,6 +48,18 @@ const routes = [{
         name: "Comment",
         component: () =>
             import ( /* webpackChunkName: "2" */ '@/views/Comment.vue'),
+    },
+    {
+        path: "/mv",
+        name: "Mv",
+        component: () =>
+            import ( /* webpackChunkName: "2" */ '@/views/Mv.vue'),
+    },
+    {
+        path: "/showMv",
+        name: "ShowMv",
+        component: () =>
+            import ( /* webpackChunkName: "2" */ '../components/content/ShowMv.vue'),
     },
     {
         path: '/about',

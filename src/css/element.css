@@ -1,0 +1,126 @@
+.el-tag {
+    margin: 5px;
+}
+
+.el-tag:hover {
+    cursor: pointer;
+}
+
+.box-card {
+    width: 80vw;
+    margin: 10px auto;
+    color: #f8dd0d !important;
+    background-color: #9d9b9b !important;
+}
+
+.el-collapse-item__header {
+    background-color: #c7c6c6 !important;
+    text-align: center;
+    padding: 0 10%;
+}
+
+.el-collapse-item__content {
+    color: #ef788d;
+    padding: 10px;
+}
+
+.el-avatar {
+    margin-right: 5px;
+}
+
+.el-button {
+    padding: 10px 15px;
+}
+
+.el-badge__content {
+    background-color: rgb(200, 100, 100);
+}
+
+.el-divider--horizontal {
+    margin: 16px 0;
+}
+
+.items .el-badge__content.is-fixed {
+    top: 15px;
+    right: 30px;
+    z-index: 6;
+}
+
+.el-drawer {
+    width: 50vw !important;
+    color: black;
+    background-color: #bfbfbf;
+    padding-left: 30px;
+}
+
+.el-pagination {
+    margin-top: 15px;
+}
+
+.el-pagination__total {
+    color: white;
+}
+
+
+/* 表头，行，列 */
+
+.detail-table th,
+.detail-table th.is-leaf,
+.detail-table td {
+    color: white !important;
+    background-color: #434446 !important;
+    border: none !important;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.detail-table {
+    width: 96%;
+    margin: 0 auto;
+    border-radius: 2%;
+}
+
+
+/* 表格外下边框 */
+
+.el-table::before {
+    height: 0;
+}
+
+.el-table th.gutter {
+    display: table-cell !important;
+}
+
+.detail-table tbody tr:hover>td {
+    color: #3cdbd3 !important;
+    background-color: #5a5959 !important;
+}
+
+.current-row>td {
+    background-color: #737a81 !important;
+}
+
+.page-wrapper {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.page-content {
+    display: inline-block;
+}
+
+@media screen and (max-width: 768px) {
+    .el-dialog,
+    .el-card {
+        width: 80vw;
+    }
+    .el-badge__content.is-fixed {
+        top: 10px;
+        right: 35px;
+    }
+    .el-drawer {
+        width: 80vw !important;
+        height: 100vh !important;
+    }
+}

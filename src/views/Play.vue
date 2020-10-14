@@ -1,159 +1,148 @@
 <template>
   <div>
-    <div id="play" :style="backImage">
-      <el-tooltip id="controlPc" content="站点选项配置" placement="bottom">
-        <i
-          class="fa fa-arrow-circle-o-left fa-2x"
-          aria-hidden="true"
-          @click="drawer = true"
-        ></i>
-      </el-tooltip>
-      <Drawer
-        :drawer.sync="drawer"
-        :showMv.sync="showMv"
-        :hasMv="hasMv"
-      />
-      <div class="left">
-        <img :src="imgs" :onerror="defaultImgs" alt="网易云音乐" />
-        <div class="song_singer">
-          <div class="name">
-            <el-tooltip content="歌曲名" placement="top">
-              <span>{{ name }}</span>
-            </el-tooltip>
-            <div>||</div>
+    <audio
+      id="audio"
+      ref="audio"
+      :src="urls"
+      autoplay
+      muted
+      crossorigin="anonymous"
+    />
+    <!-- <canvas id="canvas"></canvas> -->
+    <Drawer :drawer.sync="drawer" />
+
+    <transition name="up">
+      <div class="more" :style="backImage" v-show="showMore">
+        <div class="more-play-info">
+          <div class="left">
+            <img :src="imgs" :onerror="defaultImgs" alt="网易云音乐" />
+            <div>
+              <div class="songName">
+                <span>{{ songName }}</span>
+              </div>
+              <div class="otherName">
+                歌手:<span @click="searchPlayer()">{{ player }} </span>
+              </div>
+              <div class="otherName">
+                专辑:<span @click="searchPlayer()">{{ albumName }} </span>
+              </div>
+            </div>
           </div>
-          <div class="name">
-            <el-tooltip content="点击查看歌手详情" placement="bottom">
-              <span @click="searchPlayer()">
-                {{ player }}
-              </span>
-            </el-tooltip>
-          </div>
+          <r-lyric class="right" :songId="id" :cTime="cTime" />
         </div>
       </div>
-      <audio
-        id="audio"
-        ref="audio"
-        :src="urls"
-        autoplay
-        muted
-        crossorigin="anonymous"
-      />
-      <video
-        ref="video"
-        autoplay
-        muted
-        crossorigin="anonymous"
-        :src="videos"
-        v-show="hasMv && showMv"
-      />
-      <!-- <canvas id="canvas"></canvas> -->
-      <div class="rightS">
-        <div class="song_name">{{ name }}</div>
-        <div>|</div>
-        <div class="singer">
-          <el-tooltip content="点击查看歌手详情" placement="right">
-            <span @click="searchPlayer()">
-              {{ player }}
-            </span>
+    </transition>
+
+    <div class="simply-play-info">
+      <div class="simply">
+        <el-tooltip content="点击查看或隐藏详情界面" placement="top">
+          <div @click="showMore = !showMore">
+            <el-avatar shape="square" :src="imgs" />
+          </div>
+        </el-tooltip>
+        <el-tooltip content="歌曲名" placement="top">
+          <el-tag>{{ this.songName }}</el-tag>
+        </el-tooltip>
+        <el-tooltip content="点击查看歌手详情" placement="top">
+          <el-tag type="success" @click="searchPlayer()">{{
+            this.player
+          }}</el-tag>
+        </el-tooltip>
+        <el-tooltip content="去看 MV" placement="top" v-if="this.mv !== 0">
+          <el-tag v-if="this.mv !== 0" @click="toMv">MV</el-tag>
+        </el-tooltip>
+      </div>
+
+      <div class="playControl">
+        <div class="control">
+          <el-tooltip content="随机播放" placement="bottom">
+            <i
+              class="fa fa-random fa-2x"
+              aria-hidden="true"
+              v-if="!order"
+              @click="changeList"
+            ></i>
+          </el-tooltip>
+          <el-tooltip content="顺序播放" placement="bottom">
+            <i
+              class="fa fa-bars fa-2x"
+              aria-hidden="true"
+              v-if="order"
+              @click="changeList"
+            ></i>
+          </el-tooltip>
+          <el-tooltip content="上一曲" placement="top">
+            <i
+              class="fa fa-step-backward fa-2x"
+              aria-hidden="true"
+              @click="prev"
+            ></i>
+          </el-tooltip>
+          <el-tooltip content="继续播放" placement="bottom" v-if="!status">
+            <i
+              class="fa fa-play fa-2x"
+              aria-hidden="true"
+              v-if="!status"
+              @click="play"
+            ></i>
+          </el-tooltip>
+          <el-tooltip content="暂停播放" placement="bottom" v-if="status">
+            <i
+              class="fa fa-pause fa-2x"
+              aria-hidden="true"
+              @click="play"
+              v-if="status"
+            ></i>
+          </el-tooltip>
+          <el-tooltip content="下一曲" placement="top">
+            <i
+              class="fa fa-step-forward fa-2x"
+              aria-hidden="true"
+              @click="next"
+            ></i>
+          </el-tooltip>
+          <el-tooltip content="下载" placement="top">
+            <i
+              class="fa fa-download fa-2x"
+              aria-hidden="true"
+              @click="downloadMusic"
+            ></i>
+          </el-tooltip>
+          <el-tooltip id="controlPc" content="站点选项配置" placement="bottom">
+            <i
+              class="fa fa-cog fa-2x"
+              aria-hidden="true"
+              @click="drawer = true"
+            ></i>
           </el-tooltip>
         </div>
-      </div>
-      <r-lyric class="right" :songId="id" :cTime="cTime" />
-    </div>
-    <div class="playControl">
-      <div class="control">
-        <el-tooltip content="随机播放" placement="bottom">
-          <i
-            class="fa fa-random fa-2x"
-            aria-hidden="true"
-            v-if="!order"
-            @click="changeList"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="顺序播放" placement="bottom">
-          <i
-            class="fa fa-bars fa-2x"
-            aria-hidden="true"
-            v-if="order"
-            @click="changeList"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="上一曲" placement="top">
-          <i
-            class="fa fa-step-backward fa-2x"
-            aria-hidden="true"
-            @click="prev"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="继续播放" placement="bottom">
-          <i
-            class="fa fa-play fa-2x"
-            aria-hidden="true"
-            v-if="!status"
-            @click="play"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="暂停播放" placement="bottom">
-          <i
-            class="fa fa-pause fa-2x"
-            aria-hidden="true"
-            @click="play"
-            v-if="status"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="下一曲" placement="top">
-          <i
-            class="fa fa-step-forward fa-2x"
-            aria-hidden="true"
-            @click="next"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="查看热评" placement="bottom">
-          <i
-            class="fa fa-commenting fa-2x"
-            aria-hidden="true"
-            @click="enjoyComment"
-          ></i>
-        </el-tooltip>
-        <el-tooltip content="下载" placement="top">
-          <i
-            class="fa fa-download fa-2x"
-            aria-hidden="true"
-            @click="downloadMusic"
-          ></i>
-        </el-tooltip>
-      </div>
-      <div class="timeProgress">
-        <el-tooltip content="当前播放时间" placement="bottom">
-          <div class="leftTime">{{ this.cTime | timeFormat }}</div>
-        </el-tooltip>
-        <div class="myProgress" @click="offsetX">
-          <hr id="ori" ref="ori" />
-          <hr id="cPro" :style="csty" />
+        <div class="timeProgress">
+          <el-tooltip content="当前播放时间" placement="bottom">
+            <div class="leftTime">{{ this.cTime | timeFormat }}</div>
+          </el-tooltip>
+          <el-slider
+            class="myProgress"
+            ref="ori"
+            v-model="percent"
+            :format-tooltip="formatTime"
+            @change="offsetX"
+            @input="updateTime"
+          ></el-slider>
+          <el-tooltip content="歌曲时长" placement="top">
+            <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
+          </el-tooltip>
         </div>
-        <el-tooltip content="歌曲时长" placement="top">
-          <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
-        </el-tooltip>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import {
-  checkMusic,
-  download,
-  musicCover,
-  musicUrl,
-  search,
-  searchSinger,
-  getMv,
-} from "@/network/Request";
+import req from "@/network/req";
 import RLyric from "@/components/content/RLyric";
 import Drawer from "@/components/content/Drawer";
-import { shuffle } from "../utils";
-import { onLoadAudio } from "../features";
+import { shuffle, timeFormat } from "../utils";
+import { createDownload, onLoadAudio } from "../features";
 import { mapState } from "vuex";
 
 export default {
@@ -161,12 +150,13 @@ export default {
   components: { RLyric, Drawer },
   data() {
     return {
-      name: "",
+      songName: "",
+      albumName: "",
       player: "",
       imgs: "",
       defaultImgs: 'this.src="' + require("@/assets/404.jpg") + '"',
-      videos: "",
       urls: "",
+      mv: 0,
       currentIndex: 0,
       currDuration: 0,
       order: true,
@@ -177,6 +167,7 @@ export default {
       hasMv: false,
       showMv: false,
       drawer: false,
+      showMore: false,
     };
   },
   created() {
@@ -197,7 +188,7 @@ export default {
     audio.addEventListener("play", () => {
       this.status = true;
       this.currDuration = parseInt(audio.duration);
-      // this.onLoadAudio();
+      // onLoadAudio();
     });
     audio.addEventListener("pause", () => {
       this.status = false;
@@ -205,7 +196,7 @@ export default {
     audio.addEventListener("timeupdate", () => {
       this.currDuration = parseInt(audio.duration);
       this.cTime = parseInt(audio.currentTime);
-      this.percent = (this.cTime / audio.duration).toFixed(2);
+      this.percent = Math.floor((this.cTime / audio.duration) * 100);
     });
     audio.addEventListener("ended", () => {
       this.cTime = 0;
@@ -215,7 +206,7 @@ export default {
     });
   },
   computed: {
-    ...mapState(["isPc"]),
+    ...mapState(["isPc", "source"]),
     backImage() {
       return {
         backgroundImage: "url(" + this.imgs + ")",
@@ -223,11 +214,7 @@ export default {
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundAttachment: "fixed",
-        zIndex: "-2",
       };
-    },
-    csty() {
-      return `width: ${this.percent * this.oWidth}px`;
     },
     id: {
       get() {
@@ -252,45 +239,46 @@ export default {
     },
   },
   watch: {
+    $route(newValue) {
+      this.showMore = false;
+    },
     hasMv(newValue) {
       if (!newValue) {
         this.showMv = false;
       }
     },
-    name(newValue) {
-      newValue &&
-        search(newValue + " " + this.player, 1004).then((res) => {
-          let {
-            data: { result },
-          } = res;
-          this.hasMv = result.mvCount !== 0;
-          if (this.hasMv) {
-            let mvid = result.mvs[0].id;
-            mvid &&
-              getMv(mvid).then((res) => {
-                this.videos = res.data.data.url;
-              });
-          } else {
-            this.videos = "";
-          }
-        });
-    },
-    status(newValue) {
-      if (!this.hasMv || !this.isPc) {
-        return;
-      }
-      let video = this.$refs.video;
-      if (newValue) {
-        this.videos && video.play();
-      } else {
-        this.videos && video.pause();
-      }
-    },
-    id(newValue) {
+    async id(newValue) {
       if (newValue) {
         this.id = newValue;
-        this.requestCover(newValue);
-        this.requestMusicUrl(newValue);
+        if (this.source === "netease") {
+          this.requestCover(newValue);
+          this.requestMusicUrl(newValue);
+        } else if (this.source === "qq") {
+          let [
+            {
+              data: { data },
+            },
+            {
+              data: { data: urlData },
+            },
+          ] = await Promise.all([
+            req.qq.getMusicDetailByQq(newValue),
+            req.qq.getMusicUrlByQq(newValue),
+          ]);
+          this.songName = data.name;
+          this.player = data.artists[0].name;
+          this.imgs = data.album.cover;
+          this.albumName = data.album.name;
+
+          if (urlData.url) {
+            this.urls = urlData.url;
+            this.play();
+          } else {
+            this.showAlert();
+          }
+
+          this.$store.commit("updateImgs", this.imgs);
+        }
       } else {
         this.showAlert();
       }
@@ -302,19 +290,22 @@ export default {
   methods: {
     async requestCover(newValue) {
       this.imgs = "";
-      this.name = "";
+      this.songName = "";
       this.player = "";
-      let { data } = await musicCover(newValue);
+      let { data } = await req.netease.musicCover(newValue);
       if (data.code === 200) {
         let database = data.songs[0];
-        this.imgs = database.al.picUrl;
-        this.name = database.name;
+        this.songName = database.name;
         this.player = database.ar[0].name;
+        this.imgs = database.al.picUrl;
+        this.albumName = database.al.name;
+        this.mv = database.mv;
       }
+      this.$store.commit("updateImgs", this.imgs);
     },
     async requestMusicUrl(id) {
       this.urls = "";
-      let res = await musicUrl(id);
+      let res = await req.netease.musicUrl(id);
       let url = res.data.data[0].url;
       if (url) {
         this.urls = url;
@@ -371,7 +362,7 @@ export default {
         data: {
           result: { artists },
         },
-      } = await searchSinger(this.player);
+      } = await req.netease.searchSinger(this.player);
       if (artists.length === 0) {
         this.$notify({
           title: "警告信息",
@@ -385,53 +376,58 @@ export default {
         this.$router.push("/singer");
       }
     },
-    offsetX(event) {
+    toMv() {
+      let audio = this.$refs.audio;
+      if (audio.play) {
+        audio.pause();
+      }
+      if (this.$route.path === "/showMv") {
+        this.$notify({
+          title: "警告信息",
+          message: "已在本页面，本次不再跳转！",
+          type: "warning",
+        });
+        return;
+      }
+      this.$router.push({
+        path: "/showMv",
+        query: { mvId: this.mv, name: this.songName, artName: this.player },
+      });
+    },
+    formatTime() {
+      return timeFormat(this.cTime);
+    },
+    offsetX(percent) {
       const audio = this.$refs.audio;
-      const video = this.$refs.video;
 
-      this.percent = (event.offsetX / this.oWidth).toFixed(2);
-      this.cTime = parseInt(this.percent * this.currDuration);
+      this.percent = percent;
+      this.cTime = parseInt((percent / 100) * this.currDuration);
 
       audio.currentTime = this.cTime;
       audio.play();
-      if (this.hasMv) {
-        video.currentTime = this.cTime;
-        video.play();
-      }
     },
-    enjoyComment() {
-      this.$router.push("/comment");
+    updateTime(percent) {
+      this.percent = percent;
+      this.cTime = parseInt((percent / 100) * this.currDuration);
     },
     downloadMusic() {
-      //	Phone
-      // let name = this.name + '-' + this.player + '.mp3';
-      // let dtask = plus.downloader.createDownload(this.urls, {
-      //   method: 'post',
-      //   filename: `_downloads/${this.name}`,
-      //   retry: 3
-      // }, function(d, status){
-      //   if(status === 200){
-      //     alert("下载成功: " + d.filename);
-      //     // _this.showPluginAuto();
-      //     plus.runtime.openFile(d.filename);
-      //   } else {
-      //     alert("下载失败: " + status);
-      //   }
-      // });
-      // //dtask.addEventListener("statechanged", onStateChanged, false);
-      // dtask.start();
-      //	PC
-      download(this.urls).then((res) => {
-        let blob = new Blob([res.data], { type: "audio/mpeg;charset=utf-8" });
-        let downloadElement = document.createElement("a");
-        let href = window.URL.createObjectURL(blob);
-        downloadElement.href = href;
-        downloadElement.download = this.name + "-" + this.player + ".mp3";
-        document.body.appendChild(downloadElement);
-        downloadElement.click();
-        document.body.removeChild(downloadElement);
-        window.URL.revokeObjectURL(href);
-      });
+      req.netease
+        .download(this.urls)
+        .then((res) => {
+          createDownload(this.songName, this.player, res.data);
+          this.$notify({
+            title: "成功",
+            message: "歌曲下载完成！",
+            type: "success",
+          });
+        })
+        .catch((err) => {
+          this.$notify({
+            title: "错误",
+            message: "好像出错误了！请稍候重试 ~",
+            type: "error",
+          });
+        });
     },
     showAlert() {
       this.$notify({
@@ -446,16 +442,6 @@ export default {
 </script>
 
 <style scoped>
-video {
-  width: 100vw;
-  height: 34vh;
-  object-fit: cover;
-  position: absolute;
-  top: 0;
-  right: 0;
-  opacity: 0.85;
-}
-
 #canvas {
   position: absolute;
   width: 90%;
@@ -465,62 +451,98 @@ video {
   z-index: 1;
 }
 
-img {
-  width: 200px;
-  height: 200px;
-}
-
-#play {
-  width: 100%;
-  height: 34vh;
-  display: flex;
-}
-
 .left,
-.right,
-.rightS {
-  background: rgba(0, 0, 0, 0.5);
+.right {
+  width: 50%;
   flex: 1;
-}
-
-.left {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .left img {
-  opacity: 0.7;
-  border: 1px solid #bfbfbf;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
+  border: 30px solid rgb(56, 53, 53);
   animation: imgRotate 6s linear infinite normal;
   position: relative;
   z-index: 2;
-  margin-top: 2vh;
 }
 
-.song_singer {
-  z-index: 6;
+.songName {
+  color: #f6506e;
+  font-size: 24px;
+  font-weight: 700;
 }
 
-.name,
-.song_name,
-.singer {
+.otherName {
+  font-size: 14px;
+  margin: 10px;
+}
+
+.otherName span {
+  margin-left: 10px;
+}
+
+.simply-play-info {
+  width: 100%;
+  background-color: rgb(105 105 105);
+  position: fixed;
+  bottom: 0;
+  z-index: 99;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+  margin-left: -10vw;
+}
+
+.el-tag {
+  max-width: 40vw;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.name {
-  max-width: 30vw;
-  color: #f6506e;
-  font-size: 20px;
-  font-family: "Times New Roman", Times, serif;
-  font-weight: 800;
+.more-play-info,
+.simply {
+  display: flex;
+  justify-content: center;
 }
 
-.rightS div {
-  max-width: 90vw;
+.simply {
+  padding: 10px;
+}
+
+.more-play-info {
+  background-color: rgba(0, 0, 0, 0.6);
+  height: 70vh;
+  padding: 5vh;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+}
+
+.more {
+  width: 88%;
+  position: fixed;
+  bottom: 16%;
+  z-index: 9;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+}
+
+.up-enter-active,
+.up-leave-active {
+  transition: top 0.5s ease-in-out;
+}
+
+.up-enter,
+.up-leave-to {
+  top: 84vh;
+}
+
+.up-enter-to,
+.up-leave {
+  top: 5vh;
 }
 
 @keyframes imgRotate {
@@ -532,20 +554,8 @@ img {
   }
 }
 
-.right {
-  flex: 1;
-}
-
-.rightS {
-  display: none;
-}
-
-a:hover {
-  cursor: pointer;
-}
-
 i {
-  color: #6cc1b9;
+  color: #fefefe;
   margin: 10px 18px;
 }
 
@@ -554,8 +564,7 @@ i {
 }
 
 .playControl {
-  margin: 0 2vw;
-  padding: 5px;
+  margin: 0 1vw 1vw 1vw;
   display: flex;
   justify-content: center;
   background-color: #efeaea85;
@@ -586,62 +595,46 @@ i {
   cursor: pointer;
 }
 
-hr {
-  height: 5px;
-  background-color: #e3dddd;
-  border: none;
-  border-radius: 20px;
-  margin: 0;
-}
-
-#ori {
-  position: relative;
-  z-index: 1;
-}
-
-#cPro {
-  color: transparent;
-  background: linear-gradient(to right, #00aaff, greenyellow);
-  position: absolute;
-  z-index: 2;
-  margin-top: -5px;
-}
-
 @media screen and (max-width: 768px) {
   .fa-2x {
     font-size: 1.3em;
     margin: 5px 2.5vh;
   }
 
-  video {
-    height: 20vh;
+  .simply {
+    padding: 0;
   }
 
-  #play {
-    height: 20vh;
+  .simply-play-info {
+    margin-left: -18vw;
   }
 
-  .left {
-    display: none;
+  .more-play-info {
+    flex-direction: column;
   }
 
+  .up-enter-to,
+  .up-leave {
+    top: 15vh;
+  }
+
+  .left,
   .right {
-    flex: 0;
+    width: 100%;
   }
 
-  .rightS {
-    display: inline-block;
-    color: #f25e0c;
-    padding: 10px;
-    z-index: 1;
+  .left img {
+    width: 70px;
+    height: 70px;
+    border: 10px solid rgb(56, 53, 53);
+  }
+
+  .songName {
+    font-size: 20px;
   }
 
   .playControl {
-    width: 96vw;
-    margin: 0 2vw;
-    float: left;
     flex-wrap: wrap;
-    padding: 5px;
   }
 
   .control {

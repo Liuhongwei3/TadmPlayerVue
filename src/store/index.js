@@ -7,6 +7,8 @@ export default new Vuex.Store({
     strict: true,
     state: {
         isPc: true,
+        source: "netease",
+        imgs: "",
         toplists: [],
         username: "",
         userId: 537069044,
@@ -16,6 +18,12 @@ export default new Vuex.Store({
         singerId: 4292,
     },
     mutations: {
+        updateSource: (state, payload) => {
+            state.source = payload
+        },
+        updateImgs: (state, payload) => {
+            state.imgs = payload
+        },
         updateIsPc: (state, payload) => {
             state.isPc = payload
         },

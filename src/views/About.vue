@@ -2,8 +2,7 @@
   <div class="about">
     <code>Welcome to use Tadm-Player by Vue~</code>
     <div>
-      Notice:
-      本站仅作学习用途，不存储任何媒体资源，音乐版权均归网易云音乐等专有，谢谢合作！！！
+      本站仅作学习用途，不存储任何媒体资源，音乐版权均归版权方专有，谢谢合作！！！
     </div>
     <div>
       &copy;&nbsp;&nbsp;2020&nbsp;<span v-if="year !== 2020"

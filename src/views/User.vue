@@ -1,6 +1,6 @@
 <template>
   <div
-    v-loading.fullscreen.lock="loading"
+    v-loading.lock="loading"
     element-loading-text="拼命加载中"
     element-loading-spinner="el-icon-loading"
     element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -44,8 +44,8 @@
           {{ profile.signature }}
         </el-collapse-item>
       </el-collapse>
-      <el-divider></el-divider>
       <div v-if="playlist.length !== 0">
+        <el-divider></el-divider>
         <el-tag type="success">歌单列表</el-tag>
         <user-content
           :list="playlist"
@@ -55,14 +55,14 @@
           imgUrl="coverImgUrl"
           method="detail"
         ></user-content>
-        <el-divider></el-divider>
       </div>
       <div v-if="followList.length !== 0">
+        <el-divider></el-divider>
         <el-tag type="primary">关注列表</el-tag>
         <user-content :list="followList"></user-content>
-        <el-divider></el-divider>
       </div>
       <div v-if="fansList.length !== 0">
+        <el-divider></el-divider>
         <el-tag type="primary">粉丝列表</el-tag>
         <user-content :list="fansList"></user-content>
       </div>
@@ -72,19 +72,15 @@
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import {
-  userDetail,
-  userFollows,
-  userMusic,
-  userFans,
-} from "@/network/Request";
+import req from "@/network/req";
 import { to } from "@/utils";
 import LogContent from "@/components/content/LogContent";
 import UserContent from "@/components/content/UserContent";
+import NoResult from "@/components/common/noResult/NoResult";
 
 export default {
   name: "User",
-  components: { LogContent, UserContent },
+  components: { LogContent, UserContent, NoResult },
   data() {
     return {
       profile: {},
@@ -129,10 +125,10 @@ export default {
         });
         let [err, data] = await to(
           Promise.all([
-            userDetail(uid),
-            userMusic(uid),
-            userFollows(uid),
-            userFans(uid),
+            req.netease.userDetail(uid),
+            req.netease.userMusic(uid),
+            req.netease.userFollows(uid),
+            req.netease.userFans(uid),
           ])
         );
         if (err) {

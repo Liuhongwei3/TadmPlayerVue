@@ -21,36 +21,18 @@
         <i class="fa fa-heart like" aria-hidden="true"></i>
         {{ item.likedCount | roundW }}
       </span>
+      <span class="comment-time">({{ item.time | dateFormat("more") }})</span>
     </div>
     <el-divider></el-divider>
     <div
-      id="hotComments"
-      v-loading.fullscreen.lock="loading"
+      v-loading="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
     >
-      <el-tag type="success">听友精彩评论</el-tag>
-      <div
-        class="commentItems"
-        v-for="item in hotComments"
-        :key="item.commentId"
-      >
-        <el-avatar
-          size="medium"
-          :src="item.user.avatarUrl"
-          @click="updateUserId(item.user.userId)"
-        />
-        <span class="commentUser" @click="updateUserId(item.user.userId)">
-          {{ item.user.nickname }}
-        </span>
-        <span>: {{ item.content }}</span>
-        <span class="count">
-          <i class="fa fa-heart like" aria-hidden="true"></i>
-          {{ item.likedCount | roundW }}
-        </span>
-        <span class="comment-time">({{ item.time | dateFormat }})</span>
-      </div>
+      <CommContent :comments="hotComments">
+        <el-tag type="success">精彩评论</el-tag>
+      </CommContent>
     </div>
     <div v-if="loading">
       <el-divider></el-divider>
@@ -66,12 +48,11 @@
 </template>
 
 <script>
-import {
-  cloudHotComments,
-  songComment,
-  songHotComment,
-} from "@/network/Request";
+import { mapState } from "vuex";
+
+import req from "@/network/req";
 import { to } from "@/utils";
+import CommContent from "@/components/content/CommContent";
 
 export default {
   name: "Comment",
@@ -86,21 +67,23 @@ export default {
       noMore: false,
     };
   },
+  components: { CommContent },
   created() {
     this.songId = this.$store.state.songId;
     this.limit = 20;
     this.requestHComments(this.songId);
-    cloudHotComments().then((res) => {
-      this.cloudHotComments = res.data.data;
-    });
+    this.requestCloudHotComments();
   },
   mounted() {
     this.$bus.$on("loadMoreComments", () => {
-      this.limit += 20;
-      this.requestHComments(this.songId, this.limit);
+      if (this.source === "netease") {
+        this.limit += 20;
+        this.requestHComments(this.songId, this.limit);
+      }
     });
   },
   computed: {
+    ...mapState(["source"]),
     songId: {
       get() {
         return this.$store.state.songId;
@@ -112,6 +95,8 @@ export default {
   },
   watch: {
     songId(newValue) {
+      this.hotComments = [];
+      this.noMore = false;
       this.requestHComments(newValue);
     },
     hotComments(newValue, oldValue) {
@@ -127,9 +112,15 @@ export default {
   },
   methods: {
     requestComments(sid) {
-      songComment(sid).then((res) => {
+      req.netease.songComment(sid).then((res) => {
         this.comments = res.data.comments;
       });
+    },
+    async requestCloudHotComments() {
+      let {
+        data: { data },
+      } = await req.netease.cloudHotComments();
+      this.cloudHotComments = data;
     },
     async requestHComments(sid, limit = 20) {
       if (sid) {
@@ -137,19 +128,51 @@ export default {
           return;
         }
         this.loading = true;
-        this.$notify({
-          title: "信息提示",
-          message: "加载歌曲热评数据中！",
-          type: "info",
-          offset: 50,
-          duration: 1500,
-        });
-        let [
-          err,
-          {
-            data: { hotComments },
-          },
-        ] = await to(songHotComment(sid, limit));
+        if (this.$route.path === "/comment") {
+          this.$notify({
+            title: "信息提示",
+            message: "加载歌曲热评数据中！",
+            type: "info",
+            offset: 50,
+            duration: 1500,
+          });
+        }
+        let [err, hotComments] = [null, []];
+        switch (this.source) {
+          case "netease": {
+            [
+              err,
+              {
+                data: { hotComments },
+              },
+            ] = await to(req.netease.songHotComment(sid, limit));
+            break;
+          }
+          case "qq": {
+            [
+              err,
+              {
+                data: {
+                  data: { hotComments },
+                },
+              },
+            ] = await to(req.qq.getMusicCommentsByQq(sid));
+            if (!err) {
+              let temp = [];
+              for (let v of hotComments) {
+                temp.push({
+                  time: v.time * 1000,
+                  content: v.rootcommentcontent,
+                  likedCount: v.praisenum,
+                  user: { userId: 0, avatarUrl: v.avatarurl, nickname: v.nick },
+                });
+              }
+              hotComments = temp;
+            }
+            break;
+          }
+        }
+
         if (err) {
           this.$notify({
             title: "加载错误",
@@ -171,6 +194,9 @@ export default {
       this.showCloudCommentsFlag = !this.showCloudCommentsFlag;
     },
     updateUserId(uid) {
+      if (!uid) {
+        return;
+      }
       this.$store.commit("updateUserId", uid);
       this.showCommentsFlag = !this.showCommentsFlag;
       this.$router.push("/user").then((err) => {});
@@ -189,7 +215,8 @@ export default {
 }
 
 .commentUser {
-  color: #ff58a6e6;
+  color: #5aacc8;
+  font-size: 18px;
 }
 
 .commentUser:hover {
@@ -212,6 +239,7 @@ export default {
 }
 
 .comment-time {
+  font-size: 14px;
   margin: 0 5px;
   color: rgb(214, 170, 117);
 }
@@ -221,6 +249,11 @@ export default {
   #comments {
     margin: 5px;
     padding: 5px;
+  }
+
+  .commentUser {
+    color: #5aacc8;
+    font-size: 16px;
   }
 
   .commentItems {

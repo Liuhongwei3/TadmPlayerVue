@@ -1,8 +1,7 @@
 <template>
   <div>
-    <div class="topLyric active" v-show="showTop">{{ activeLyric }}</div>
-    <div class="rightL" ref="musicLyric" v-show="!showTop">
-      <div :style="lyricTop">
+    <vertical-scroll class="rightL" ref="musicLyric" :probe-type="3">
+      <div>
         <div class="lyrics" v-for="(item, index) in lyrics" :key="index">
           <div
             class="lyric"
@@ -10,27 +9,36 @@
           >
             {{ item.text }}
           </div>
+          <div class="lyric" :class="{ active: lyricIndex === index }">
+            {{ item.ttext }}
+          </div>
         </div>
       </div>
-    </div>
+    </vertical-scroll>
   </div>
 </template>
 
 <script>
-import { musicLyric } from "@/network/Request";
-import { parseLyric } from "@/features";
+import VerticalScroll from "@/components/common/scroll/VerticalScroll";
+
+import req from "@/network/req";
+import { parseLyric, parseLyricByQq } from "@/features";
+import { mapState } from "vuex";
 
 export default {
   name: "RLyric",
+  components: { VerticalScroll },
   data() {
     return {
-      lyrics: [],
+      lyrics: [{ time: 0, text: "暂无歌词" }],
       lyricsMap: new Map(),
+      tlyricsMap: new Map(),
       lyricsTime: new Map(),
       lyricIndex: 0,
       activeLyric: "暂无歌词",
       top: 0,
-      showTop: false,
+      lineH: 30,
+      resizeTimer: null,
     };
   },
   props: {
@@ -46,20 +54,17 @@ export default {
   created() {
     this.songId = this.$store.state.songId;
     this.requestLyric(this.songId);
-    this.showTop = document.documentElement.offsetWidth <= 768;
   },
   mounted() {
     let audio = document.getElementById("audio");
+    let line = document.getElementsByClassName("lyrics")[0];
 
     window.addEventListener("resize", () => {
-      clearTimeout(this.resizeTimer);
-      this.showTop = document.documentElement.offsetWidth <= 768;
-      !this.showTop &&
-        (this.resizeTimer = setTimeout(() => this.calcTop(), 60));
+      this.$nextTick(() => this.calcTop());
     });
 
-    !this.showTop && this.$nextTick(() => this.calcTop());
     audio.addEventListener("timeupdate", () => {
+      this.refresh();
       let curTime = Math.floor(audio.currentTime);
 
       // 使用 map 代替之前的 for 循环比较，避免不必要的性能消耗
@@ -72,52 +77,82 @@ export default {
     });
     audio.addEventListener("ended", () => {
       this.lyricIndex = 0;
-      this.activeLyric = this.lyrics[0];
+      this.activeLyric = this.lyrics[0].text;
     });
   },
   computed: {
+    ...mapState(["source"]),
     lyricTop() {
-      const line = document.getElementsByClassName("lyric")[0];
-      const lineH = (line && line.getBoundingClientRect().height) || 25;
       return `transform :translate3d(0, ${-lineH *
         (this.lyricIndex - this.top)}px, 0)`;
     },
   },
   watch: {
     songId(newValue) {
-      this.lyrics = [];
+      this.lyrics = [{ time: 0, text: "暂无歌词" }];
       this.activeLyric = "暂无歌词";
       this.lyricIndex = 0;
       this.lyricsMap = new Map();
       this.lyricsTime = new Map();
       this.requestLyric(newValue);
+      this.$refs.musicLyric.scrollTo(0, 0, 1000);
+    },
+    lyricIndex(newValue) {
+      this.lineH = document
+        .getElementsByClassName("lyrics")
+        [newValue].getBoundingClientRect().height;
+      this.calcTop();
+      if (newValue > this.top && newValue < this.lyrics.length - this.top) {
+        let y = (newValue - this.top) * this.lineH;
+        this.$refs.musicLyric.scrollTo(0, -y, 1000);
+      }
     },
   },
   methods: {
     async requestLyric(sid) {
-      let res = await musicLyric(sid);
-      if (res.data.nolyric || res.data.nocollected) {
-        this.lyrics = [{ text: "暂无歌词" }];
-      } else {
-        let lyric = res.data.lrc.lyric;
-        if (lyric.length > 0 || res.data.nolyric) {
-          let tempLyric = parseLyric(lyric);
-          this.lyrics = tempLyric[0];
-          this.lyricsMap = tempLyric[1];
-          this.lyricsTime = tempLyric[2];
+      if (this.source === "netease") {
+        let { data } = await req.netease.musicLyric(sid);
+        if (data.nolyric || data.nocollected || !data.lrc) {
+          this.lyrics = [{ text: "暂无歌词" }];
+        } else {
+          let lrc = data.lrc.lyric;
+          if (lrc) {
+            let tempLyric = parseLyric(data);
+            this.updateLyric(tempLyric);
+          }
+        }
+      } else if (this.source === "qq") {
+        let {
+          data: { data },
+        } = await req.qq.getMusicLyricByQq(sid);
+        if (data && data.lyric) {
+          let tempLyric = parseLyricByQq(data);
+          this.updateLyric(tempLyric);
+        }
+      }
+    },
+    updateLyric(tempLyric) {
+      this.lyrics = tempLyric[0];
+      this.lyricsMap = tempLyric[1];
+      this.tlyricsMap = tempLyric[2];
+      this.lyricsTime = tempLyric[3];
+      for (let v of this.lyrics) {
+        if (this.tlyricsMap.has(v.time)) {
+          v.ttext = this.tlyricsMap.get(v.time);
         }
       }
     },
     calcTop() {
-      const dom = this.$refs.musicLyric;
-      const line = document.getElementsByClassName("lyric")[0];
-      const { display = "" } = window.getComputedStyle(dom);
-      if (display === "none") {
-        return;
-      }
-      const height = dom.offsetHeight;
-      const lineH = (line && line.getBoundingClientRect().height) || 25;
-      this.top = Math.floor(height / lineH / 2);
+      let style = document.documentElement.getBoundingClientRect();
+      let height = style.width >= 768 ? style.height * 0.5 : style.height * 0.4;
+
+      this.top = Math.floor(height / this.lineH / 2);
+    },
+    refresh() {
+      this.$refs.musicLyric &&
+        this.$refs.musicLyric.scroll &&
+        this.$refs.musicLyric.scroll.refresh &&
+        this.$refs.musicLyric.scroll.refresh();
     },
   },
 };
@@ -125,21 +160,30 @@ export default {
 
 <style scoped>
 .rightL {
-  height: 32vh;
-  margin: 10px 0;
+  width: 85%;
+  height: 50vh;
   overflow: hidden;
+  /* overflow-y: scroll; */
 }
 
 .lyrics {
   white-space: pre-line;
   text-align: center;
   font-size: 16px;
-  line-height: 25px;
+  line-height: 30px;
   transform: translate3d(0, 0, 0);
   transition: transform 0.6s ease-out;
 }
 
+.lyric {
+  width: 96%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .active {
+  opacity: 1;
   color: transparent;
   background: linear-gradient(to right, #0af, #2fff39);
   -webkit-background-clip: text;
@@ -148,19 +192,8 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-  .topLyric {
-    width: 90%;
-    left: 5%;
-    top: 40%;
-    overflow: hidden;
-    display: inline-block;
-    position: absolute;
-    text-align: center;
-    margin: 0 auto;
-    z-index: 3;
-    font-size: 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  .rightL {
+    height: 40vh;
   }
 }
 </style>

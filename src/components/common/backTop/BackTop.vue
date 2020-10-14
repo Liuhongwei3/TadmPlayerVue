@@ -14,3 +14,16 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.backTop {
+  position: fixed;
+  right: 2vw;
+  bottom: 20%;
+  color: rgba(5, 124, 190, 0.87);
+  background-color: #9d9b9b;
+  padding: 10px;
+  border-radius: 50%;
+  animation: show 0.5s;
+}
+</style>

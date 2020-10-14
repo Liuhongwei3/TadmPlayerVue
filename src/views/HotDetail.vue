@@ -6,7 +6,7 @@
     <el-tag type="primary">轻松纯音乐</el-tag>
     <div
       class="main"
-      v-loading.fullscreen.lock="loading"
+      v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { hotDetails } from "@/network/Request";
+import req from "@/network/req";
 import { debounce, to } from "@/utils";
 
 export default {
@@ -100,7 +100,7 @@ export default {
         {
           data: { playlists },
         },
-      ] = await to(hotDetails(limit));
+      ] = await to(req.netease.hotDetails(limit));
       if (err) {
         this.$notify({
           title: "加载错误",
@@ -130,12 +130,11 @@ export default {
 <style scoped>
 .items {
   position: relative;
-  margin: 10px 0;
 }
 
 .bottom {
   bottom: 32px;
-  left: 15px;
+  left: 10px;
 }
 
 @media screen and (max-width: 768px) {

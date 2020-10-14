@@ -41,7 +41,6 @@
 <script>
 import { mapMutations } from "vuex";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
-import { searchSinger } from "@/network/Request";
 
 export default {
   name: "UserContent",
@@ -84,15 +83,21 @@ export default {
   },
   watch: {
     list(newValue) {
-      newValue && this.$nextTick(() => this.$refs.page.refresh);
+      newValue &&
+        this.$nextTick(() => {
+          this.$refs.page.refresh();
+          this.curPage = 1;
+        });
     },
   },
   computed: {
     filterList() {
-      return this.list.slice(
-        (this.curPage - 1) * this.pageSize,
-        this.pageSize * this.curPage
-      );
+      return this.list
+        ? this.list.slice(
+            (this.curPage - 1) * this.pageSize,
+            this.pageSize * this.curPage
+          )
+        : [];
     },
   },
   methods: {
@@ -102,7 +107,7 @@ export default {
       "updateDetailId",
       "updateSingerName",
     ]),
-    async updateInfo(type, id, name) {
+    updateInfo(type, id, name) {
       switch (type) {
         case "detail": {
           this.updateDetailId(id);

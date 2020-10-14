@@ -55,3 +55,15 @@ export function to(promise) {
             return [err]
         });
 }
+
+export function timeFormat(timeIn = 0) {
+    const time = timeIn ? new Date(timeIn * 1000) : 0;
+    if (time) {
+        let minute = time.getMinutes();
+        let second = time.getSeconds();
+        second = second.toString().padStart(2, "0")
+        return `${minute} : ${second}`;
+    } else {
+        return "0 : 00";
+    }
+}

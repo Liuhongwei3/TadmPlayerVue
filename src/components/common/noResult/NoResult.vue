@@ -7,8 +7,9 @@
   -->
 
 <template>
-  <div id="noResult" v-show="flag">
-    暂时没有任何结果~
+  <div id="noResult" v-if="flag">
+    <el-divider></el-divider>
+    <el-tag type="warning">暂无数据</el-tag>
   </div>
 </template>
 

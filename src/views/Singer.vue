@@ -1,6 +1,6 @@
 <template>
   <div
-    v-loading.fullscreen.lock="loading"
+    v-loading.lock="loading"
     element-loading-text="拼命加载中"
     element-loading-spinner="el-icon-loading"
     element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -27,8 +27,9 @@
           {{ this.briefDesc }}
         </el-collapse-item>
       </el-collapse>
-      <el-divider></el-divider>
-      <div class="main" v-show="this.songsFlag">
+
+      <div class="main" v-show="this.songsFlag" v-if="filterList.length !== 0">
+        <el-divider></el-divider>
         <div
           class="items"
           v-for="item in filterList"
@@ -61,11 +62,11 @@
           </el-pagination></div
       ></horizontal-scroll>
     </div>
-    <el-divider></el-divider>
     <el-tooltip placement="top" content="点击显示或隐藏详情">
       <el-tag @click="changeSingerFlag">热门歌手排行榜</el-tag>
     </el-tooltip>
     <div class="main" v-show="this.singerFlag">
+      <el-divider></el-divider>
       <div class="items" v-for="item in hotSingers" :key="item.id">
         <el-tooltip placement="top" content="点击查看歌手详情">
           <div>
@@ -83,7 +84,7 @@
 </template>
 
 <script>
-import { hotSinger, searchSinger, singer } from "@/network/Request";
+import req from "@/network/req";
 import { to } from "@/utils";
 import NoResult from "@/components/common/noResult/NoResult";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
@@ -118,10 +119,12 @@ export default {
       },
     },
     filterList() {
-      return this.musiclist.slice(
-        (this.curPage - 1) * this.pageSize,
-        this.pageSize * this.curPage
-      );
+      return this.musiclist
+        ? this.musiclist.slice(
+            (this.curPage - 1) * this.pageSize,
+            this.pageSize * this.curPage
+          )
+        : [];
     },
   },
   watch: {
@@ -137,7 +140,7 @@ export default {
     },
     singerFlag(newValue) {
       if (newValue && this.hotSingers.length === 0) {
-        hotSinger().then((res) => {
+        req.netease.hotSinger().then((res) => {
           this.hotSingers = res.data.artists;
           this.$bus.$emit("refresh");
         });
@@ -155,7 +158,7 @@ export default {
           offset: 50,
           duration: 1500,
         });
-        let [err, { data }] = await to(singer(sid));
+        let [err, { data }] = await to(req.netease.singer(sid));
         if (err) {
           this.$notify({
             title: "加载错误",
@@ -178,6 +181,7 @@ export default {
       }
     },
     songId(sid) {
+      this.$store.commit("updateSource", "netease");
       this.$store.commit("updateSongId", sid);
     },
     searchPlayer(id, name) {

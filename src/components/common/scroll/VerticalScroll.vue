@@ -7,6 +7,7 @@
 <script>
 // https://better-scroll.github.io/docs/zh-CN/
 import BScroll from "better-scroll";
+import { debounce } from "@/utils";
 
 export default {
   name: "VerticalScroll",
@@ -26,13 +27,17 @@ export default {
         return [];
       },
     },
+    listenScroll: {
+      type: Boolean,
+      default: false,
+    },
     pullUpLoad: {
       type: Boolean,
       default: false,
     },
   },
   mounted() {
-    setTimeout(this.__initScroll, 100);
+    setTimeout(this.__initScroll, 500);
     window.addEventListener("resize", this.refresh);
   },
   methods: {
@@ -47,14 +52,20 @@ export default {
       });
 
       // 2.将监听事件回调
-      this.scroll.on("scroll", (position) => {
-        this.$emit("scroll", position);
-      });
+      this.listenScroll &&
+        this.scroll.on("scroll", (position) => {
+          this.$emit("scroll", position);
+        });
 
       // 3.监听上拉到底部
-      this.scroll.on("pullingUp", () => {
-        this.$emit("pullingUp");
-      });
+      this.pullUpLoad &&
+        this.scroll.on(
+          "pullingUp",
+          this.pullUpLoad &&
+            debounce(() => {
+              this.$emit("pullingUp");
+            })
+        );
     },
     refresh() {
       //  重新计算 BetterScroll，当 DOM 结构发生变化的时候务必要调用确保滚动的效果正常

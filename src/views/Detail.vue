@@ -19,13 +19,13 @@
     </el-collapse>
 
     <el-table
-      v-if="isPc"
+      v-if="isPc && filterList.length !== 0"
       class="detail-table"
       ref="detailTable"
       :data="filterList"
       highlight-current-row
       @current-change="handleTableCurrentChange"
-      v-loading.fullscreen.lock="loading"
+      v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -66,7 +66,7 @@
     </el-table>
 
     <div
-      v-else
+      v-else-if="!isPc && filterList.length !== 0"
       class="main"
       v-loading.fullscreen.lock="loading"
       element-loading-text="拼命加载中"
@@ -97,7 +97,12 @@
       </div>
     </div>
 
-    <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
+    <horizontal-scroll
+      class="page-wrapper"
+      :probe-type="3"
+      ref="page"
+      v-if="filterList.length !== 0"
+    >
       <div class="page-content">
         <el-pagination
           background
@@ -110,12 +115,15 @@
         </el-pagination>
       </div>
     </horizontal-scroll>
+
+    <no-result :result="filterList" />
   </div>
 </template>
 
 <script>
-import { playlistdetail, musicCover, searchSinger } from "@/network/Request";
+import req from "@/network/req";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
+import NoResult from "@/components/common/noResult/NoResult";
 import { mapState } from "vuex";
 import { to } from "@/utils";
 
@@ -123,6 +131,7 @@ export default {
   name: "Detail",
   components: {
     HorizontalScroll,
+    NoResult,
   },
   data() {
     return {
@@ -142,10 +151,12 @@ export default {
   computed: {
     ...mapState(["isPc", "detailId"]),
     filterList() {
-      return this.songs.slice(
-        (this.curPage - 1) * this.pageSize,
-        this.pageSize * this.curPage
-      );
+      return this.songs
+        ? this.songs.slice(
+            (this.curPage - 1) * this.pageSize,
+            this.pageSize * this.curPage
+          )
+        : [];
     },
   },
   watch: {
@@ -164,7 +175,7 @@ export default {
           offset: 50,
           duration: 1500,
         });
-        let [err, data] = await to(playlistdetail(pdlId));
+        let [err, data] = await to(req.netease.playlistdetail(pdlId));
         if (err) {
           this.$notify({
             title: "加载错误",
@@ -184,38 +195,47 @@ export default {
         this.description = playlist.description;
 
         let temp = playlist.trackIds;
-        let songIds = "";
-        temp.forEach((item) => {
-          songIds += item.id + ",";
-        });
-        let last = songIds.length - 1;
-        songIds = songIds.substring(0, last);
-
-        [err, data] = await to(musicCover(songIds));
-        if (err) {
-          this.$notify({
-            title: "加载错误",
-            message: err.response.statusText,
-            type: "error",
-            offset: 50,
-            duration: 2000,
+        if (temp.length === 0) {
+          this.$store.commit("updatePlaylistIds", []);
+        } else {
+          let songIds = "";
+          // 防止过多导致请求歌曲数据失败
+          if (temp.length >= 200) {
+            temp = temp.slice(0, 200);
+          }
+          temp.forEach((item) => {
+            songIds += item.id + ",";
           });
-          return;
+          let last = songIds.length - 1;
+          songIds = songIds.substring(0, last);
+
+          [err, data] = await to(req.netease.musicCover(songIds));
+          if (err) {
+            this.$notify({
+              title: "加载错误",
+              message: err.response.statusText,
+              type: "error",
+              offset: 50,
+              duration: 2000,
+            });
+            return;
+          }
+          let {
+            data: { songs },
+          } = data;
+          this.songs = songs;
+          let ids = [];
+          for (let i = 0; i < songs.length; i++) {
+            ids[i] = songs[i].id;
+          }
+          this.$store.commit("updatePlaylistIds", ids);
         }
-        let {
-          data: { songs },
-        } = data;
-        this.songs = songs;
-        let ids = [];
-        for (let i = 0; i < songs.length; i++) {
-          ids[i] = songs[i].id;
-        }
-        this.$store.commit("updatePlaylistIds", ids);
 
         this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
-          this.$refs.page.refresh();
+          this.$refs.page && this.$refs.page.refresh();
+          this.curPage = 1;
         });
       }
     },
@@ -227,7 +247,7 @@ export default {
         data: {
           result: { artists },
         },
-      } = await searchSinger(this.player);
+      } = await req.netease.searchSinger(this.player);
       if (artists.length === 0) {
         this.$notify({
           title: "警告信息",

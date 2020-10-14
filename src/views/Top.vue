@@ -4,7 +4,7 @@
     <el-tag type="danger">网易云音乐</el-tag>
     <div
       class="main"
-      v-loading.fullscreen.lock="loading"
+      v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { toplist } from "@/network/Request";
+import req from "@/network/req";
 import { to } from "@/utils";
 
 export default {
@@ -56,7 +56,7 @@ export default {
         {
           data: { list },
         },
-      ] = await to(toplist());
+      ] = await to(req.netease.toplist());
       if (err) {
         this.$notify({
           title: "加载失败",

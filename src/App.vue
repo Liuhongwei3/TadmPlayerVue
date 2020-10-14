@@ -1,14 +1,14 @@
 <template>
   <div id="app">
-    <nav-bar />
+    <div id="app-bg" :style="backImg"></div>
+    <el-tag class="top-info">Welcome to Tadm-Play-Vue ^-^</el-tag>
+    <nav-bar></nav-bar>
     <div class="center">
-      <div class="home">
-        <Play />
-      </div>
       <vertical-scroll
         class="content"
         ref="scroll"
         :probe-type="3"
+        :listen-scroll="true"
         :pull-up-load="true"
         @scroll="contentScroll"
         @pullingUp="loadMore"
@@ -25,6 +25,9 @@
           </div>
         </transition>
       </vertical-scroll>
+      <div class="home">
+        <Play />
+      </div>
     </div>
     <back-top class="backTop" @backTop="backTop" v-show="showBackTop" />
   </div>
@@ -32,6 +35,7 @@
 
 <script>
 import "@/css/App.css";
+import "@/css/element.css";
 
 import { debounce } from "@/utils";
 
@@ -55,6 +59,16 @@ export default {
     };
   },
   computed: {
+    backImg() {
+      return {
+        backgroundImage: "url(" + this.$store.state.imgs + ")",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        backgroundColor: "#949597",
+      };
+    },
     isPc: {
       get() {
         return this.$store.state.isPc;
