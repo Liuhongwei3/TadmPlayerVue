@@ -12,29 +12,36 @@
           >{{ item.value }}</span
         >
       </div>
-      <div
-        class="top-mv-items"
-        v-for="item in topMvLists"
-        :key="item.id"
-        @click="toMv(item.id, item.name, item.artists[0].name)"
-      >
-        <img :src="item.cover" alt="" />
-        <div class="top-mv-right">
-          <div class="top-mv-right-item">
-            <span>{{ item.name }}</span>
-          </div>
-          <div class="top-mv-right-item">
-            <span class="art-name" v-for="arts in item.artists" :key="arts.id">
-              <span>{{ arts.name }}</span>
-              <span v-if="item.artists.length > 1">
-                &nbsp;&nbsp;/&nbsp;&nbsp;
+
+      <div class="top-mv">
+        <div
+          class="top-mv-items"
+          v-for="item in topMvLists"
+          :key="item.id"
+          @click="toMv(item.id, item.name, item.artists[0].name)"
+        >
+          <img :src="item.cover" alt="" />
+          <div class="top-mv-right">
+            <div class="top-mv-right-item">
+              <span>{{ item.name }}</span>
+            </div>
+            <div class="top-mv-right-item">
+              <span
+                class="art-name"
+                v-for="arts in item.artists"
+                :key="arts.id"
+              >
+                <span>{{ arts.name }}</span>
+                <span v-if="item.artists.length > 1">
+                  &nbsp;&nbsp;/&nbsp;&nbsp;
+                </span>
               </span>
-            </span>
+            </div>
+            <div class="top-mv-right-item">
+              播放量：{{ item.playCount | roundW }}
+            </div>
+            <div class="top-mv-right-item">热度：{{ item.score }}</div>
           </div>
-          <div class="top-mv-right-item">
-            播放量：{{ item.playCount | roundW }}
-          </div>
-          <div class="top-mv-right-item">热度：{{ item.score }}</div>
         </div>
       </div>
     </div>
@@ -218,6 +225,11 @@ export default {
   padding: 2px;
 }
 
+.top-mv {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .top-mv-items:hover,
 .all-mv-items:hover {
   color: #fff;
@@ -238,6 +250,8 @@ export default {
 
 .top-mv-right-item {
   margin: 10px;
+  max-width: 50vw;
+  overflow: hidden;
 }
 
 .all-mv-items {

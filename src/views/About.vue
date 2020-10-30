@@ -1,9 +1,7 @@
 <template>
   <div class="about">
-    <code>Welcome to use Tadm-Player by Vue~</code>
-    <div>
-      本站仅作学习用途，不存储任何媒体资源，音乐版权均归版权方专有，谢谢合作！！！
-    </div>
+    <code>Welcome to Tadm-Player-Vue~</code>
+    <div>本站仅个人兴趣所建，不存储任何媒体资源，音乐版权均归版权方！</div>
     <div>
       &copy;&nbsp;&nbsp;2020&nbsp;<span v-if="year !== 2020"
         >-&nbsp;&nbsp;{{ year }}&nbsp;&nbsp;</span

@@ -7,16 +7,14 @@
         :key="item[id]"
         @click="updateInfo(method, item[id], item[name])"
       >
-        <el-tooltip placement="top" :content="item[name]">
-          <el-badge :value="item[count] | roundW" v-if="item[count] >= 100">
-            <img v-lazy="item[imgUrl]" :key="item[imgUrl]" />
-            <p class="name">{{ item[name] }}</p>
-          </el-badge>
-          <div v-else>
-            <img v-lazy="item[imgUrl]" :key="item[imgUrl]" />
-            <p class="name">{{ item[name] }}</p>
+        <div class="items-img">
+          <img v-lazy="item[imgUrl]" :key="item[imgUrl]" />
+          <div class="play-count" v-if="item[count] !== 0">
+            <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+            <span>{{ item[count] | roundW }}</span>
           </div>
-        </el-tooltip>
+          <p class="name">{{ item[name] }}</p>
+        </div>
       </div>
     </div>
     <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
@@ -39,7 +37,7 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapState } from "vuex";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
 export default {
@@ -77,9 +75,19 @@ export default {
       default: "user",
     },
   },
+  computed: {
+    ...mapState(["isPc"]),
+    filterList() {
+      return this.list
+        ? this.list.slice(
+            (this.curPage - 1) * this.pageSize,
+            this.pageSize * this.curPage
+          )
+        : [];
+    },
+  },
   mounted() {
     this.updatePageSize();
-    window.addEventListener("resize", () => this.updatePageSize());
   },
   watch: {
     list(newValue) {
@@ -89,15 +97,8 @@ export default {
           this.curPage = 1;
         });
     },
-  },
-  computed: {
-    filterList() {
-      return this.list
-        ? this.list.slice(
-            (this.curPage - 1) * this.pageSize,
-            this.pageSize * this.curPage
-          )
-        : [];
+    isPc(newValue) {
+      this.updatePageSize();
     },
   },
   methods: {
@@ -122,11 +123,7 @@ export default {
       }
     },
     updatePageSize() {
-      if (document.documentElement.offsetWidth <= 768) {
-        this.pageSize = 6;
-      } else {
-        this.pageSize = 15;
-      }
+      this.pageSize = this.isPc ? 15 : 6;
     },
     handleSizeChange(val) {
       this.pageSize = val;
@@ -139,8 +136,8 @@ export default {
     handleCurrentChange(val) {
       this.curPage = val;
       this.$nextTick(() => {
-        this.$refs.page.refresh();
-        this.$bus.$emit("toTop");
+        this.$bus.$emit("refresh");
+        this.$emit("toTop");
       });
     },
   },

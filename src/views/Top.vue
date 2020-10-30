@@ -1,26 +1,29 @@
 <template>
   <div>
     <el-tag type="danger">热门排行榜</el-tag>
-    <el-tag type="danger">网易云音乐</el-tag>
-    <div
-      class="main"
+    <el-tag type="warning">网易云音乐</el-tag>
+
+    <Items
+      :lists="toplists"
+      @newId="updateId"
       v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
     >
-      <div v-for="(item, index) in toplists" :key="index">
-        <el-tooltip placement="top" :content="item.name">
-          <div>
-            <img @click="updateDetail(item.id)" :src="item.coverImgUrl" />
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
+      <template v-slot:playCount="top">
+        <i class="fa fa-headphones" aria-hidden="true"></i>
+        <span>{{ top.item.playCount | roundW }}</span>
+      </template>
+      <template v-slot:updateTime="top">
+        <span>{{ top.item.updateTime | dateFormat }} 更新</span>
+      </template>
+    </Items>
   </div>
 </template>
 
 <script>
+import Items from "@/components/common/items/Items";
 import req from "@/network/req";
 import { to } from "@/utils";
 
@@ -31,6 +34,7 @@ export default {
       loading: false,
     };
   },
+  components: { Items },
   created() {
     this.toplists.length === 0 && this.requestTopList();
   },
@@ -67,11 +71,21 @@ export default {
         });
         return;
       }
-      this.$store.dispatch("updateTopLists", { list });
+      let formatList = [];
+      for (let v of list) {
+        let obj = {};
+        obj.id = v.id;
+        obj.name = v.name;
+        obj.imgUrl = v.coverImgUrl;
+        obj.playCount = v.playCount;
+        obj.updateTime = v.updateTime;
+        formatList.push(obj);
+      }
+      this.$store.dispatch("updateTopLists", { list: formatList });
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
-    updateDetail(id) {
+    updateId({ id }) {
       this.$store.commit("updateDetailId", id);
       this.$router.push("/detail");
     },

@@ -17,7 +17,8 @@
         />
         <el-tooltip placement="bottom" content="性别">
           <el-tag v-if="profile.gender === 1">男</el-tag>
-          <el-tag type="danger" v-else>女</el-tag>
+          <el-tag type="danger" v-else-if="profile.gender === 2">女</el-tag>
+          <el-tag type="warning" v-else>保密</el-tag>
         </el-tooltip>
         <el-tooltip placement="bottom" content="出生日期">
           <el-tag type="info">{{ profile.birthday | dateFormat }}</el-tag>
@@ -107,8 +108,8 @@ export default {
     },
   },
   watch: {
-    uid(newValue) {
-      this.requestUserData(newValue);
+    uid(newValue, oldValue) {
+      newValue != oldValue && this.requestUserData(newValue);
     },
   },
   methods: {
@@ -120,7 +121,6 @@ export default {
           title: "信息提示",
           message: "加载用户数据中！",
           type: "info",
-          offset: 50,
           duration: 1500,
         });
         let [err, data] = await to(

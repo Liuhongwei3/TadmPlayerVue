@@ -21,10 +21,10 @@
                 <span>{{ songName }}</span>
               </div>
               <div class="otherName">
-                歌手:<span @click="searchPlayer()">{{ player }} </span>
+                歌手:<span @click="toSinger()">{{ player }} </span>
               </div>
               <div class="otherName">
-                专辑:<span @click="searchPlayer()">{{ albumName }} </span>
+                专辑:<span>{{ albumName }} </span>
               </div>
             </div>
           </div>
@@ -44,9 +44,7 @@
           <el-tag>{{ this.songName }}</el-tag>
         </el-tooltip>
         <el-tooltip content="点击查看歌手详情" placement="top">
-          <el-tag type="success" @click="searchPlayer()">{{
-            this.player
-          }}</el-tag>
+          <el-tag type="success" @click="toSinger()">{{ this.player }}</el-tag>
         </el-tooltip>
         <el-tooltip content="去看 MV" placement="top" v-if="this.mv !== 0">
           <el-tag v-if="this.mv !== 0" @click="toMv">MV</el-tag>
@@ -108,6 +106,13 @@
               @click="downloadMusic"
             ></i>
           </el-tooltip>
+          <el-tooltip content="播放列表" placement="bottom">
+            <i
+              class="fa fa-history fa-2x"
+              aria-hidden="true"
+              @click="toCurDetail"
+            ></i>
+          </el-tooltip>
           <el-tooltip id="controlPc" content="站点选项配置" placement="bottom">
             <i
               class="fa fa-cog fa-2x"
@@ -122,7 +127,6 @@
           </el-tooltip>
           <el-slider
             class="myProgress"
-            ref="ori"
             v-model="percent"
             :format-tooltip="formatTime"
             @change="offsetX"
@@ -143,7 +147,7 @@ import RLyric from "@/components/content/RLyric";
 import Drawer from "@/components/content/Drawer";
 import { shuffle, timeFormat } from "../utils";
 import { createDownload, onLoadAudio } from "../features";
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "Play",
@@ -153,6 +157,7 @@ export default {
       songName: "",
       albumName: "",
       player: "",
+      playerId: 0,
       imgs: "",
       defaultImgs: 'this.src="' + require("@/assets/404.jpg") + '"',
       urls: "",
@@ -164,27 +169,42 @@ export default {
       percent: 0,
       oWidth: 0,
       status: false,
-      hasMv: false,
-      showMv: false,
       drawer: false,
       showMore: false,
     };
   },
+  computed: {
+    ...mapState(["isPc", "source", "curDetailId"]),
+    backImage() {
+      return {
+        backgroundImage: "url(" + this.imgs + ")",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+      };
+    },
+    id: {
+      get() {
+        return this.$store.state.songId;
+      },
+      set(val) {
+        this.updateSongId(val);
+      },
+    },
+    playlistIds() {
+      let lists = [...this.$store.state.playlistIds];
+      return this.order ? lists : shuffle([...lists]);
+    },
+  },
   created() {
-    this.id = this.$store.state.songId;
     this.requestCover(this.id);
     this.requestMusicUrl(this.id);
   },
   mounted() {
     let audio = this.$refs.audio;
-    let ori = this.$refs.ori;
-
-    this.oWidth = ori.clientWidth;
     this.currDuration = parseInt(audio.duration) ? parseInt(audio.duration) : 0;
 
-    window.addEventListener("resize", () => {
-      this.oWidth = ori.clientWidth;
-    });
     audio.addEventListener("play", () => {
       this.status = true;
       this.currDuration = parseInt(audio.duration);
@@ -205,51 +225,12 @@ export default {
       this.next();
     });
   },
-  computed: {
-    ...mapState(["isPc", "source"]),
-    backImage() {
-      return {
-        backgroundImage: "url(" + this.imgs + ")",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundAttachment: "fixed",
-      };
-    },
-    id: {
-      get() {
-        return this.$store.state.songId;
-      },
-      set(val) {
-        this.$store.commit("updateSongId", val);
-      },
-    },
-    playlistIds: {
-      get() {
-        let lists = [...this.$store.state.playlistIds];
-        if (this.order) {
-          return lists;
-        } else {
-          return shuffle([...lists]);
-        }
-      },
-      set(val) {
-        this.$store.commit("updatePlaylistIds", val);
-      },
-    },
-  },
   watch: {
     $route(newValue) {
       this.showMore = false;
     },
-    hasMv(newValue) {
-      if (!newValue) {
-        this.showMv = false;
-      }
-    },
     async id(newValue) {
       if (newValue) {
-        this.id = newValue;
         if (this.source === "netease") {
           this.requestCover(newValue);
           this.requestMusicUrl(newValue);
@@ -277,7 +258,7 @@ export default {
             this.showAlert();
           }
 
-          this.$store.commit("updateImgs", this.imgs);
+          this.updateImgs(this.imgs);
         }
       } else {
         this.showAlert();
@@ -288,6 +269,12 @@ export default {
     },
   },
   methods: {
+    ...mapMutations([
+      "updateSongId",
+      "updateImgs",
+      "updateSingerId",
+      "updateDetailId",
+    ]),
     async requestCover(newValue) {
       this.imgs = "";
       this.songName = "";
@@ -297,11 +284,13 @@ export default {
         let database = data.songs[0];
         this.songName = database.name;
         this.player = database.ar[0].name;
+        this.playerId = database.ar[0].id;
         this.imgs = database.al.picUrl;
         this.albumName = database.al.name;
         this.mv = database.mv;
+
+        this.updateImgs(this.imgs);
       }
-      this.$store.commit("updateImgs", this.imgs);
     },
     async requestMusicUrl(id) {
       this.urls = "";
@@ -357,42 +346,27 @@ export default {
     changeList() {
       this.order = !this.order;
     },
-    async searchPlayer() {
-      let {
-        data: {
-          result: { artists },
-        },
-      } = await req.netease.searchSinger(this.player);
-      if (artists.length === 0) {
-        this.$notify({
-          title: "警告信息",
-          message: "暂未找到该歌手的信息，本次将不进行跳转！",
-          type: "warning",
-        });
-        return;
-      }
-      this.$store.commit("updateSingerId", artists[0].id);
+    async toSinger() {
+      this.updateSingerId(this.playerId);
       if (this.$route.path !== "/singer") {
         this.$router.push("/singer");
       }
     },
+    toCurDetail() {
+      this.updateDetailId(this.curDetailId);
+      if (this.$route.path !== "/detail") {
+        this.$router.push("/detail");
+      }
+    },
     toMv() {
-      let audio = this.$refs.audio;
-      if (audio.play) {
-        audio.pause();
-      }
-      if (this.$route.path === "/showMv") {
-        this.$notify({
-          title: "警告信息",
-          message: "已在本页面，本次不再跳转！",
-          type: "warning",
+      const audio = this.$refs.audio;
+      audio && audio.pause();
+      if (this.$route.path !== "/showMv") {
+        this.$router.push({
+          path: "/showMv",
+          query: { mvId: this.mv, name: this.songName, artName: this.player },
         });
-        return;
       }
-      this.$router.push({
-        path: "/showMv",
-        query: { mvId: this.mv, name: this.songName, artName: this.player },
-      });
     },
     formatTime() {
       return timeFormat(this.cTime);
@@ -465,7 +439,7 @@ export default {
   height: 200px;
   border-radius: 50%;
   border: 30px solid rgb(56, 53, 53);
-  animation: imgRotate 6s linear infinite normal;
+  animation: imgRotate 10s linear infinite normal;
   position: relative;
   z-index: 2;
 }
@@ -588,7 +562,7 @@ i {
 
 .myProgress {
   flex: 6;
-  margin: 0 1vw;
+  margin: 0 0.5vw;
 }
 
 .myProgress:hover {

@@ -1,8 +1,8 @@
 <template>
   <div>
-    <no-result :result="lists" />
+    <no-result v-if="lists.length === 0" />
 
-    <div class="main" v-if="lists.length !== 0">
+    <div class="main" v-else>
       <el-divider></el-divider>
       <div
         class="items"
@@ -10,27 +10,17 @@
         :key="item.id"
         @click="updateId(item.id, item.name, item.name || item.nickname)"
       >
-        <el-tooltip
-          placement="right"
-          :content="`${item.name} --- ${item.nickname}`"
-          v-if="item.name && item.nickname"
-        >
-          <div>
-            <img v-lazy="item.imgUrl" :key="item.imgUrl" />
-            <p class="name">
-              {{ item.name }}
-              <span v-if="item.name && item.nickname">---</span>
-              {{ item.nickname }}
-            </p>
-          </div>
-        </el-tooltip>
-        <div v-else>
+        <div class="items-img">
           <img v-lazy="item.imgUrl" :key="item.imgUrl" />
-          <p class="name">
-            {{ item.name }}
-            {{ item.nickname }}
-          </p>
+          <div class="play-count">
+            <slot name="playCount" :item="item"></slot>
+          </div>
+          <div class="bottom">
+            <slot name="updateTime" :item="item"></slot>
+            <slot name="nickname" :item="item"></slot>
+          </div>
         </div>
+        <div class="items-name">{{ item.name }}</div>
       </div>
     </div>
   </div>
@@ -41,9 +31,6 @@ import NoResult from "@/components/common/noResult/NoResult";
 export default {
   name: "Items",
   components: { NoResult },
-  data() {
-    return {};
-  },
   props: {
     lists: {
       type: Array,

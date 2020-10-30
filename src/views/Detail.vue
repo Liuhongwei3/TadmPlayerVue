@@ -1,101 +1,111 @@
 <template>
   <div>
-    <div>
-      <el-tooltip placement="top" :content="this.detailName">
-        <el-tag type="primary">
-          {{ this.detailName }}
-        </el-tag>
-      </el-tooltip>
-      <el-tooltip placement="top" :content="this.detailAuthorName">
-        <el-tag type="success" title="点击查看用户详情" @click="updateUserId()">
-          {{ this.detailAuthorName }}
+    <div class="user-info">
+      <el-avatar size="medium" :src="detailInfo.coverImgUrl" />
+      <el-tag type="primary">
+        {{ this.detailInfo.name }}
+      </el-tag>
+      <el-tag type="danger">歌曲：{{ detailInfo.trackCount }}</el-tag>
+      <el-tag type="warning">播放：{{ detailInfo.playCount }}</el-tag>
+      <el-tooltip
+        placement="bottom"
+        content="点击查看用户详情"
+        v-if="detailInfo.creator && detailInfo.creator.nickname"
+      >
+        <el-tag type="success" @click="updateUId()">
+          {{ this.detailInfo.creator.nickname }}
         </el-tag>
       </el-tooltip>
     </div>
-    <el-collapse class="box-card" v-if="description">
+    <el-collapse class="box-card" v-if="detailInfo.description">
       <el-collapse-item class="desc" title="歌单简介">
-        {{ this.description }}
+        {{ this.detailInfo.description }}
       </el-collapse-item>
     </el-collapse>
 
-    <el-table
+    <div
       v-if="isPc && filterList.length !== 0"
-      class="detail-table"
-      ref="detailTable"
-      :data="filterList"
-      highlight-current-row
-      @current-change="handleTableCurrentChange"
       v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
     >
-      <el-table-column label="封面">
-        <template slot-scope="scope">
-          <el-avatar :src="scope.row.al.picUrl"></el-avatar>
-        </template>
-      </el-table-column>
-      <el-table-column prop="name" label="歌曲名"> </el-table-column>
-      <el-table-column label="歌手">
-        <template slot-scope="scope">
-          <el-tooltip placement="top" content="点击歌手名查看歌手">
-            <span @click="searchPlayer(scope.row.ar[0].name)">{{
-              scope.row.ar[0].name
-            }}</span>
-          </el-tooltip>
-        </template>
-      </el-table-column>
-      <el-table-column label="专辑">
-        <template slot-scope="scope">
-          <span>{{ scope.row.al.name }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="时长">
-        <template slot-scope="scope">
-          <i class="el-icon-time"></i>
-          <span style="margin-left: 10px">
-            {{ Math.floor(scope.row.dt / 1000) | timeFormat }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column label="发行日期">
-        <template slot-scope="scope">
-          <span>{{ scope.row.publishTime | dateFormat }}</span>
-        </template>
-      </el-table-column>
-    </el-table>
+      <el-tag v-for="(item, index) in detailInfo.tags" :key="index">{{
+        item
+      }}</el-tag>
+      <el-divider></el-divider>
+      <el-row class="row-header" type="flex" justify="center" :gutter="20">
+        <el-col :span="2">
+          <div class="detail-item">封面</div>
+        </el-col>
+        <el-col :span="6">
+          <div class="detail-item">音乐标题</div>
+        </el-col>
+        <el-col :span="4">
+          <div class="detail-item">歌手</div>
+        </el-col>
+        <el-col :span="5">
+          <div class="detail-item">专辑</div>
+        </el-col>
+        <el-col :span="2">
+          <div class="detail-item">时长</div>
+        </el-col>
+        <el-col :span="4">
+          <div class="detail-item">发行日期</div>
+        </el-col>
+      </el-row>
+      <el-row
+        class="row-items"
+        type="flex"
+        justify="center"
+        :gutter="20"
+        v-for="item in filterList"
+        :key="item.id"
+        @click.native="updateSId(item.id)"
+      >
+        <el-col :span="2">
+          <el-avatar class="detail-item" :src="item.al.picUrl"></el-avatar>
+        </el-col>
+        <el-col :span="6">
+          <div class="detail-item">{{ item.name }}</div>
+        </el-col>
+        <el-col :span="4">
+          <div
+            class="detail-item search-singer"
+            v-for="items in item.ar"
+            :key="items.id"
+            @click="updateSinger(items.id)"
+          >
+            <span>{{ items.name }}</span>
+          </div>
+        </el-col>
+        <el-col :span="5">
+          <div class="detail-item">{{ item.al.name }}</div>
+        </el-col>
+        <el-col :span="2">
+          <div class="detail-item">
+            <!-- <i class="el-icon-time"></i> -->
+            <span style="margin-left: 10px">
+              {{ Math.floor(item.dt / 1000) | timeFormat }}
+            </span>
+          </div>
+        </el-col>
+        <el-col :span="4">
+          <div class="detail-item">{{ item.publishTime | dateFormat }}</div>
+        </el-col>
+      </el-row>
+    </div>
+    <no-result v-else-if="isPc && filterList.length === 0"></no-result>
 
-    <div
-      v-else-if="!isPc && filterList.length !== 0"
-      class="main"
-      v-loading.fullscreen.lock="loading"
+    <Items
+      v-else-if="!isPc"
+      :lists="filterFormatList"
+      @newId="updateId"
+      v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
-    >
-      <div class="items" v-for="(item, index) in filterList" :key="index">
-        <el-tooltip
-          placement="top"
-          :content="`${item.name}---${item.ar[0].name}`"
-        >
-          <div>
-            <img
-              v-lazy="item.al.picUrl"
-              alt="img"
-              @click="updateSongId(item.id)"
-            />
-            <p class="name">
-              {{ item.name }}---
-              <el-tooltip placement="top" content="点击歌手名查看歌手">
-                <span @click="searchPlayer(item.ar[0].name)">
-                  {{ item.ar[0].name }}
-                </span>
-              </el-tooltip>
-            </p>
-          </div>
-        </el-tooltip>
-      </div>
-    </div>
+    />
 
     <horizontal-scroll
       class="page-wrapper"
@@ -108,6 +118,8 @@
           background
           layout="total, sizes, prev, pager, next"
           :total="songs.length"
+          :current-page="curPage"
+          :page-size="pageSize"
           :page-sizes="[15, 25, 30, 50, 100]"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -115,31 +127,31 @@
         </el-pagination>
       </div>
     </horizontal-scroll>
-
-    <no-result :result="filterList" />
   </div>
 </template>
 
 <script>
 import req from "@/network/req";
+import Items from "@/components/common/items/Items";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 import NoResult from "@/components/common/noResult/NoResult";
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 import { to } from "@/utils";
 
 export default {
   name: "Detail",
   components: {
+    Items,
     HorizontalScroll,
     NoResult,
   },
   data() {
     return {
-      detailName: "",
-      detailAuthorId: 0,
-      detailAuthorName: "",
-      description: "",
+      detailInfo: {},
+      tempDetailId: 0,
       songs: [],
+      formatSongs: [],
+      ids: [],
       pageSize: 15,
       curPage: 1,
       loading: false,
@@ -158,13 +170,31 @@ export default {
           )
         : [];
     },
+    filterFormatList() {
+      return this.formatSongs
+        ? this.formatSongs.slice(
+            (this.curPage - 1) * this.pageSize,
+            this.pageSize * this.curPage
+          )
+        : [];
+    },
   },
   watch: {
     detailId(newValue) {
       this.requestPlaylistDetail(newValue);
     },
+    isPc(newValue) {
+      this.updatePageSize();
+    },
   },
   methods: {
+    ...mapMutations([
+      "updateSongId",
+      "updateCurDetailId",
+      "updatePlaylistIds",
+      "updateUserId",
+      "updateSingerId",
+    ]),
     async requestPlaylistDetail(pdlId) {
       if (pdlId) {
         this.loading = true;
@@ -189,14 +219,13 @@ export default {
         let {
           data: { playlist },
         } = data;
-        this.detailName = playlist.name;
-        this.detailAuthorId = playlist.creator.userId;
-        this.detailAuthorName = playlist.creator.nickname;
-        this.description = playlist.description;
+        this.detailInfo = playlist;
 
         let temp = playlist.trackIds;
         if (temp.length === 0) {
-          this.$store.commit("updatePlaylistIds", []);
+          this.songs = [];
+          this.formatSongs = [];
+          this.ids = [];
         } else {
           let songIds = "";
           // 防止过多导致请求歌曲数据失败
@@ -224,11 +253,25 @@ export default {
             data: { songs },
           } = data;
           this.songs = songs;
+
+          let formatList = [];
+          for (let v of songs) {
+            let obj = {};
+
+            obj.id = v.id;
+            obj.name = v.name;
+            obj.nickname = v.ar[0].name;
+            obj.imgUrl = v.al.picUrl;
+
+            formatList.push(obj);
+          }
+          this.formatSongs = formatList;
+
           let ids = [];
           for (let i = 0; i < songs.length; i++) {
             ids[i] = songs[i].id;
           }
-          this.$store.commit("updatePlaylistIds", ids);
+          this.ids = Array.from(ids);
         }
 
         this.loading = false;
@@ -239,43 +282,42 @@ export default {
         });
       }
     },
-    updateSongId(sid) {
-      this.$store.commit("updateSongId", sid);
-    },
-    async searchPlayer(player) {
-      let {
-        data: {
-          result: { artists },
-        },
-      } = await req.netease.searchSinger(this.player);
-      if (artists.length === 0) {
-        this.$notify({
-          title: "警告信息",
-          message: "暂未找到该歌手的信息，本次将不进行跳转！",
-          type: "warning",
-        });
-        return;
-      }
-      this.$store.commit("updateSingerId", artists[0].id);
-      if (this.$route.path !== "/singer") {
-        this.$router.push("/singer");
+    updateSId(sid) {
+      this.updateSongId(sid);
+      if (this.tempDetailId !== this.detailId) {
+        this.updateCurDetailId(this.detailId);
+        this.updatePlaylistIds(this.ids);
+        this.tempDetailId = this.detailId;
       }
     },
-    updateUserId() {
-      this.$store.commit("updateUserId", this.detailAuthorId);
+    updatePageSize() {
+      this.pageSize = this.isPc ? 15 : 6;
+    },
+    updateId({ id }) {
+      this.updateSId(id);
+    },
+    updateUId() {
+      this.updateUserId(this.detailInfo.creator.userId);
       this.$router.push("/user");
+    },
+    updateSinger(sid) {
+      this.updateSingerId(sid);
+      this.$router.push("/singer");
     },
     handleSizeChange(val) {
       this.pageSize = val;
-      this.$emit("toTop");
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+        this.$refs.page.refresh();
+        this.$emit("toTop");
+      });
     },
     handleCurrentChange(val) {
       this.curPage = val;
-      this.$emit("toTop");
-    },
-    handleTableCurrentChange(row) {
-      this.updateSongId(row.id);
-      this.$refs.detailTable.setCurrentRow(row);
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+        this.$emit("toTop");
+      });
     },
   },
   beforeDestroy() {

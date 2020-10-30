@@ -5,80 +5,69 @@
     element-loading-spinner="el-icon-loading"
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
-    <el-tag
-      type="success"
-      @click="changeSongsFlag"
-      v-if="this.singerName.length === 0"
-      >歌手热门歌曲</el-tag
-    >
-    <el-tooltip v-else placement="top" content="点击显示或隐藏详情">
-      <el-tag @click="changeSongsFlag">{{ this.singerName }}</el-tag>
-    </el-tooltip>
-    <el-card shadow="hover" class="box-card" v-if="this.musiclist.length === 0">
-      <div slot="header" class="clearfix">
-        <span>Tips</span>
-      </div>
-      <no-result :result="musiclist" />
-      <span>点击上方歌手名或者索您喜欢的歌手即可查看！</span>
-    </el-card>
-    <div v-else>
-      <el-collapse class="box-card" v-if="briefDesc">
-        <el-collapse-item class="desc" title="歌手简介">
-          {{ this.briefDesc }}
-        </el-collapse-item>
-      </el-collapse>
-
-      <div class="main" v-show="this.songsFlag" v-if="filterList.length !== 0">
-        <el-divider></el-divider>
-        <div
-          class="items"
-          v-for="item in filterList"
-          :key="item.id"
-          @click="songId(item.id)"
-        >
-          <el-tooltip placement="top" :content="item.al.name">
-            <div>
-              <img v-lazy="item.al.picUrl" :key="item.al.picUrl" />
-              <p class="name">{{ item.al.name }}</p>
-            </div>
-          </el-tooltip>
-        </div>
-      </div>
-      <horizontal-scroll
-        v-show="this.songsFlag"
-        class="page-wrapper"
-        :probe-type="3"
-        ref="page"
-      >
-        <div class="page-content">
-          <el-pagination
-            background
-            layout="total, sizes, prev, pager, next"
-            :total="musiclist.length"
-            :page-sizes="[15, 25, 30, 50, 100]"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          >
-          </el-pagination></div
-      ></horizontal-scroll>
-    </div>
     <el-tooltip placement="top" content="点击显示或隐藏详情">
+      <el-tag type="warning" @click="changeSongsFlag">歌手热门歌曲</el-tag>
+    </el-tooltip>
+    <div class="user-info">
+      <el-avatar :src="singerInfo.picUrl"></el-avatar>
+      <el-tag @click="changeSongsFlag">{{ singerInfo.name }}</el-tag>
+      <el-tag type="danger">歌曲：{{ singerInfo.musicSize }}</el-tag>
+      <el-tag type="warning">专辑：{{ singerInfo.albumSize }}</el-tag>
+      <el-tag type="success" @click="toUser(singerInfo.accountId)"
+        >去他的个人主页</el-tag
+      >
+    </div>
+    <el-collapse class="box-card" v-if="singerInfo.briefDesc">
+      <el-collapse-item class="desc" title="歌手简介">
+        {{ singerInfo.briefDesc }}
+      </el-collapse-item>
+    </el-collapse>
+
+    <div class="main" v-show="this.songsFlag">
+      <Items :lists="filterList" @newId="songId" />
+    </div>
+    <horizontal-scroll
+      v-show="this.songsFlag"
+      class="page-wrapper"
+      :probe-type="3"
+      ref="page"
+    >
+      <div class="page-content">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="musiclist.length"
+          :current-page="curPage"
+          :page-size="pageSize"
+          :page-sizes="[15, 25, 30, 50, 100]"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        >
+        </el-pagination></div
+    ></horizontal-scroll>
+
+    <el-tooltip placement="bottom" content="点击显示或隐藏详情">
       <el-tag @click="changeSingerFlag">热门歌手排行榜</el-tag>
     </el-tooltip>
     <div class="main" v-show="this.singerFlag">
-      <el-divider></el-divider>
-      <div class="items" v-for="item in hotSingers" :key="item.id">
-        <el-tooltip placement="top" content="点击查看歌手详情">
-          <div>
-            <img
-              v-lazy="item.picUrl"
-              :key="item.picUrl"
-              @click.prevent="searchPlayer(item.id, item.name)"
-            />
-            <p>{{ item.name }}</p>
-          </div>
-        </el-tooltip>
-      </div>
+      <Items :lists="hotSingers" @newId="updateId">
+        <template v-slot:playCount="singer">
+          <el-tooltip placement="bottom" content="专辑数">
+            <div>
+              <i class="fa fa-list-ol" aria-hidden="true"></i>
+              <span>{{ singer.item.albumSize | roundW }}</span>
+            </div>
+          </el-tooltip>
+        </template>
+        <template v-slot:nickname="singer">
+          <el-tooltip placement="top" content="歌曲数">
+            <div>
+              <i class="fa fa-list-ol" aria-hidden="true"></i>
+              <span>{{ singer.item.musicSize | roundW }}</span>
+            </div>
+          </el-tooltip>
+        </template>
+      </Items>
     </div>
   </div>
 </template>
@@ -88,17 +77,17 @@ import req from "@/network/req";
 import { to } from "@/utils";
 import NoResult from "@/components/common/noResult/NoResult";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
-import { mapState } from "vuex";
+import Items from "@/components/common/items/Items";
+import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "Singer",
-  components: { NoResult, HorizontalScroll },
+  components: { NoResult, HorizontalScroll, Items },
   data() {
     return {
       singerFlag: false,
       songsFlag: true,
-      singerName: "",
-      briefDesc: "",
+      singerInfo: {},
       hotSingers: [],
       musiclist: [],
       pageSize: 15,
@@ -115,7 +104,7 @@ export default {
         return this.$store.state.singerId;
       },
       set(val) {
-        this.$store.commit("updateSingerId", val);
+        this.updateSingerId(val);
       },
     },
     filterList() {
@@ -140,14 +129,18 @@ export default {
     },
     singerFlag(newValue) {
       if (newValue && this.hotSingers.length === 0) {
-        req.netease.hotSinger().then((res) => {
-          this.hotSingers = res.data.artists;
-          this.$bus.$emit("refresh");
-        });
+        this.reqHotSingers();
       }
     },
   },
   methods: {
+    ...mapMutations([
+      "updateSongId",
+      "updateUserId",
+      "updateSingerName",
+      "updateSource",
+      "updateSingerId",
+    ]),
     async requestSinger(sid) {
       if (sid) {
         this.loading = true;
@@ -169,9 +162,20 @@ export default {
           });
           return;
         }
-        this.singerName = data.artist.name;
-        this.briefDesc = data.artist.briefDesc;
-        this.musiclist = data.hotSongs;
+        this.singerInfo = data.artist;
+
+        let lists = [];
+        for (let v of data.hotSongs) {
+          let obj = {};
+
+          obj.id = v.id;
+          obj.name = v.name;
+          obj.imgUrl = v.al.picUrl;
+
+          lists.push(obj);
+        }
+        this.musiclist = lists;
+
         this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
@@ -180,20 +184,44 @@ export default {
         });
       }
     },
-    songId(sid) {
-      this.$store.commit("updateSource", "netease");
-      this.$store.commit("updateSongId", sid);
+    async reqHotSingers() {
+      let {
+        data: { artists },
+      } = await req.netease.hotSinger();
+      let lists = [];
+      for (let v of artists) {
+        let obj = {};
+        obj.id = v.id;
+        obj.name = v.name;
+        obj.imgUrl = v.picUrl;
+        obj.accountId = v.accountId;
+        obj.albumSize = v.albumSize;
+        obj.musicSize = v.musicSize;
+
+        lists.push(obj);
+      }
+      this.hotSingers = lists;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
+    },
+    songId({ id }) {
+      this.updateSource("netease");
+      this.updateSongId(id);
     },
     searchPlayer(id, name) {
       this.singerId = id;
-      this.$store.commit("updateSingerName", name);
-      this.singerName = name;
+      this.updateSingerName(name);
     },
     changeSingerFlag() {
       this.singerFlag = !this.singerFlag;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     changeSongsFlag() {
       this.songsFlag = !this.songsFlag;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
+    },
+    toUser(uid) {
+      this.updateUserId(uid);
+      this.$router.push("/user");
     },
     handleSizeChange(val) {
       this.pageSize = val;
@@ -204,6 +232,10 @@ export default {
       this.curPage = val;
       this.$emit("toTop");
       this.$nextTick(() => this.$refs.page.refresh());
+    },
+    updateId({ id, name }) {
+      this.updateSingerId(id);
+      this.updateSingerName(name);
     },
   },
 };

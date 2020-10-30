@@ -1,0 +1,15 @@
+export default {
+  isPc: true,
+  source: "netease",
+  imgs: "",
+  toplists: [],
+  username: "",
+  userId: 537069044,
+  ownUserId: 0,
+  ownUserName: "",
+  detailId: 1978921795,
+  curDetailId: 1978921795,
+  playlistIds: [],
+  songId: 1446769897,
+  singerId: 4292,
+};

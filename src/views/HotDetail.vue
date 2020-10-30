@@ -4,33 +4,23 @@
     <el-tag type="info">放松心情</el-tag>
     <el-tag type="success">动感节奏</el-tag>
     <el-tag type="primary">轻松纯音乐</el-tag>
-    <div
-      class="main"
+
+    <Items
+      :lists="hotDetailLists"
+      @newId="updateId"
       v-loading.lock="loading"
       element-loading-text="拼命加载中"
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(0, 0, 0, 0.8)"
     >
-      <div
-        class="items"
-        v-for="item in hotDetailLists"
-        :key="item.id"
-        @click="updateDetailId(item.id)"
-      >
-        <el-tooltip
-          placement="right"
-          :content="`${item.name}---${item.creator.nickname}`"
-        >
-          <el-badge :value="item.playCount | roundW">
-            <div class="bottom">
-              <span>By&nbsp;&nbsp;{{ item.creator.nickname }}</span>
-            </div>
-            <img v-lazy="item.coverImgUrl" :key="item.coverImgUrl" />
-            <p class="name">{{ item.name }}</p>
-          </el-badge>
-        </el-tooltip>
-      </div>
-    </div>
+      <template v-slot:playCount="hotDetail">
+        <i class="fa fa-headphones" aria-hidden="true"></i>
+        <span>{{ hotDetail.item.playCount | roundW }}</span>
+      </template>
+      <template v-slot:nickname="hotDetail">
+        <span>By {{ hotDetail.item.nickname }}</span>
+      </template>
+    </Items>
     <div v-if="loading">
       <el-divider></el-divider>
       <el-button type="primary">
@@ -45,6 +35,7 @@
 </template>
 
 <script>
+import Items from "@/components/common/items/Items";
 import req from "@/network/req";
 import { debounce, to } from "@/utils";
 
@@ -58,6 +49,7 @@ export default {
       noMore: false,
     };
   },
+  components: { Items },
   created() {
     this.requestHotDetails(this.limit);
   },
@@ -111,11 +103,25 @@ export default {
         });
         return;
       }
-      this.hotDetailLists = playlists;
+
+      let formatList = [];
+      for (let v of playlists) {
+        let obj = {};
+
+        obj.id = v.id;
+        obj.name = v.name;
+        obj.nickname = v.creator.nickname;
+        obj.imgUrl = v.coverImgUrl;
+        obj.playCount = v.playCount;
+
+        formatList.push(obj);
+      }
+
+      this.hotDetailLists = formatList;
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
-    updateDetailId(id) {
+    updateId({ id }) {
       this.$store.commit("updateDetailId", id);
       this.$router.push("/detail");
     },
@@ -126,20 +132,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.items {
-  position: relative;
-}
-
-.bottom {
-  bottom: 32px;
-  left: 10px;
-}
-
-@media screen and (max-width: 768px) {
-  .bottom {
-    bottom: 25px;
-  }
-}
-</style>

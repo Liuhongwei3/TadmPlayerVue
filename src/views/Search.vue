@@ -1,5 +1,11 @@
 <template>
-  <div id="search">
+  <div
+    id="search"
+    v-loading.lock="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
     <el-autocomplete
       class="searchInput"
       v-model.lazy="keyword"
@@ -34,14 +40,153 @@
       </template>
     </el-autocomplete>
 
-    <Items
-      :lists="searchResults"
-      @newId="updateId"
-      v-loading.lock="loading"
-      element-loading-text="拼命加载中"
-      element-loading-spinner="el-icon-loading"
-      element-loading-background="rgba(0, 0, 0, 0.8)"
-    />
+    <div v-if="isPc && (type == 1 || type == 2) && searchResults.length !== 0">
+      <el-row class="row-header" type="flex" justify="center" :gutter="20">
+        <el-col :span="1">
+          <div class="detail-item"></div>
+        </el-col>
+        <el-col :span="8">
+          <div class="detail-item">音乐标题</div>
+        </el-col>
+        <el-col :span="4">
+          <div class="detail-item">歌手</div>
+        </el-col>
+        <el-col :span="6">
+          <div class="detail-item">专辑</div>
+        </el-col>
+        <el-col :span="3" v-if="source === 'netease'">
+          <div class="detail-item">时长</div>
+        </el-col>
+      </el-row>
+      <el-row
+        class="row-items"
+        type="flex"
+        justify="center"
+        :gutter="20"
+        v-for="(item, index) in searchResults"
+        :key="type + item.id"
+        @dblclick.native="updateId({ id: item.id })"
+      >
+        <el-col :span="1">
+          <div class="detail-item">{{ index + 1 }}</div>
+        </el-col>
+        <el-col :span="8">
+          <div class="detail-item">{{ item.name }}</div>
+        </el-col>
+        <el-col :span="4">
+          <div
+            class="detail-item search-singer"
+            v-for="items in item.artists"
+            :key="type + items.id"
+            @click="updateSinger(items.id)"
+          >
+            <span>{{ items.name }}</span>
+          </div>
+        </el-col>
+        <el-col :span="6">
+          <div class="detail-item">{{ item.album.name }}</div>
+        </el-col>
+        <el-col :span="3" v-if="source === 'netease'">
+          <div class="detail-item">
+            <i class="el-icon-time"></i>
+            <span style="margin-left: 10px">
+              {{ Math.floor(item.duration / 1000) | timeFormat }}
+            </span>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+
+    <div
+      v-else-if="
+        !isPc && (type == 1 || type == 2) && searchResults.length !== 0
+      "
+    >
+      <el-row class="row-header" type="flex" justify="center" :gutter="20">
+        <el-col :span="3">
+          <div class="detail-item"></div>
+        </el-col>
+        <el-col :span="10">
+          <div class="detail-item">音乐标题</div>
+        </el-col>
+        <el-col :span="8">
+          <div class="detail-item">歌手</div>
+        </el-col>
+      </el-row>
+      <el-row
+        class="row-items"
+        type="flex"
+        justify="center"
+        :gutter="20"
+        v-for="(item, index) in searchResults"
+        :key="type + item.id"
+        @dblclick.native="updateId({ id: item.id })"
+      >
+        <el-col :span="3">
+          <div class="detail-item">{{ index + 1 }}</div>
+        </el-col>
+        <el-col :span="10">
+          <div class="detail-item">{{ item.name }}</div>
+        </el-col>
+        <el-col :span="8">
+          <div
+            class="detail-item search-singer"
+            v-for="items in item.artists"
+            :key="type + items.id"
+            @click="updateSinger(items.id)"
+          >
+            <span>{{ items.name }}</span>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+
+    <Items v-else :lists="searchResults" @newId="updateId">
+      <template v-slot:playCount="search">
+        <div v-if="search.item.playCount">
+          <i class="fa fa-video-camera" aria-hidden="true" v-if="type == 6"></i>
+          <i class="fa fa-headphones" aria-hidden="true" v-else></i>
+          <span>{{ search.item.playCount | roundW }}</span>
+        </div>
+        <div v-else-if="search.item.trackCount">
+          <el-tooltip placement="bottom" content="歌曲数">
+            <div>
+              <i class="fa fa-list-ol" aria-hidden="true"></i>
+              <span>{{ search.item.trackCount | roundW }}</span>
+            </div>
+          </el-tooltip>
+        </div>
+        <div v-else-if="search.item.albumSize">
+          <el-tooltip placement="bottom" content="专辑数">
+            <div>
+              <i class="fa fa-list-ol" aria-hidden="true"></i>
+              <span>{{ search.item.albumSize | roundW }}</span>
+            </div>
+          </el-tooltip>
+        </div>
+        <div v-else-if="search.item.gender || search.item.gender == 0">
+          <i
+            class="fa fa-mars male"
+            aria-hidden="true"
+            v-if="search.item.gender == 1"
+          ></i>
+          <i
+            class="fa fa-venus female"
+            aria-hidden="true"
+            v-else-if="search.item.gender == 2"
+          ></i>
+          <span v-else>保密</span>
+        </div>
+      </template>
+      <template v-slot:nickname="search">
+        <span v-if="search.item.nickname">By {{ search.item.nickname }}</span>
+        <el-tooltip placement="top" content="个人签名">
+          <div v-if="search.item.signature">
+            <span>{{ search.item.signature }}</span>
+          </div>
+        </el-tooltip>
+      </template>
+    </Items>
   </div>
 </template>
 
@@ -49,7 +194,7 @@
 import req from "@/network/req";
 import { to } from "@/utils";
 import Items from "@/components/common/items/Items";
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "search",
@@ -65,7 +210,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["source"]),
+    ...mapState(["isPc", "source"]),
   },
   async created() {
     let {
@@ -87,6 +232,12 @@ export default {
     });
   },
   methods: {
+    ...mapMutations([
+      "updateSongId",
+      "updateUserId",
+      "updateDetailId",
+      "updateSingerId",
+    ]),
     querySearch(queryString, cb) {
       let hotKeywords = this.hotSearchKeywords;
       let results = queryString
@@ -108,21 +259,20 @@ export default {
       switch (+this.type) {
         case 1:
         case 2: {
-          this.$store.commit("updateSongId", id);
+          this.updateSongId(id);
           break;
         }
         case 3: {
-          this.$store.commit("updateDetailId", id);
+          this.updateDetailId(id);
           this.$router.push("/detail");
           break;
         }
         case 4: {
-          this.$store.commit("updateSingerId", id);
-          this.$router.push("/singer");
+          this.updateSinger(id);
           break;
         }
         case 5: {
-          this.$store.commit("updateUserId", id);
+          this.updateUserId(id);
           this.$router.push("/user");
           break;
         }
@@ -138,6 +288,10 @@ export default {
     updateKeyword(keyword) {
       this.keyword = keyword;
       this.doSearch();
+    },
+    updateSinger(sid) {
+      this.updateSingerId(sid);
+      this.$router.push("/singer");
     },
     async doSearch() {
       let source = this.source;
@@ -175,6 +329,7 @@ export default {
 
       this.loading = true;
       this.tempKeyword = this.source + this.type + this.keyword;
+      this.searchResults = [];
       switch (source) {
         case "netease": {
           this.doNetEaseSearch(type);
@@ -203,8 +358,10 @@ export default {
           lists.push({
             id: v.id,
             name: v.name,
+            artists: v.artists,
             nickname: v.artists[0].name,
             imgUrl: v.album.cover,
+            album: v.album,
           });
         }
         this.searchResults = lists;
@@ -245,10 +402,17 @@ export default {
       for (let v of songs) {
         let obj = {};
 
+        if (flag === 3) {
+          obj.trackCount = v.trackCount;
+          obj.playCount = v.playCount;
+        }
+
         if (flag === 5) {
           obj.id = v.userId;
           obj.name = v.nickname;
           obj.imgUrl = v.avatarUrl;
+          obj.signature = v.signature;
+          obj.gender = v.gender;
           lists.push(obj);
           continue;
         }
@@ -258,25 +422,22 @@ export default {
 
         if (flag === 4) {
           obj.imgUrl = v.picUrl;
+          obj.albumSize = v.albumSize;
           lists.push(obj);
           continue;
         }
 
         if (flag === 6) {
-          obj.imgUrl = v.cover;
-        }
-
-        if (flag === 1 || flag === 2 || flag === 6) {
           obj.nickname = v.artists[0].name;
+          obj.playCount = v.playCount;
+          obj.imgUrl = v.cover;
         } else if (flag === 3) {
           obj.nickname = v.creator.nickname;
           obj.imgUrl = v.coverImgUrl;
         }
         lists.push(obj);
       }
-      this.searchResults = lists;
-      this.loading = false;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.setResults(lists);
     },
     async searchSongs() {
       let {
@@ -284,7 +445,7 @@ export default {
           result: { songs },
         },
       } = await req.netease.search(this.keyword);
-      this.handleData(songs, 1);
+      this.setResults(songs);
     },
     async searchLyrics() {
       let {
@@ -292,7 +453,12 @@ export default {
           result: { songs },
         },
       } = await req.netease.search(this.keyword, 1006);
-      this.handleData(songs, 2);
+      this.setResults(songs);
+    },
+    setResults(songs) {
+      this.searchResults = songs;
+      this.loading = false;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async searchDetails() {
       let {
@@ -308,6 +474,7 @@ export default {
           result: { artists },
         },
       } = await req.netease.search(this.keyword, 100);
+
       this.handleData(artists, 4);
     },
     async searchUsers() {
@@ -331,14 +498,6 @@ export default {
 </script>
 
 <style scoped>
-#hotSearchResults {
-  color: #ff572b;
-}
-
-#hotSearchResults:hover {
-  cursor: pointer;
-}
-
 .searchInput {
   width: 50%;
 }
@@ -356,22 +515,21 @@ export default {
   color: #b4b4b4;
 }
 
+.search-singer:hover {
+  cursor: pointer;
+}
+
+.male {
+  color: aquamarine;
+}
+
+.female {
+  color: pink;
+}
+
 @media screen and (max-width: 768px) {
-  #searchResult {
-    margin: 0 auto;
-    padding: 0;
-  }
-
-  img {
-    margin: 5px;
-  }
-
   .searchInput {
-    width: 70%;
-  }
-
-  .type-select {
-    width: 60px;
+    width: 90%;
   }
 }
 </style>
