@@ -13,7 +13,13 @@
         >
       </div>
 
-      <div class="top-mv">
+      <div
+        class="top-mv"
+        v-loading.lock="topLoading"
+        element-loading-text="拼命加载中"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
         <div
           class="top-mv-items"
           v-for="item in topMvLists"
@@ -79,7 +85,13 @@
         >{{ item.value }}</span
       >
       <el-divider></el-divider>
-      <div class="main">
+      <div
+        class="main"
+        v-loading.lock="allLoading"
+        element-loading-text="拼命加载中"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
         <div
           class="all-mv-items"
           v-for="item in mvLists"
@@ -148,6 +160,8 @@ export default {
       order: "最热",
       topMvLists: [],
       mvLists: [],
+      topLoading: false,
+      allLoading: false,
     };
   },
   computed: {
@@ -178,16 +192,20 @@ export default {
   },
   methods: {
     async requestTopMv(type) {
+      this.topLoading = true;
       let {
         data: { data },
       } = await req.netease.topMv(type);
       this.topMvLists = data;
+      this.topLoading = false;
     },
     async requestAllMv(area = "全部", type = "全部", order = "最热") {
+      this.allLoading = true;
       let {
         data: { data },
       } = await req.netease.allMv(area, type, order);
       this.mvLists = data;
+      this.allLoading = false;
     },
     toMv(id, name, artName) {
       this.$router.push({

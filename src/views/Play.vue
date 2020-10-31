@@ -69,6 +69,13 @@
               @click="changeList"
             ></i>
           </el-tooltip>
+          <el-tooltip content="播放列表" placement="bottom">
+            <i
+              class="fa fa-history fa-2x"
+              aria-hidden="true"
+              @click="toCurDetail"
+            ></i>
+          </el-tooltip>
           <el-tooltip content="上一曲" placement="top">
             <i
               class="fa fa-step-backward fa-2x"
@@ -104,13 +111,6 @@
               class="fa fa-download fa-2x"
               aria-hidden="true"
               @click="downloadMusic"
-            ></i>
-          </el-tooltip>
-          <el-tooltip content="播放列表" placement="bottom">
-            <i
-              class="fa fa-history fa-2x"
-              aria-hidden="true"
-              @click="toCurDetail"
             ></i>
           </el-tooltip>
           <el-tooltip id="controlPc" content="站点选项配置" placement="bottom">
@@ -465,13 +465,12 @@ export default {
   position: fixed;
   bottom: 0;
   z-index: 99;
-  border-top-left-radius: 25px;
-  border-top-right-radius: 25px;
+  border-radius: 15px 15px 0 0;
   margin-left: -10vw;
 }
 
 .el-tag {
-  max-width: 40vw;
+  max-width: 30vw;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -580,7 +579,7 @@ i {
   }
 
   .simply-play-info {
-    margin-left: -18vw;
+    margin-left: -20vw;
   }
 
   .more-play-info {

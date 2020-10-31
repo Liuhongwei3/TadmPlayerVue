@@ -7,7 +7,7 @@
 <script>
 // https://better-scroll.github.io/docs/zh-CN/
 import BScroll from "better-scroll";
-import { debounce } from "@/utils";
+import { debounce, throttle } from "@/utils";
 
 export default {
   name: "VerticalScroll",
@@ -48,15 +48,19 @@ export default {
         probeType: this.probeType,
         click: true,
         dblclick: true,
+        stopPropagation: true,
         mouseWheel: true,
         pullUpLoad: this.pullUpLoad,
       });
 
       // 2.将监听事件回调
       this.listenScroll &&
-        this.scroll.on("scroll", (position) => {
-          this.$emit("scroll", position);
-        });
+        this.scroll.on(
+          "scroll",
+          throttle((position) => {
+            this.$emit("scroll", position);
+          })
+        );
 
       // 3.监听上拉到底部
       this.pullUpLoad &&

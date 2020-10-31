@@ -75,7 +75,7 @@ export default {
     this.requestCloudHotComments();
   },
   mounted() {
-    this.$bus.$on("loadMoreComments", () => {
+    this.$bus.$on("loadMoreSongComments", () => {
       if (this.source === "netease") {
         this.limit += 20;
         this.requestHComments(this.songId, this.limit);

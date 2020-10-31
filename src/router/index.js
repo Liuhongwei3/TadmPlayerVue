@@ -1,78 +1,71 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import Vue from "vue";
+import VueRouter from "vue-router";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
-const routes = [{
-        path: "/",
-        redirect: "/top"
-    },
-    {
-        path: "/top",
-        name: "Top",
-        component: () =>
-            import ( /* webpackChunkName: "1" */ '@/views/Top.vue'),
-    },
-    {
-        path: "/hotDetail",
-        name: "HotDetail",
-        component: () =>
-            import ( /* webpackChunkName: "2" */ '@/views/HotDetail.vue'),
-    },
-    {
-        path: "/search",
-        name: "Search",
-        component: () =>
-            import ( /* webpackChunkName: "1" */ '@/views/Search.vue'),
-    },
-    {
-        path: "/singer",
-        name: "Singer",
-        component: () =>
-            import ( /* webpackChunkName: "1" */ '@/views/Singer.vue'),
-    },
-    {
-        path: "/user",
-        name: "User",
-        component: () =>
-            import ( /* webpackChunkName: "1" */ '@/views/User.vue'),
-    },
-    {
-        path: "/detail",
-        name: "Detail",
-        component: () =>
-            import ( /* webpackChunkName: "2" */ '@/views/Detail.vue'),
-    },
-    {
-        path: "/comment",
-        name: "Comment",
-        component: () =>
-            import ( /* webpackChunkName: "2" */ '@/views/Comment.vue'),
-    },
-    {
-        path: "/mv",
-        name: "Mv",
-        component: () =>
-            import ( /* webpackChunkName: "2" */ '@/views/Mv.vue'),
-    },
-    {
-        path: "/showMv",
-        name: "ShowMv",
-        component: () =>
-            import ( /* webpackChunkName: "2" */ '../components/content/ShowMv.vue'),
-    },
-    {
-        path: '/about',
-        name: 'About',
-        component: () =>
-            import ( /* webpackChunkName: "2" */ '@/views/About.vue')
-    }
-]
+const routes = [
+  {
+    path: "/",
+    redirect: "/top",
+  },
+  {
+    path: "/top",
+    name: "Top",
+    component: () => import(/* webpackChunkName: "1" */ "@/views/Top.vue"),
+  },
+  {
+    path: "/hotDetail",
+    name: "HotDetail",
+    component: () =>
+      import(/* webpackChunkName: "2" */ "@/views/HotDetail.vue"),
+  },
+  {
+    path: "/search",
+    name: "Search",
+    component: () => import(/* webpackChunkName: "1" */ "@/views/Search.vue"),
+  },
+  {
+    path: "/singer",
+    name: "Singer",
+    component: () => import(/* webpackChunkName: "1" */ "@/views/Singer.vue"),
+  },
+  {
+    path: "/user",
+    name: "User",
+    component: () => import(/* webpackChunkName: "1" */ "@/views/User.vue"),
+  },
+  {
+    path: "/detail",
+    name: "Detail",
+    component: () => import(/* webpackChunkName: "2" */ "@/views/Detail.vue"),
+  },
+  {
+    path: "/comment",
+    name: "Comment",
+    component: () => import(/* webpackChunkName: "2" */ "@/views/Comment.vue"),
+  },
+  {
+    path: "/mv",
+    name: "Mv",
+    component: () => import(/* webpackChunkName: "2" */ "@/views/Mv.vue"),
+  },
+  {
+    path: "/showMv",
+    name: "ShowMv",
+    component: () =>
+      import(/* webpackChunkName: "2" */ "../components/content/ShowMv.vue"),
+  },
+  {
+    path: "/about",
+    name: "About",
+    component: () => import(/* webpackChunkName: "2" */ "@/views/About.vue"),
+  },
+];
 
 const router = new VueRouter({
-    mode: 'hash',
-    base: process.env.BASE_URL,
-    routes,
-})
+  mode: "hash",
+  base: process.env.BASE_URL,
+  routes,
+});
 
-export default router
+export default router;

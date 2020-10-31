@@ -100,31 +100,6 @@
   margin: 0 auto;
 }
 
-.detail-table {
-  width: 96%;
-  margin: 0 auto;
-  border-radius: 2%;
-}
-
-/* 表格外下边框 */
-
-.el-table::before {
-  height: 0;
-}
-
-.el-table th.gutter {
-  display: table-cell !important;
-}
-
-.detail-table tbody tr:hover > td {
-  color: #3cdbd3 !important;
-  background-color: #5a5959 !important;
-}
-
-.current-row > td {
-  background-color: #737a81 !important;
-}
-
 .page-wrapper {
   width: 100%;
   white-space: nowrap;
@@ -133,6 +108,14 @@
 
 .page-content {
   display: inline-block;
+}
+
+.el-tabs__nav {
+  margin-left: 6px;
+}
+
+.el-tabs__item {
+  color: #fff;
 }
 
 @media screen and (max-width: 768px) {

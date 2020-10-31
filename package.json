@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
-    "better-scroll": "^2.0.4",
+    "better-scroll": "^2.0.5",
     "core-js": "^3.6.5",
-    "element-ui": "^2.13.2",
+    "element-ui": "^2.14.0",
     "hammerjs": "^2.0.8",
     "nprogress": "^0.2.0",
     "vue": "^2.6.11",
@@ -23,6 +23,7 @@
     "@vue/cli-plugin-router": "~4.4.0",
     "@vue/cli-plugin-vuex": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
+    "babel-plugin-component": "^1.1.1",
     "vue-template-compiler": "^2.6.11"
   },
   "browserslist": [

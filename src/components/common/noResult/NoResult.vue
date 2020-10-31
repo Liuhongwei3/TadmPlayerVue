@@ -9,7 +9,9 @@
 <template>
   <div id="noResult" v-if="flag">
     <el-divider></el-divider>
-    <el-tag type="warning">暂无数据</el-tag>
+    <slot>
+      <el-tag type="warning">暂无数据</el-tag>
+    </slot>
   </div>
 </template>
 

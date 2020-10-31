@@ -40,6 +40,12 @@
       </template>
     </el-autocomplete>
 
+    <div v-if="searchResults.length !== 0">
+      <el-tag type="success">
+        已为您找到 {{ searchResults.length }} 条结果
+      </el-tag>
+    </div>
+
     <div v-if="isPc && (type == 1 || type == 2) && searchResults.length !== 0">
       <el-row class="row-header" type="flex" justify="center" :gutter="20">
         <el-col :span="1">
@@ -166,12 +172,12 @@
         </div>
         <div v-else-if="search.item.gender || search.item.gender == 0">
           <i
-            class="fa fa-mars male"
+            class="fa fa-2x fa-mars male"
             aria-hidden="true"
             v-if="search.item.gender == 1"
           ></i>
           <i
-            class="fa fa-venus female"
+            class="fa fa-2x fa-venus female"
             aria-hidden="true"
             v-else-if="search.item.gender == 2"
           ></i>
@@ -517,14 +523,6 @@ export default {
 
 .search-singer:hover {
   cursor: pointer;
-}
-
-.male {
-  color: aquamarine;
-}
-
-.female {
-  color: pink;
 }
 
 @media screen and (max-width: 768px) {

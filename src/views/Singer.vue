@@ -5,9 +5,6 @@
     element-loading-spinner="el-icon-loading"
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
-    <el-tooltip placement="top" content="点击显示或隐藏详情">
-      <el-tag type="warning" @click="changeSongsFlag">歌手热门歌曲</el-tag>
-    </el-tooltip>
     <div class="user-info">
       <el-avatar :src="singerInfo.picUrl"></el-avatar>
       <el-tag @click="changeSongsFlag">{{ singerInfo.name }}</el-tag>
@@ -23,6 +20,9 @@
       </el-collapse-item>
     </el-collapse>
 
+    <el-tooltip placement="top" content="点击显示或隐藏详情">
+      <el-tag type="info" @click="changeSongsFlag">歌手热门歌曲</el-tag>
+    </el-tooltip>
     <div class="main" v-show="this.songsFlag">
       <Items :lists="filterList" @newId="songId" />
     </div>
@@ -43,11 +43,12 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         >
-        </el-pagination></div
-    ></horizontal-scroll>
+        </el-pagination>
+      </div>
+    </horizontal-scroll>
 
     <el-tooltip placement="bottom" content="点击显示或隐藏详情">
-      <el-tag @click="changeSingerFlag">热门歌手排行榜</el-tag>
+      <el-tag type="primary" @click="changeSingerFlag">热门歌手排行榜</el-tag>
     </el-tooltip>
     <div class="main" v-show="this.singerFlag">
       <Items :lists="hotSingers" @newId="updateId">
@@ -121,6 +122,7 @@ export default {
       if (newValue) {
         this.singerFlag = false;
         this.songsFlag = true;
+        this.curPage = 1;
         this.requestSinger(newValue);
       } else {
         this.singerFlag = true;
@@ -231,7 +233,6 @@ export default {
     handleCurrentChange(val) {
       this.curPage = val;
       this.$emit("toTop");
-      this.$nextTick(() => this.$refs.page.refresh());
     },
     updateId({ id, name }) {
       this.updateSingerId(id);

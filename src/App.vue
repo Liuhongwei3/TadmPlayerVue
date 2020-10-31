@@ -117,10 +117,14 @@ export default {
     backTop() {
       this.$refs.scroll.scrollTo(0, 0, 500);
     },
-    loadMore: debounce(function() {
+    loadMore: debounce(function () {
       switch (this.$route.path) {
         case "/comment": {
-          this.$bus.$emit("loadMoreComments");
+          this.$bus.$emit("loadMoreSongComments");
+          break;
+        }
+        case "/detail": {
+          this.$bus.$emit("loadMoreDetail");
           break;
         }
         case "/hotDetail": {
