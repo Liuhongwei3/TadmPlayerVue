@@ -28,6 +28,7 @@
         <el-option label="歌手" value="4"></el-option>
         <el-option label="用户" value="5"></el-option>
         <el-option label="MV" value="6"></el-option>
+        <el-option label="视频" value="7"></el-option>
       </el-select>
       <el-button
         slot="append"
@@ -36,7 +37,7 @@
       ></el-button>
       <template slot-scope="{ item }">
         <div class="searchWord">{{ item.searchWord }}</div>
-        <span class="content">{{ item.content }}</span>
+        <span class="search-input-content">{{ item.content }}</span>
       </template>
     </el-autocomplete>
 
@@ -65,9 +66,10 @@
         </el-col>
       </el-row>
       <el-row
-        class="row-items"
+        class="search-row-items"
         type="flex"
         justify="center"
+        align="middle"
         :gutter="20"
         v-for="(item, index) in searchResults"
         :key="type + item.id"
@@ -108,7 +110,13 @@
         !isPc && (type == 1 || type == 2) && searchResults.length !== 0
       "
     >
-      <el-row class="row-header" type="flex" justify="center" :gutter="20">
+      <el-row
+        class="row-header"
+        type="flex"
+        justify="center"
+        align="middle"
+        :gutter="20"
+      >
         <el-col :span="3">
           <div class="detail-item"></div>
         </el-col>
@@ -120,9 +128,10 @@
         </el-col>
       </el-row>
       <el-row
-        class="row-items"
+        class="search-row-items"
         type="flex"
         justify="center"
+        align="middle"
         :gutter="20"
         v-for="(item, index) in searchResults"
         :key="type + item.id"
@@ -146,6 +155,12 @@
         </el-col>
       </el-row>
     </div>
+
+    <video-content
+      v-else-if="type == 7"
+      :videos="searchResults"
+      @newId="updateId"
+    ></video-content>
 
     <Items v-else :lists="searchResults" @newId="updateId">
       <template v-slot:playCount="search">
@@ -197,14 +212,16 @@
 </template>
 
 <script>
+import { mapMutations, mapState } from "vuex";
+
 import req from "@/network/req";
 import { to } from "@/utils";
 import Items from "@/components/common/items/Items";
-import { mapMutations, mapState } from "vuex";
+import VideoContent from "../components/content/VideoContent";
 
 export default {
   name: "search",
-  components: { Items },
+  components: { Items, VideoContent },
   data() {
     return {
       type: "1",
@@ -286,6 +303,13 @@ export default {
           this.$router.push({
             path: "/showMv",
             query: { mvId: id, name, artName: nickname },
+          });
+          break;
+        }
+        case 7: {
+          this.$router.push({
+            path: "/showVideo",
+            query: { vid: id },
           });
           break;
         }
@@ -401,6 +425,10 @@ export default {
           this.searchMvs();
           break;
         }
+        case 7: {
+          this.searchVideos();
+          break;
+        }
       }
     },
     handleData(songs = [], flag = 1) {
@@ -461,8 +489,8 @@ export default {
       } = await req.netease.search(this.keyword, 1006);
       this.setResults(songs);
     },
-    setResults(songs) {
-      this.searchResults = songs;
+    setResults(result) {
+      this.searchResults = result;
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
@@ -499,35 +527,14 @@ export default {
       } = await req.netease.search(this.keyword, 1004);
       this.handleData(mvs, 6);
     },
+    async searchVideos() {
+      let {
+        data: {
+          result: { videos },
+        },
+      } = await req.netease.search(this.keyword, 1014);
+      this.setResults(videos);
+    },
   },
 };
 </script>
-
-<style scoped>
-.searchInput {
-  width: 50%;
-}
-
-.type-select {
-  width: 80px;
-}
-
-.searchWord {
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-.content {
-  font-size: 12px;
-  color: #b4b4b4;
-}
-
-.search-singer:hover {
-  cursor: pointer;
-}
-
-@media screen and (max-width: 768px) {
-  .searchInput {
-    width: 90%;
-  }
-}
-</style>

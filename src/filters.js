@@ -16,6 +16,7 @@ Vue.filter("roundW", function(valueIn = 0) {
     return Math.round(value / 100000000) + " 亿+";
   }
 });
+
 Vue.filter("timeFormat", (timeIn = 0) => {
   const time = timeIn ? new Date(timeIn * 1000) : 0;
   if (time) {
@@ -27,6 +28,7 @@ Vue.filter("timeFormat", (timeIn = 0) => {
     return "0 : 00";
   }
 });
+
 Vue.filter("dateFormat", (dateIn = 0, type = "less") => {
   const date = dateIn ? new Date(dateIn) : 0;
   if (date) {
@@ -54,4 +56,61 @@ Vue.filter("dateFormat", (dateIn = 0, type = "less") => {
   } else {
     return "Private";
   }
+});
+
+Vue.filter("getEventType", (str = "") => {
+  // 18 分享单曲
+  // 19 分享专辑
+  // 17、28 分享电台节目
+  // 22 转发
+  // 39 发布视频
+  // 13 分享歌单
+  // 24 分享专栏文章
+  // 41、21 分享视频
+  // 35 发布动态
+  if (str.length === 0) return;
+  switch (+str) {
+    case 18: {
+      str = "分享单曲";
+      break;
+    }
+    case 19: {
+      str = "分享专辑";
+      break;
+    }
+    case 17:
+    case 28: {
+      str = "分享电台节目";
+      break;
+    }
+    case 22: {
+      str = "转发";
+      break;
+    }
+    case 39: {
+      str = "发布视频";
+      break;
+    }
+    case 35: {
+      str = "发布动态";
+      break;
+    }
+    case 13: {
+      str = "分享歌单";
+      break;
+    }
+    case 24: {
+      str = "分享专栏文章";
+      break;
+    }
+    case 21: {
+      str = "分享MV";
+      break;
+    }
+    case 41: {
+      str = "分享视频";
+      break;
+    }
+  }
+  return str;
 });

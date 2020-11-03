@@ -1,10 +1,27 @@
 <template>
   <div>
-    <el-tag type="danger">热门排行榜</el-tag>
-    <el-tag type="warning">网易云音乐</el-tag>
-
+    <el-tag type="danger">云音乐特色榜</el-tag>
     <Items
-      :lists="toplists"
+      :lists="toplists.slice(0, 4)"
+      @newId="updateId"
+      v-loading.lock="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <template v-slot:playCount="top">
+        <i class="fa fa-headphones" aria-hidden="true"></i>
+        <span>{{ top.item.playCount | roundW }}</span>
+      </template>
+      <template v-slot:updateTime="top">
+        <span>{{ top.item.updateTime | dateFormat }} 更新</span>
+      </template>
+    </Items>
+    <el-divider></el-divider>
+
+    <el-tag type="warning">全球媒体榜</el-tag>
+    <Items
+      :lists="toplists.slice(4, -1)"
       @newId="updateId"
       v-loading.lock="loading"
       element-loading-text="拼命加载中"

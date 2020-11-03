@@ -131,6 +131,10 @@ export default {
           this.$bus.$emit("loadMoreHotDetails");
           break;
         }
+        case "/user": {
+          this.$bus.$emit("loadMoreUser");
+          break;
+        }
       }
       // 上面数据请求后页面会发生变化，就需要我们重新计算保证后续正常滚动
       const refresh = debounce(this.$refs.scroll.refresh, 500);

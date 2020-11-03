@@ -6,10 +6,10 @@
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
     <div class="user-info">
-      <el-avatar :src="singerInfo.picUrl"></el-avatar>
-      <el-tag @click="changeSongsFlag">{{ singerInfo.name }}</el-tag>
-      <el-tag type="danger">歌曲：{{ singerInfo.musicSize }}</el-tag>
-      <el-tag type="warning">专辑：{{ singerInfo.albumSize }}</el-tag>
+      <el-avatar :src="singerInfo.picUrl" v-viewer.static></el-avatar>
+      <el-tag>{{ singerInfo.name }}</el-tag>
+      <el-tag type="danger">歌曲：{{ singerInfo.musicSize | roundW }}</el-tag>
+      <el-tag type="warning">专辑：{{ singerInfo.albumSize | roundW }}</el-tag>
       <el-tag type="success" @click="toUser(singerInfo.accountId)"
         >去他的个人主页</el-tag
       >
@@ -20,56 +20,46 @@
       </el-collapse-item>
     </el-collapse>
 
-    <el-tooltip placement="top" content="点击显示或隐藏详情">
-      <el-tag type="info" @click="changeSongsFlag">歌手热门歌曲</el-tag>
-    </el-tooltip>
-    <div class="main" v-show="this.songsFlag">
-      <Items :lists="filterList" @newId="songId" />
-    </div>
-    <horizontal-scroll
-      v-show="this.songsFlag"
-      class="page-wrapper"
-      :probe-type="3"
-      ref="page"
-    >
-      <div class="page-content">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="musiclist.length"
-          :current-page="curPage"
-          :page-size="pageSize"
-          :page-sizes="[15, 25, 30, 50, 100]"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        >
-        </el-pagination>
-      </div>
-    </horizontal-scroll>
-
-    <el-tooltip placement="bottom" content="点击显示或隐藏详情">
-      <el-tag type="primary" @click="changeSingerFlag">热门歌手排行榜</el-tag>
-    </el-tooltip>
-    <div class="main" v-show="this.singerFlag">
-      <Items :lists="hotSingers" @newId="updateId">
-        <template v-slot:playCount="singer">
-          <el-tooltip placement="bottom" content="专辑数">
-            <div>
-              <i class="fa fa-list-ol" aria-hidden="true"></i>
-              <span>{{ singer.item.albumSize | roundW }}</span>
-            </div>
-          </el-tooltip>
-        </template>
-        <template v-slot:nickname="singer">
-          <el-tooltip placement="top" content="歌曲数">
-            <div>
-              <i class="fa fa-list-ol" aria-hidden="true"></i>
-              <span>{{ singer.item.musicSize | roundW }}</span>
-            </div>
-          </el-tooltip>
-        </template>
-      </Items>
-    </div>
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="热门歌手排行榜" name="first">
+        <Items :lists="hotSingers" @newId="updateId">
+          <template v-slot:playCount="singer">
+            <el-tooltip placement="bottom" content="专辑数">
+              <div>
+                <i class="fa fa-list-ol" aria-hidden="true"></i>
+                <span>{{ singer.item.albumSize | roundW }}</span>
+              </div>
+            </el-tooltip>
+          </template>
+          <template v-slot:nickname="singer">
+            <el-tooltip placement="top" content="歌曲数">
+              <div>
+                <i class="fa fa-list-ol" aria-hidden="true"></i>
+                <span>{{ singer.item.musicSize | roundW }}</span>
+              </div>
+            </el-tooltip>
+          </template>
+        </Items>
+      </el-tab-pane>
+      <el-tab-pane label="歌手热门歌曲" name="second">
+        <Items :lists="filterList" @newId="songId" />
+        <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
+          <div class="page-content">
+            <el-pagination
+              background
+              layout="total, sizes, prev, pager, next"
+              :total="musiclist.length"
+              :current-page="curPage"
+              :page-size="pageSize"
+              :page-sizes="[15, 25, 30, 50, 100]"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+            >
+            </el-pagination>
+          </div>
+        </horizontal-scroll>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -86,14 +76,13 @@ export default {
   components: { NoResult, HorizontalScroll, Items },
   data() {
     return {
-      singerFlag: false,
-      songsFlag: true,
-      singerInfo: {},
       hotSingers: [],
+      singerInfo: {},
       musiclist: [],
       pageSize: 15,
       curPage: 1,
       loading: false,
+      activeName: "second",
     };
   },
   created() {
@@ -120,17 +109,12 @@ export default {
   watch: {
     singerId(newValue) {
       if (newValue) {
-        this.singerFlag = false;
-        this.songsFlag = true;
         this.curPage = 1;
         this.requestSinger(newValue);
-      } else {
-        this.singerFlag = true;
-        this.songsFlag = false;
       }
     },
-    singerFlag(newValue) {
-      if (newValue && this.hotSingers.length === 0) {
+    activeName(newValue) {
+      if (newValue === "first" && this.hotSingers.length === 0) {
         this.reqHotSingers();
       }
     },
@@ -213,12 +197,7 @@ export default {
       this.singerId = id;
       this.updateSingerName(name);
     },
-    changeSingerFlag() {
-      this.singerFlag = !this.singerFlag;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
-    },
-    changeSongsFlag() {
-      this.songsFlag = !this.songsFlag;
+    handleClick() {
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     toUser(uid) {

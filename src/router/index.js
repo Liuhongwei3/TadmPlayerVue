@@ -17,7 +17,7 @@ const routes = [
     path: "/hotDetail",
     name: "HotDetail",
     component: () =>
-      import(/* webpackChunkName: "2" */ "@/views/HotDetail.vue"),
+      import(/* webpackChunkName: "1" */ "@/views/HotDetail.vue"),
   },
   {
     path: "/search",
@@ -54,6 +54,17 @@ const routes = [
     name: "ShowMv",
     component: () =>
       import(/* webpackChunkName: "2" */ "../components/content/ShowMv.vue"),
+  },
+  {
+    path: "/showVideo",
+    name: "ShowVideo",
+    component: () =>
+      import(/* webpackChunkName: "2" */ "../components/content/ShowVideo.vue"),
+  },
+  {
+    path: "/myvideo",
+    name: "MyVideo",
+    component: () => import(/* webpackChunkName: "1" */ "@/views/MyVideo.vue"),
   },
   {
     path: "/about",

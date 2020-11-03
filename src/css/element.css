@@ -61,17 +61,19 @@
   color: white;
 }
 
-.el-row {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid#7e7e7e;
-}
-
 .row-header {
   color: #b4b4b4;
 }
 
-.row-items:hover {
+.row-header,
+.search-row-items,
+.detail-row-items,
+.comment-row-items,
+.event-row-items {
+  border-bottom: 1px solid#7e7e7e;
+}
+
+.search-row-items:hover {
   background-color: #4a4a4aa3;
 }
 
@@ -115,6 +117,10 @@
 }
 
 .el-tabs__item {
+  color: #fff;
+}
+
+.el-page-header__content {
   color: #fff;
 }
 

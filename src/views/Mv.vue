@@ -3,13 +3,15 @@
     <div class="top">
       <div>
         <h3 class="top-type">MV 排行榜</h3>
-        <span
+        <el-tag
           class="top-type"
+          effect="dark"
+          type="danger"
           v-for="item in topTypes"
           :key="item.id"
           :class="{ active: topType === item.value }"
           @click="topType = item.value"
-          >{{ item.value }}</span
+          >{{ item.value }}</el-tag
         >
       </div>
 
@@ -56,33 +58,38 @@
     <div class="all">
       <h3>全部 MV</h3>
       <el-tag>地区</el-tag>
-      <span
+      <el-tag
         class="top-type"
+        effect="dark"
         v-for="item in areas"
         :key="item.id"
         :class="{ active: area === item.value }"
         @click="area = item.value"
-        >{{ item.value }}</span
+        >{{ item.value }}</el-tag
       >
       <br />
       <el-tag type="warning">类型</el-tag>
-      <span
+      <el-tag
         class="top-type"
+        type="warning"
+        effect="dark"
         v-for="item in types"
         :key="item.value"
         :class="{ active: type === item.value }"
         @click="type = item.value"
-        >{{ item.value }}</span
+        >{{ item.value }}</el-tag
       >
       <br />
       <el-tag type="danger">排序</el-tag>
-      <span
+      <el-tag
         class="top-type"
+        type="danger"
+        effect="dark"
         v-for="item in orders"
         :key="item.value"
         :class="{ active: order === item.value }"
         @click="order = item.value"
-        >{{ item.value }}</span
+        >{{ item.value }}</el-tag
       >
       <el-divider></el-divider>
       <div
@@ -198,6 +205,7 @@ export default {
       } = await req.netease.topMv(type);
       this.topMvLists = data;
       this.topLoading = false;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async requestAllMv(area = "全部", type = "全部", order = "最热") {
       this.allLoading = true;
@@ -206,6 +214,7 @@ export default {
       } = await req.netease.allMv(area, type, order);
       this.mvLists = data;
       this.allLoading = false;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     toMv(id, name, artName) {
       this.$router.push({
@@ -226,8 +235,7 @@ export default {
 .top-type {
   display: inline-block;
   margin-right: 10px;
-  line-height: 25px;
-  cursor: pointer;
+  background-color: transparent;
 }
 
 .el-select {
@@ -235,12 +243,7 @@ export default {
 }
 
 .active {
-  border: 1px solid #fff;
-  font-size: 17px;
-  font-weight: 400;
-  border-radius: 5px;
   background-color: #7e7e7e;
-  padding: 2px;
 }
 
 .top-mv {

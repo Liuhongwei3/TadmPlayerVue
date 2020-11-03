@@ -1,5 +1,6 @@
 <template>
   <div>
+    <el-page-header @back="goBack" content="MV详情"> </el-page-header>
     <el-tag type="warning">{{ name }}</el-tag>
     <el-tag type="success">{{ artName }}</el-tag>
     <el-divider></el-divider>
@@ -9,19 +10,20 @@
       :src="videos"
       v-if="videos.length !== 0"
     ></video>
-    <el-divider></el-divider>
-    <CommContent :comments="hotComments">
+
+    <CommContent :comments="hotComments"
+      ><el-divider></el-divider>
       <el-tag type="danger">精彩评论</el-tag>
     </CommContent>
-    <el-divider></el-divider>
-    <CommContent :comments="hotComments">
+
+    <CommContent :comments="hotComments"
+      ><el-divider></el-divider>
       <el-tag type="success">最新评论</el-tag>
     </CommContent>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
 import req from "@/network/req";
 import CommContent from "@/components/content/CommContent";
 
@@ -38,15 +40,17 @@ export default {
     };
   },
   components: { CommContent },
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$emit("toTop");
-    });
-  },
   activated() {
+    let audio = document.getElementById("audio");
+    audio && audio.pause();
+
+    this.$emit("toTop");
     this.setData(this.$route.query);
   },
   methods: {
+    goBack() {
+      this.$router.go(-1);
+    },
     setData({ mvId, name, artName }) {
       this.mvId = mvId;
       this.name = name;
@@ -69,16 +73,8 @@ export default {
       this.videos = url;
       this.hotComments = commentData.hotComments;
       this.comments = commentData.comments;
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
   },
 };
 </script>
-
-<style scoped>
-video {
-  width: 80vw;
-  height: 60vh;
-  object-fit: cover;
-  border-radius: 15px;
-}
-</style>

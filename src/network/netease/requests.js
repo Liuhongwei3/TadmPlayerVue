@@ -86,6 +86,12 @@ const userFans = (uid) => {
   });
 };
 
+const userEvents = (uid, limit = 20, lasttime = -1) => {
+  return request({
+    url: `/user/event?uid=${uid}&limit=${limit}&lasttime=${lasttime}`,
+  });
+};
+
 const hotSearch = () => {
   return request({
     // url: '/search/hot'
@@ -178,6 +184,37 @@ const allMv = (
   });
 };
 
+const videoGroups = () => {
+  return request({
+    url: `/video/group/list`,
+  });
+};
+
+// need login
+const getVideosByGroupId = (id) => {
+  return request({
+    url: `/video/group?id=${id}`,
+  });
+};
+
+const getVideoDetailById = (id) => {
+  return request({
+    url: `/video/detail?id=${id}`,
+  });
+};
+
+const getVideoUrlById = (id) => {
+  return request({
+    url: `/video/url?id=${id}`,
+  });
+};
+
+const getVideoComments = (id, limit = 20) => {
+  return request({
+    url: `/comment/video?id=${id}&limit=${limit}`,
+  });
+};
+
 export default {
   toplist,
   listId,
@@ -193,6 +230,7 @@ export default {
   hotSearch,
   userFollows,
   userFans,
+  userEvents,
   singer,
   hotSinger,
   songComment,
@@ -206,4 +244,9 @@ export default {
   getMvComment,
   topMv,
   allMv,
+  videoGroups,
+  getVideosByGroupId,
+  getVideoDetailById,
+  getVideoUrlById,
+  getVideoComments,
 };

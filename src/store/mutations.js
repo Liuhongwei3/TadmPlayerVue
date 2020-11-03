@@ -38,6 +38,9 @@ export default {
   updateUserName: (state, payload) => {
     state.username = payload;
   },
+  updateUserBackImg: (state, payload) => {
+    state.userBackImg = payload;
+  },
   updateTopLists: (state, payload) => {
     state.toplists = payload;
   },

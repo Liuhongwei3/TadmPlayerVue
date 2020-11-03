@@ -27,6 +27,8 @@ import {
   Loading,
   Message,
   Notification,
+  Switch,
+  PageHeader,
 } from "element-ui";
 
 Vue.use(Pagination);
@@ -53,6 +55,8 @@ Vue.use(Collapse);
 Vue.use(CollapseItem);
 Vue.use(Link);
 Vue.use(Divider);
+Vue.use(Switch);
+Vue.use(PageHeader);
 
 Vue.use(Loading.directive);
 

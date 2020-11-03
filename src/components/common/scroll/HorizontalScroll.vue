@@ -65,9 +65,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.h-wrapper {
-  display: inline-block;
-}
-</style>

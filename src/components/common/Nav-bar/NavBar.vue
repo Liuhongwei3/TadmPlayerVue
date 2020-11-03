@@ -19,6 +19,7 @@
       <router-link to="/detail">歌单</router-link>
       <router-link to="/comment">评论</router-link>
       <router-link to="/mv">MV</router-link>
+      <router-link to="/myvideo">视频</router-link>
     </div>
   </div>
 </template>

@@ -359,8 +359,6 @@ export default {
       }
     },
     toMv() {
-      const audio = this.$refs.audio;
-      audio && audio.pause();
       if (this.$route.path !== "/showMv") {
         this.$router.push({
           path: "/showMv",

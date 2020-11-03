@@ -41,6 +41,13 @@
   background: rgba(0, 0, 0, 0.1);
 }
 
+video {
+  width: 80vw;
+  height: 60vh;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
 [v-cloak] {
   display: none;
 }
@@ -93,7 +100,7 @@
 .main {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: flex-start;
   font-size: 14px;
   color: #d9d9d9;
 }
@@ -197,32 +204,104 @@
   flex-wrap: wrap;
 }
 
+.searchInput {
+  width: 50%;
+}
+
+.type-select {
+  width: 80px;
+}
+
+.searchWord {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.search-input-content {
+  font-size: 12px;
+  color: #b4b4b4;
+}
+
+.search-singer:hover {
+  cursor: pointer;
+}
+
+.h-wrapper {
+  display: inline-block;
+}
+
+.content-username {
+  color: #5aacc8;
+  margin: 5px;
+  display: inline-block;
+}
+
+.content-username:hover {
+  color: rgb(16, 228, 104);
+  border-bottom: 1px solid rgb(16, 228, 104);
+  cursor: pointer;
+}
+
+.user-content {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.like-icon,
+.share-icon,
+.comment-icon {
+  margin: 0 10px;
+}
+
+.like-icon {
+  color: #ed959f;
+}
+
+.share-icon {
+  color: bisque;
+}
+
+.comment-icon {
+  color: cornflowerblue;
+}
+
 @media screen and (max-width: 768px) {
+  video {
+    width: 75vw;
+  }
   .nav-wrapper {
     width: 20vw;
   }
+
   .top-info {
     left: 25%;
   }
+
   .main img {
     width: 120px;
     height: 120px;
   }
+
   .bottom {
     width: 110px;
     font-size: 12px;
   }
+
   .center {
     left: 20vw;
   }
+
   .content {
     width: 80vw;
     height: 74vh;
     padding: 0;
   }
+
   .name,
   .items-name {
     max-width: 100px;
     font-size: 14px;
+  }
+
+  .searchInput {
+    width: 90%;
   }
 }

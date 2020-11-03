@@ -10,7 +10,7 @@
   <div id="noResult" v-if="flag">
     <el-divider></el-divider>
     <slot>
-      <el-tag type="warning">暂无数据</el-tag>
+      <el-tag type="warning">暂无数据呢！ -_-</el-tag>
     </slot>
   </div>
 </template>
@@ -37,9 +37,3 @@ export default {
 };
 </script>
 
-<style scoped>
-#noResult {
-  margin-top: 20px;
-  color: #ff2730;
-}
-</style>

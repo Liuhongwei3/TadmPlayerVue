@@ -7,6 +7,7 @@ export default {
   userId: 537069044,
   ownUserId: 0,
   ownUserName: "",
+  userBackImg: true,
   detailId: 1978921795,
   curDetailId: 1978921795,
   playlistIds: [],

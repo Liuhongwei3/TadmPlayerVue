@@ -1,49 +1,31 @@
 <template>
   <div id="comments">
-    <el-tag type="warning" @click="changeshowCloudCommentsFlag"
-      >云村热评</el-tag
-    >
-    <div
-      class="commentItems"
-      v-for="item in cloudHotComments"
-      :key="item.id"
-      v-show="showCloudCommentsFlag"
-    >
-      <el-avatar size="medium" :src="item.simpleUserInfo.avatar" />
-      <span
-        class="commentUser"
-        @click="updateUserId(item.simpleUserInfo.userId)"
-      >
-        {{ item.simpleUserInfo.nickname }}:
-      </span>
-      <span>{{ item.content }}</span>
-      <span class="count">
-        <i class="fa fa-heart like" aria-hidden="true"></i>
-        {{ item.likedCount | roundW }}
-      </span>
-      <span class="comment-time">({{ item.time | dateFormat("more") }})</span>
-    </div>
-    <el-divider></el-divider>
-    <div
-      v-loading="loading"
-      element-loading-text="拼命加载中"
-      element-loading-spinner="el-icon-loading"
-      element-loading-background="rgba(0, 0, 0, 0.8)"
-    >
-      <CommContent :comments="hotComments">
-        <el-tag type="success">精彩评论</el-tag>
-      </CommContent>
-    </div>
-    <div v-if="loading">
-      <el-divider></el-divider>
-      <el-button type="primary">
-        <i class="el-icon-loading"></i>加载中...
-      </el-button>
-    </div>
-    <div v-if="noMore">
-      <el-divider></el-divider>
-      <el-button type="warning">没有更多了</el-button>
-    </div>
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="云村热评" name="first">
+        <comm-content :comments="cloudHotComments" />
+      </el-tab-pane>
+
+      <el-tab-pane label="精彩评论" name="second">
+        <div
+          v-loading="loading"
+          element-loading-text="拼命加载中"
+          element-loading-spinner="el-icon-loading"
+          element-loading-background="rgba(0, 0, 0, 0.8)"
+        >
+          <comm-content :comments="hotComments" />
+        </div>
+        <div v-if="loading">
+          <el-divider></el-divider>
+          <el-button type="primary">
+            <i class="el-icon-loading"></i>加载中...
+          </el-button>
+        </div>
+        <div v-if="noMore">
+          <el-divider></el-divider>
+          <el-button type="warning">没有更多了</el-button>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -58,25 +40,26 @@ export default {
   name: "Comment",
   data() {
     return {
+      tempSid: -1,
       limit: 20,
       hotComments: [],
-      showCloudCommentsFlag: false,
       comments: [],
       cloudHotComments: [],
       loading: false,
       noMore: false,
+      activeName: "second",
     };
   },
-  components: { CommContent },
-  created() {
-    this.songId = this.$store.state.songId;
-    this.limit = 20;
-    this.requestHComments(this.songId);
-    this.requestCloudHotComments();
+  components: {
+    CommContent,
   },
   mounted() {
     this.$bus.$on("loadMoreSongComments", () => {
-      if (this.source === "netease") {
+      if (
+        this.source === "netease" &&
+        this.activeName === "second" &&
+        !this.noMore
+      ) {
         this.limit += 20;
         this.requestHComments(this.songId, this.limit);
       }
@@ -93,15 +76,32 @@ export default {
       },
     },
   },
+  activated() {
+    if (this.tempSid && this.tempSid != this.songId) {
+      this.hotComments = [];
+      this.noMore = false;
+      this.requestHComments(this.songId, this.limit);
+    }
+  },
   watch: {
     songId(newValue) {
       this.hotComments = [];
+      this.tempSid = -1;
+      this.limit = 20;
       this.noMore = false;
-      this.requestHComments(newValue);
+      newValue &&
+        this.tempSid != newValue &&
+        this.$route.path === "/comment" &&
+        this.requestHComments(newValue);
     },
     hotComments(newValue, oldValue) {
-      if (newValue.length === oldValue.length) {
+      if (newValue.length === oldValue.length && newValue.length !== 0) {
         this.noMore = true;
+      }
+    },
+    activeName(newValue) {
+      if (newValue === "first" && this.cloudHotComments.length === 0) {
+        this.requestCloudHotComments();
       }
     },
   },
@@ -111,22 +111,37 @@ export default {
     });
   },
   methods: {
-    requestComments(sid) {
-      req.netease.songComment(sid).then((res) => {
-        this.comments = res.data.comments;
+    handleClick(tab, event) {
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
       });
     },
+    // requestComments(sid) {
+    //   req.netease.songComment(sid).then((res) => {
+    //     this.comments = res.data.comments;
+    //   });
+    // },
     async requestCloudHotComments() {
       let {
         data: { data },
       } = await req.netease.cloudHotComments();
+
+      for (let v of data) {
+        let obj = {};
+        obj.userId = v.simpleUserInfo.userId;
+        obj.avatarUrl = v.simpleUserInfo.avatar;
+        obj.nickname = v.simpleUserInfo.nickname;
+
+        v.user = obj;
+      }
+
       this.cloudHotComments = data;
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+      });
     },
-    async requestHComments(sid, limit = 20) {
+    async requestHComments(sid, limit) {
       if (sid) {
-        if (this.noMore) {
-          return;
-        }
         this.loading = true;
         if (this.$route.path === "/comment") {
           this.$notify({
@@ -164,7 +179,11 @@ export default {
                   time: v.time * 1000,
                   content: v.rootcommentcontent,
                   likedCount: v.praisenum,
-                  user: { userId: 0, avatarUrl: v.avatarurl, nickname: v.nick },
+                  user: {
+                    userId: 0,
+                    avatarUrl: v.avatarurl,
+                    nickname: v.nick,
+                  },
                 });
               }
               hotComments = temp;
@@ -184,14 +203,12 @@ export default {
           return;
         }
         this.hotComments = hotComments;
+        this.tempSid = this.songId;
         this.loading = false;
         this.$nextTick(() => {
           this.$bus.$emit("refresh");
         });
       }
-    },
-    changeshowCloudCommentsFlag() {
-      this.showCloudCommentsFlag = !this.showCloudCommentsFlag;
     },
     updateUserId(uid) {
       if (!uid) {
@@ -207,58 +224,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-#hotComments,
-#comments {
-  margin: 30px;
-}
-
-.commentUser {
-  color: #5aacc8;
-  font-size: 18px;
-}
-
-.commentUser:hover {
-  cursor: pointer;
-}
-
-.commentItems {
-  text-align: left;
-  margin: 5px 0;
-  line-height: 36px;
-}
-
-.like {
-  color: #ed959f;
-}
-
-.count {
-  margin-left: 10px;
-  color: #ef5476;
-}
-
-.comment-time {
-  font-size: 14px;
-  margin: 0 5px;
-  color: rgb(214, 170, 117);
-}
-
-@media screen and (max-width: 768px) {
-  #hotComments,
-  #comments {
-    margin: 5px;
-    padding: 5px;
-  }
-
-  .commentUser {
-    color: #5aacc8;
-    font-size: 16px;
-  }
-
-  .commentItems {
-    font-size: 14px;
-    line-height: 36px;
-  }
-}
-</style>

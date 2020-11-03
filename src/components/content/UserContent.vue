@@ -52,7 +52,7 @@ export default {
   props: {
     list: {
       type: Array,
-      default: [],
+      default: () => [],
     },
     id: {
       type: String,
@@ -137,7 +137,7 @@ export default {
       this.curPage = val;
       this.$nextTick(() => {
         this.$bus.$emit("refresh");
-        this.$emit("toTop");
+        this.$bus.$emit("toTop");
       });
     },
   },

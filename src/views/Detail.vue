@@ -6,14 +6,20 @@
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
     <div class="user-info">
-      <el-avatar size="medium" :src="detailInfo.coverImgUrl" />
+      <el-avatar size="medium" :src="detailInfo.coverImgUrl" v-viewer.static />
       <el-tag type="primary">
         {{ this.detailInfo.name }}
       </el-tag>
-      <el-tag type="info">歌曲：{{ detailInfo.trackCount | roundW }}</el-tag>
-      <el-tag type="danger">播放：{{ detailInfo.playCount | roundW }}</el-tag>
-      <el-tag type="success">分享：{{ detailInfo.shareCount | roundW }}</el-tag>
-      <el-tag type="warning"
+      <el-tag type="info" v-if="detailInfo.trackCount"
+        >歌曲：{{ detailInfo.trackCount | roundW }}</el-tag
+      >
+      <el-tag type="danger" v-if="detailInfo.playCount"
+        >播放：{{ detailInfo.playCount | roundW }}</el-tag
+      >
+      <el-tag type="success" v-if="detailInfo.shareCount"
+        >分享：{{ detailInfo.shareCount | roundW }}</el-tag
+      >
+      <el-tag type="warning" v-if="detailInfo.subscribedCount"
         >收藏：{{ detailInfo.subscribedCount | roundW }}</el-tag
       >
       <el-tooltip
@@ -21,7 +27,7 @@
         content="点击查看用户详情"
         v-if="detailInfo.creator && detailInfo.creator.nickname"
       >
-        <el-tag type="success" @click="updateUId()">
+        <el-tag type="success" @click="updateUId(detailInfo.creator.userId)">
           {{ this.detailInfo.creator.nickname }}
         </el-tag>
       </el-tooltip>
@@ -67,9 +73,10 @@
             </el-col>
           </el-row>
           <el-row
-            class="row-items"
+            class="detail-row-items"
             type="flex"
             justify="center"
+            align="middle"
             :gutter="20"
             v-for="item in filterList"
             :key="item.id"
@@ -122,7 +129,7 @@
               background
               layout="total, sizes, prev, pager, next"
               :total="ids.length"
-              :current-page.sync="curPage"
+              :current-page="curPage"
               :page-size="pageSize"
               :page-sizes="[15, 25, 30, 50, 100]"
               @size-change="handleSizeChange"
@@ -134,14 +141,15 @@
           </div>
         </horizontal-scroll>
       </el-tab-pane>
-      <el-tab-pane :label="`评论(${detailInfo.commentCount})`" name="second">
-        <div
-          v-if="comments.length !== 0"
-          v-loading.lock="commentsLoading"
-          element-loading-text="拼命加载中"
-          element-loading-spinner="el-icon-loading"
-          element-loading-background="rgba(0, 0, 0, 0.8)"
-        >
+      <el-tab-pane
+        name="second"
+        v-loading.lock="commentsLoading"
+        element-loading-text="拼命加载中"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
+        <span slot="label">评论 ({{ detailInfo.commentCount | roundW }})</span>
+        <div v-if="comments.length !== 0">
           <CommContent :comments="comments">
             <el-tag type="success">最新评论</el-tag>
           </CommContent>
@@ -156,18 +164,21 @@
             <el-button type="warning">没有更多了</el-button>
           </div>
         </div>
-        <no-result v-else
-          ><el-tag type="warning">还没有评论哟 ~ 抢个沙发！</el-tag></no-result
-        >
+        <no-result v-else>
+          <el-tag type="warning">还没有评论哟 ~ 抢个沙发！</el-tag>
+        </no-result>
       </el-tab-pane>
-      <el-tab-pane label="收藏者" name="third">
-        <div
-          v-if="subscribers.length !== 0"
-          v-loading.lock="commentsLoading"
-          element-loading-text="拼命加载中"
-          element-loading-spinner="el-icon-loading"
-          element-loading-background="rgba(0, 0, 0, 0.8)"
+      <el-tab-pane
+        name="third"
+        v-loading.lock="subLoading"
+        element-loading-text="拼命加载中"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
+        <span slot="label"
+          >收藏者 ({{ detailInfo.subscribedCount | roundW }})</span
         >
+        <div v-if="subscribers.length !== 0">
           <Items :lists="subscribers" @newId="updateId">
             <template v-slot:playCount="detail">
               <div v-if="detail.item.gender || detail.item.gender == 0">
@@ -196,9 +207,9 @@
             </template>
           </Items>
         </div>
-        <no-result v-else
-          ><el-tag type="warning">暂无收藏者！</el-tag></no-result
-        >
+        <no-result v-else>
+          <el-tag type="warning">暂无收藏者！</el-tag>
+        </no-result>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -276,9 +287,9 @@ export default {
       this.ids = [];
       this.comments = [];
       this.subscribers = [];
-      this.requestPlaylistDetail(newValue);
       this.curPage = 1;
       this.activeName = "first";
+      this.requestPlaylistDetail(newValue);
     },
     isPc(newValue) {
       this.updatePageSize();
@@ -327,6 +338,7 @@ export default {
             offset: 50,
             duration: 2000,
           });
+          this.loading = false;
           return;
         }
         let {
@@ -334,7 +346,10 @@ export default {
         } = data;
         this.detailInfo = playlist;
 
-        if (playlist.trackIds.length === 0) return;
+        if (playlist.trackIds.length === 0) {
+          this.loading = false;
+          return;
+        }
 
         for (let i = 0; i < playlist.trackIds.length; i++) {
           this.ids[i] = playlist.trackIds[i].id;
@@ -440,7 +455,6 @@ export default {
       });
     },
     loadAll() {
-      console.log("load all ~");
       this.noMore = true;
     },
     updateSId(sid) {
@@ -455,10 +469,14 @@ export default {
       this.pageSize = this.isPc ? 15 : 6;
     },
     updateId({ id }) {
-      this.updateSId(id);
+      if (this.activeName === "first") {
+        this.updateSId(id);
+      } else if (this.activeName === "third") {
+        this.updateUId(id);
+      }
     },
-    updateUId() {
-      this.updateUserId(this.detailInfo.creator.userId);
+    updateUId(id) {
+      this.updateUserId(id);
       this.$router.push("/user");
     },
     updateSinger(sid) {
@@ -487,7 +505,6 @@ export default {
     },
     handleCurrentChange(val) {
       this.curPage = val;
-      this.$emit("update:currentPage", val);
       this.pageChange();
     },
   },

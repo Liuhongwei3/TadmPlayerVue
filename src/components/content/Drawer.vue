@@ -52,6 +52,17 @@
         单曲循环（歌曲列表变化时需要重新设置方可生效~）
       </el-checkbox>
     </div>
+    <div class="switch-item">
+      <span class="start">开启用户背景</span>
+      <el-switch
+        v-model="userBackImg"
+        active-color="#13ce66"
+        inactive-color="#ff4949"
+        active-text="开"
+        inactive-text="关"
+      >
+      </el-switch>
+    </div>
     <el-divider></el-divider>
     <div class="switch-item">
       <div class="start">关于我</div>
@@ -69,6 +80,7 @@
 </template>
 
 <script>
+import { mapMutations } from "vuex";
 export default {
   name: "Drawer",
   data() {
@@ -83,12 +95,20 @@ export default {
     },
   },
   computed: {
+    userBackImg: {
+      get() {
+        return this.$store.state.userBackImg;
+      },
+      set(val) {
+        this.updateUserBackImg(val);
+      },
+    },
     source: {
       get() {
         return this.$store.state.source;
       },
       set(val) {
-        this.$store.commit("updateSource", val);
+        this.updateSource(val);
       },
     },
   },
@@ -98,6 +118,9 @@ export default {
         this.$store.commit("updatePlaylistIds", [this.$store.state.songId]);
       }
     },
+  },
+  methods: {
+    ...mapMutations(["updateSource", "updateUserBackImg"]),
   },
 };
 </script>

@@ -7,6 +7,7 @@
       @click="dialogVisible = true"
       >进入我的网易云
     </el-button>
+    <el-tag type="success">用户信息</el-tag>
     <el-dropdown
       class="user"
       v-if="ownUserId == userId && ownUserName.length !== 0"
@@ -127,10 +128,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.user {
-  float: right;
-  margin-right: 15px;
-}
-</style>
