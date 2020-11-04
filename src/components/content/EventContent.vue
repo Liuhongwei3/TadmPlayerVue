@@ -52,7 +52,7 @@
     <div
       class="event-song-playlist"
       v-if="content.album"
-      @click="updateDetail(content.album.id)"
+      @click="toAlbum(content.album.id)"
     >
       <el-avatar
         shape="square"
@@ -99,7 +99,7 @@
     <div
       class="event-song-playlist"
       v-if="content.mv"
-      @click="toMv(content.mv.id, content.mv.name, content.mv.artists[0].name)"
+      @click="toMv(content.mv.id, content.mv.name, content.mv.artists)"
     >
       <el-avatar
         shape="square"
@@ -176,7 +176,7 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateSongId", "updateDetailId"]),
+    ...mapMutations(["updateSongId", "updateDetailId", "updateAlbumId"]),
     updateDetail(id) {
       this.updateDetailId(id);
       this.$router.push("/detail");
@@ -187,11 +187,15 @@ export default {
         query: { vid },
       });
     },
-    toMv(id, name, artName) {
+    toMv(id, name, artists) {
       this.$router.push({
         path: "/showMv",
-        query: { mvId: id, name, artName },
+        query: { mvId: id, name, artists },
       });
+    },
+    toAlbum(id) {
+      this.updateAlbumId(id);
+      this.$router.push("/album");
     },
   },
 };

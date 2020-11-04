@@ -21,7 +21,14 @@
                 <span>{{ songName }}</span>
               </div>
               <div class="otherName">
-                歌手:<span @click="toSinger()">{{ player }} </span>
+                <span>歌手:</span>
+                <span
+                  v-for="art in artists"
+                  :key="art.id"
+                  @click="toSinger(art.id)"
+                >
+                  {{ art.name }} /
+                </span>
               </div>
               <div class="otherName">
                 专辑:<span>{{ albumName }} </span>
@@ -43,11 +50,17 @@
         <el-tooltip content="歌曲名" placement="top">
           <el-tag>{{ this.songName }}</el-tag>
         </el-tooltip>
-        <el-tooltip content="点击查看歌手详情" placement="top">
-          <el-tag type="success" @click="toSinger()">{{ this.player }}</el-tag>
-        </el-tooltip>
+
+        <span v-for="art in artists" :key="art.id" @click="toSinger(art.id)">
+          <el-tooltip content="点击查看歌手详情" placement="top">
+            <el-tag type="success">
+              {{ art.name }}
+            </el-tag>
+          </el-tooltip>
+        </span>
+
         <el-tooltip content="去看 MV" placement="top" v-if="this.mv !== 0">
-          <el-tag v-if="this.mv !== 0" @click="toMv">MV</el-tag>
+          <el-tag type="warning" v-if="this.mv !== 0" @click="toMv">MV</el-tag>
         </el-tooltip>
       </div>
 
@@ -156,8 +169,8 @@ export default {
     return {
       songName: "",
       albumName: "",
+      artists: [],
       player: "",
-      playerId: 0,
       imgs: "",
       defaultImgs: 'this.src="' + require("@/assets/404.jpg") + '"',
       urls: "",
@@ -279,12 +292,11 @@ export default {
       this.imgs = "";
       this.songName = "";
       this.player = "";
-      let { data } = await req.netease.musicCover(newValue);
+      let data = await req.netease.musicCover(newValue);
       if (data.code === 200) {
         let database = data.songs[0];
         this.songName = database.name;
-        this.player = database.ar[0].name;
-        this.playerId = database.ar[0].id;
+        this.artists = database.ar;
         this.imgs = database.al.picUrl;
         this.albumName = database.al.name;
         this.mv = database.mv;
@@ -294,9 +306,8 @@ export default {
     },
     async requestMusicUrl(id) {
       this.urls = "";
-      let res = await req.netease.musicUrl(id);
-      let url = res.data.data[0].url;
-      if (url) {
+      let url = await req.netease.musicUrl(id);
+      if (url && url.length !== 0) {
         this.urls = url;
         this.play();
       } else {
@@ -346,8 +357,8 @@ export default {
     changeList() {
       this.order = !this.order;
     },
-    async toSinger() {
-      this.updateSingerId(this.playerId);
+    toSinger(sid) {
+      this.updateSingerId(sid);
       if (this.$route.path !== "/singer") {
         this.$router.push("/singer");
       }
@@ -362,7 +373,7 @@ export default {
       if (this.$route.path !== "/showMv") {
         this.$router.push({
           path: "/showMv",
-          query: { mvId: this.mv, name: this.songName, artName: this.player },
+          query: { mvId: this.mv, name: this.songName, artists: this.artists },
         });
       }
     },

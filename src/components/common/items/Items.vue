@@ -8,7 +8,7 @@
         class="items"
         v-for="item in lists"
         :key="item.id"
-        @click="updateId(item.id, item.name, item.name || item.nickname)"
+        @click="updateId(item.id, item.name, item.artists)"
       >
         <div class="items-img">
           <img v-lazy="item.imgUrl" :key="item.imgUrl" />
@@ -38,8 +38,8 @@ export default {
     },
   },
   methods: {
-    updateId(id, name, nickname) {
-      this.$emit("newId", { id, name, nickname });
+    updateId(id, name, artists) {
+      this.$emit("newId", { id, name, artists });
     },
   },
 };

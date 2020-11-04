@@ -44,10 +44,8 @@ export default {
   methods: {
     async requestVideoGroups() {
       this.loading = true;
-      let {
-        data: { data },
-      } = await req.netease.videoGroups();
-      this.videoGroups = data;
+
+      this.videoGroups = await req.netease.videoGroups();
       this.videoGroups.unshift({ id: 999999, name: "全部视频" });
 
       this.group = this.videoGroups[0].name;

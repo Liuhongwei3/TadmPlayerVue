@@ -4,10 +4,19 @@
       class="video-items"
       v-for="item in videos"
       :key="item.vid"
-      @click="updateId(item.vid)"
+      @click="updateId(item.vid, item.title, item.creator)"
     >
       <img :src="item.coverUrl" alt="视频封面" />
-      <div class="video-name">{{ item.title }}</div>
+      <div class="video-name">
+        <el-tag
+          style="background: transparent"
+          type="danger"
+          effect="plain"
+          v-if="item.type === 0"
+          >MV</el-tag
+        >
+        <span>{{ item.title }}</span>
+      </div>
       <span class="art-name" v-for="arts in item.creator" :key="arts.id">
         <span>{{ arts.userName }}</span>
         <span v-if="item.creator.length > 1"> &nbsp;&nbsp;/&nbsp;&nbsp; </span>
@@ -33,8 +42,12 @@ export default {
     },
   },
   methods: {
-    updateId(id) {
-      this.$emit("newId", { id });
+    updateId(id, name, artists) {
+      for (let v of artists) {
+        v.id = v.userId;
+        v.name = v.userName;
+      }
+      this.$emit("newId", { id, name, artists });
     },
   },
 };

@@ -56,14 +56,14 @@
       <el-divider v-if="videoDetail.title"></el-divider>
     </div>
 
-    <div>
-      <comm-content v-if="hotComments.length !== 0" :comments="hotComments">
-        <el-tag type="danger">精彩评论</el-tag>
-      </comm-content>
-      <comm-content v-else :comments="comments">
-        <el-tag type="danger">最新评论</el-tag>
-      </comm-content>
-    </div>
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="精彩评论" name="first">
+        <comm-content :comments="hotComments"> </comm-content>
+      </el-tab-pane>
+      <el-tab-pane label="最新评论" name="second">
+        <comm-content :comments="comments"> </comm-content>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -83,6 +83,7 @@ export default {
       limit: 20,
       loading: false,
       noMore: false,
+      activeName: "first",
     };
   },
   activated() {
@@ -101,23 +102,22 @@ export default {
     },
     async requestVideoDetail(vid) {
       this.loading = true;
-      let {
-        data: { data },
-      } = await req.netease.getVideoDetailById(vid);
-      this.videoDetail = data;
+
+      this.videoDetail = await req.netease.getVideoDetailById(vid);
+
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async reqVideoUrl(vid) {
-      let {
-        data: { urls },
-      } = await req.netease.getVideoUrlById(vid);
+      let { urls } = await req.netease.getVideoUrlById(vid);
       this.videos = urls[0].url;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async getVideoComments(vid, limit = 20) {
-      let { data } = await req.netease.getVideoComments(vid, limit);
-      this.hotComments = data.hotComments;
-      this.comments = data.comments;
+      [this.hotComments, this.comments] = await req.netease.getVideoComments(
+        vid,
+        limit
+      );
+
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
@@ -128,6 +128,9 @@ export default {
       if (!uid) return;
       this.$store.commit("updateUserId", uid);
       this.$router.push("/user").then((err) => {});
+    },
+    handleClick() {
+      this.$nextTick(() => this.$bus.$emit("refresh"));
     },
   },
 };

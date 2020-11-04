@@ -21,7 +21,7 @@
 
     <el-tag type="warning">全球媒体榜</el-tag>
     <Items
-      :lists="toplists.slice(4, -1)"
+      :lists="toplists.slice(4)"
       @newId="updateId"
       v-loading.lock="loading"
       element-loading-text="拼命加载中"
@@ -42,7 +42,7 @@
 <script>
 import Items from "@/components/common/items/Items";
 import req from "@/network/req";
-import { to } from "@/utils";
+import { mapState } from "vuex";
 
 export default {
   name: "Top",
@@ -56,49 +56,15 @@ export default {
     this.toplists.length === 0 && this.requestTopList();
   },
   computed: {
-    toplists: {
-      get() {
-        return this.$store.state.toplists;
-      },
-    },
+    ...mapState(["toplists"]),
   },
   methods: {
     async requestTopList() {
       this.loading = true;
-      this.$notify({
-        title: "信息提示",
-        message: "加载排行榜榜单数据中！",
-        type: "info",
-        offset: 50,
-        duration: 1500,
-      });
-      let [
-        err,
-        {
-          data: { list },
-        },
-      ] = await to(req.netease.toplist());
-      if (err) {
-        this.$notify({
-          title: "加载失败",
-          message: "获取排行榜榜单数据失败！",
-          type: "error",
-          offset: 50,
-          duration: 2000,
-        });
-        return;
-      }
-      let formatList = [];
-      for (let v of list) {
-        let obj = {};
-        obj.id = v.id;
-        obj.name = v.name;
-        obj.imgUrl = v.coverImgUrl;
-        obj.playCount = v.playCount;
-        obj.updateTime = v.updateTime;
-        formatList.push(obj);
-      }
-      this.$store.dispatch("updateTopLists", { list: formatList });
+
+      let list = await req.netease.toplist();
+      this.$store.dispatch("updateTopLists", { list });
+
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },

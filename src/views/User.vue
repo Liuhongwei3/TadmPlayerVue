@@ -1,6 +1,5 @@
 <template>
   <div
-    :style="useBackImg"
     v-loading.lock="loading"
     element-loading-text="拼命加载中"
     element-loading-spinner="el-icon-loading"
@@ -9,46 +8,62 @@
     <div>
       <LogContent />
     </div>
-    <div class="user-content" v-if="username.length !== 0">
+    <div class="user-content" v-if="userInfo.profile">
       <div class="user-info">
         <el-avatar
           size="medium"
-          v-if="profile.avatarUrl"
-          :src="profile.avatarUrl"
+          v-if="userInfo.profile.avatarUrl"
+          :src="userInfo.profile.avatarUrl"
           v-viewer.static
         />
-        <el-tag type="success">{{ profile.nickname }}</el-tag>
+        <el-tag type="success">{{ userInfo.profile.nickname }}</el-tag>
         <el-tooltip placement="bottom" content="性别">
-          <el-tag v-if="profile.gender === 1">男</el-tag>
-          <el-tag type="danger" v-else-if="profile.gender === 2">女</el-tag>
+          <el-tag v-if="userInfo.profile.gender === 1">男</el-tag>
+          <el-tag type="danger" v-else-if="userInfo.profile.gender === 2"
+            >女</el-tag
+          >
           <el-tag type="warning" v-else>保密</el-tag>
         </el-tooltip>
         <el-tooltip placement="bottom" content="出生日期">
-          <el-tag type="info" v-if="profile.birthday && profile.birthday > 0">{{
-            profile.birthday | dateFormat
-          }}</el-tag>
+          <el-tag
+            type="info"
+            v-if="userInfo.profile.birthday && userInfo.profile.birthday > 0"
+            >{{ userInfo.profile.birthday | dateFormat }}</el-tag
+          >
+        </el-tooltip>
+        <el-tooltip placement="bottom" content="用户等级">
+          <el-tag type="danger" v-if="userInfo.level">
+            Lv.{{ userInfo.level }}
+          </el-tag>
+        </el-tooltip>
+        <el-tooltip placement="bottom" content="村龄">
+          <el-tag type="primary" v-if="userInfo.createDays">
+            {{ Math.round(userInfo.createDays / 365) }} 年
+          </el-tag>
         </el-tooltip>
         <el-tooltip placement="bottom" content="用户类别">
-          <el-tag type="warning" v-if="profile.userType === 2">
-            {{ profile.allAuthTypes[0].desc }}
+          <el-tag type="warning" v-if="userInfo.profile.userType === 2">
+            {{ userInfo.profile.allAuthTypes[0].desc }}
           </el-tag>
-          <el-tag type="warning" v-else-if="profile.userType === 4">
-            {{ profile.allAuthTypes[0].desc }}
+          <el-tag type="warning" v-else-if="userInfo.profile.userType === 4">
+            {{ userInfo.profile.allAuthTypes[0].desc }}
           </el-tag>
           <el-tag type="warning" v-else>普通用户</el-tag>
         </el-tooltip>
-        <el-tag type="primary" v-if="profile.vipType === 11">黑胶 VIP</el-tag>
+        <el-tag type="primary" v-if="userInfo.profile.vipType === 11"
+          >黑胶 VIP</el-tag
+        >
         <el-tag
           type="success"
-          v-if="profile.artistId"
-          @click="toSinger(profile.artistId)"
+          v-if="userInfo.profile.artistId"
+          @click="toSinger(userInfo.profile.artistId)"
           >查看歌手页</el-tag
         >
       </div>
 
-      <el-collapse class="box-card" v-if="profile.signature">
+      <el-collapse class="box-card" v-if="userInfo.profile.signature">
         <el-collapse-item class="desc" title="个人介绍">
-          {{ profile.signature }}
+          {{ userInfo.profile.signature }}
         </el-collapse-item>
       </el-collapse>
 
@@ -65,12 +80,16 @@
         </el-tab-pane>
 
         <el-tab-pane name="second">
-          <span slot="label">关注 ({{ profile.follows | roundW }})</span>
+          <span slot="label"
+            >关注 ({{ userInfo.profile.follows | roundW }})</span
+          >
           <user-content :list="followList"></user-content>
         </el-tab-pane>
 
         <el-tab-pane name="fourth">
-          <span slot="label">动态 ({{ profile.eventCount | roundW }})</span>
+          <span slot="label"
+            >动态 ({{ userInfo.profile.eventCount | roundW }})</span
+          >
           <Event :list="eventList" />
           <div v-if="loading">
             <el-button type="primary">
@@ -84,7 +103,9 @@
         </el-tab-pane>
 
         <el-tab-pane name="third">
-          <span slot="label">粉丝 ({{ profile.followeds | roundW }})</span>
+          <span slot="label"
+            >粉丝 ({{ userInfo.profile.followeds | roundW }})</span
+          >
           <user-content :list="fansList"></user-content>
         </el-tab-pane>
       </el-tabs>
@@ -95,7 +116,6 @@
 <script>
 import { mapMutations, mapState } from "vuex";
 import req from "@/network/req";
-import { to } from "@/utils";
 import LogContent from "@/components/content/LogContent";
 import NoResult from "@/components/common/noResult/NoResult";
 import UserContent from "@/components/content/UserContent";
@@ -106,7 +126,7 @@ export default {
   components: { LogContent, UserContent, Event, NoResult },
   data() {
     return {
-      profile: {},
+      userInfo: {},
       playlist: [],
       followList: [],
       eventList: [],
@@ -136,7 +156,7 @@ export default {
     useBackImg() {
       if (this.userBackImg) {
         return {
-          backgroundImage: "url(" + this.profile.backgroundUrl + ")",
+          backgroundImage: "url(" + this.userInfo.profile.backgroundUrl + ")",
           backgroundPosition: "center",
           backgroundRepeat: "repeat",
           backgroundSize: "contain",
@@ -164,6 +184,7 @@ export default {
       if (newValue != oldValue) {
         this.activeName = "first";
         this.noMore = false;
+        this.userInfo = {};
         this.playlist = [];
         this.followList = [];
         this.eventList = [];
@@ -184,41 +205,34 @@ export default {
   methods: {
     ...mapMutations(["updateUserName", "updateSingerId"]),
     async requestUserPlaylist(uid) {
-      let {
-        data: { profile },
-      } = await this.doReq(uid, req.netease.userDetail);
-      this.profile = profile;
-      this.username = profile.nickname;
-
-      let {
-        data: { playlist },
-      } = await this.doReq(uid, req.netease.userMusic);
-      this.playlist = playlist;
-
+      this.loading = true;
+      [this.userInfo, this.playlist] = await Promise.all([
+        req.netease.userDetail(uid),
+        req.netease.userMusic(uid),
+      ]);
+      this.username = this.userInfo.profile.nickname;
       this.reqFinish();
     },
     async requestUserFollow(uid) {
-      let {
-        data: { follow },
-      } = await this.doReq(uid, req.netease.userFollows);
-      this.followList = follow;
+      this.loading = true;
+      this.followList = await req.netease.userFollows(uid);
       this.reqFinish();
     },
     async requestUserEvent() {
       this.loading = true;
-      let { data } = await req.netease.userEvents(
+      let events = await req.netease.userEvents(
         this.uid,
         this.limit,
         this.lasttime
       );
-      this.eventList.push(...data.events);
+      this.eventList.push(...events);
 
       let last = this.eventList[this.eventList.length - 1];
       if (last) {
         this.noMore = this.lasttime === last.eventTime;
         this.lasttime = last.eventTime;
       }
-      if (this.eventList.length === this.profile.eventCount) {
+      if (this.eventList.length === this.userInfo.profile.eventCount) {
         this.noMore = true;
       }
 
@@ -226,46 +240,12 @@ export default {
       this.reqFinish();
     },
     async requestUserFan(uid) {
-      let {
-        data: { followeds },
-      } = await this.doReq(uid, req.netease.userFans);
-      this.fansList = followeds;
+      this.fansList = await req.netease.userFans(uid);
       this.reqFinish();
-    },
-    async doReq(uid, func) {
-      if (!uid) return;
-      this.loading = true;
-      // this.$notify({
-      //   title: "信息提示",
-      //   message: "加载用户数据中！",
-      //   type: "info",
-      //   duration: 1500,
-      // });
-      let [err, data] = await to(func(uid));
-      if (err) {
-        this.$notify({
-          title: "加载错误",
-          message: err.response.statusText,
-          type: "error",
-          offset: 50,
-          duration: 2000,
-        });
-      } else {
-        return data;
-      }
     },
     reqFinish() {
       this.loading = false;
-      if (this.activeName === "fourth") {
-        this.$nextTick(() => {
-          this.$bus.$emit("refresh");
-        });
-      } else {
-        this.$nextTick(() => {
-          this.$bus.$emit("refresh");
-          this.$emit("toTop");
-        });
-      }
+      this.handleClick();
     },
     toSinger(sid) {
       this.updateSingerId(sid);
@@ -274,6 +254,7 @@ export default {
     handleClick() {
       this.$nextTick(() => {
         this.$bus.$emit("refresh");
+        this.$emit("toTop");
       });
     },
   },

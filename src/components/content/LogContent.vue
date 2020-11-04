@@ -89,20 +89,18 @@ export default {
     ...mapMutations(["updateOwnUserId", "updateOwnUserName", "updateUserId"]),
     async reqUserName(uid) {
       if (!uid) return;
-      let [err, data] = await to(req.netease.userDetail(uid));
-      if (err) {
-        this.$notify({
-          title: "错误",
-          message: "请输入正确的网易云 ID ~",
-          type: "error",
-        });
-        this.dialogVisible = true;
-        return;
-      }
+      let data = await req.netease.userDetail(uid);
+      // if (err) {
+      //   this.$notify({
+      //     title: "错误",
+      //     message: "请输入正确的网易云 ID ~",
+      //     type: "error",
+      //   });
+      //   this.dialogVisible = true;
+      //   return;
+      // }
       let {
-        data: {
-          profile: { nickname },
-        },
+        profile: { nickname },
       } = data;
 
       this.ownUserId = uid;

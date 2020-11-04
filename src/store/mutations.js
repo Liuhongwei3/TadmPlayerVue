@@ -14,6 +14,9 @@ export default {
   updateCurDetailId: (state, payload) => {
     state.curDetailId = payload;
   },
+  updateAlbumId: (state, payload) => {
+    state.albumId = payload;
+  },
   updatePlaylistIds: (state, payload) => {
     state.playlistIds = payload;
   },

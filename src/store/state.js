@@ -10,6 +10,7 @@ export default {
   userBackImg: true,
   detailId: 1978921795,
   curDetailId: 1978921795,
+  albumId: 21506,
   playlistIds: [],
   songId: 1446769897,
   singerId: 4292,

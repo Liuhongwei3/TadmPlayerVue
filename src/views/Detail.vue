@@ -149,24 +149,27 @@
         element-loading-background="rgba(0, 0, 0, 0.8)"
       >
         <span slot="label">评论 ({{ detailInfo.commentCount | roundW }})</span>
-        <div v-if="comments.length !== 0">
-          <CommContent :comments="comments">
-            <el-tag type="success">最新评论</el-tag>
-          </CommContent>
-          <div v-if="commentsLoading">
-            <el-divider></el-divider>
-            <el-button type="primary">
-              <i class="el-icon-loading"></i>加载中...
-            </el-button>
-          </div>
-          <div v-if="noMore">
-            <el-divider></el-divider>
-            <el-button type="warning">没有更多了</el-button>
-          </div>
-        </div>
-        <no-result v-else>
-          <el-tag type="warning">还没有评论哟 ~ 抢个沙发！</el-tag>
-        </no-result>
+
+        <el-tabs v-model="commActiveName" @tab-click="handleClick">
+          <el-tab-pane label="精彩评论" name="comm-first">
+            <comm-content v-if="hotComments.length" :comments="hotComments">
+            </comm-content>
+            <no-result v-else>
+              <el-tag type="warning">还没有评论哟 ~ 抢个沙发！</el-tag>
+            </no-result>
+          </el-tab-pane>
+          <el-tab-pane label="最新评论" name="comm-second">
+            <comm-content v-if="comments.length" :comments="comments">
+            </comm-content>
+            <no-result v-else>
+              <el-tag type="warning">还没有评论哟 ~ 抢个沙发！</el-tag>
+            </no-result>
+            <load-more-foot
+              :loading="commentsLoading"
+              :noMore="noMore"
+            ></load-more-foot>
+          </el-tab-pane>
+        </el-tabs>
       </el-tab-pane>
       <el-tab-pane
         name="third"
@@ -221,8 +224,8 @@ import Items from "@/components/common/items/Items";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 import NoResult from "@/components/common/noResult/NoResult";
 import CommContent from "@/components/content/CommContent";
+import LoadMoreFoot from "../components/content/LoadMoreFoot";
 import { mapMutations, mapState } from "vuex";
-import { to } from "@/utils";
 
 export default {
   name: "Detail",
@@ -231,6 +234,7 @@ export default {
     HorizontalScroll,
     NoResult,
     CommContent,
+    LoadMoreFoot,
   },
   data() {
     return {
@@ -245,11 +249,13 @@ export default {
       commentsLoading: false,
       subLoading: false,
       activeName: "first",
+      hotComments: [],
       comments: [],
       limit: 20,
       subscribers: [],
       subLimit: 20,
       noMore: false,
+      commActiveName: "comm-first",
     };
   },
   created() {
@@ -259,8 +265,10 @@ export default {
     this.$bus.$on("loadMoreDetail", () => {
       if (this.source === "netease") {
         if (this.activeName === "second") {
-          this.limit += 20;
-          this.requesDetailComments(this.detailInfo.id, this.limit);
+          if (this.commActiveName === "comm-second") {
+            this.limit += 20;
+            this.requesDetailComments(this.detailInfo.id, this.limit);
+          }
         }
         // else if (this.activeName === "third") {
         //   this.subLimit += 20;
@@ -285,6 +293,7 @@ export default {
       this.songs = [];
       this.formatSongs = [];
       this.ids = [];
+      this.hotComments = [];
       this.comments = [];
       this.subscribers = [];
       this.curPage = 1;
@@ -316,54 +325,30 @@ export default {
       });
     },
     async requestPlaylistDetail(pdlId) {
-      if (pdlId) {
-        this.songs = [];
-        this.formatSongs = [];
-        this.ids = [];
+      this.songs = [];
+      this.formatSongs = [];
+      this.ids = [];
 
-        this.loading = true;
-        this.$notify({
-          title: "信息提示",
-          message: "加载歌单数据中！",
-          type: "info",
-          offset: 50,
-          duration: 1500,
-        });
-        let [err, data] = await to(req.netease.playlistdetail(pdlId));
-        if (err) {
-          this.$notify({
-            title: "加载错误",
-            message: err.response.statusText,
-            type: "error",
-            offset: 50,
-            duration: 2000,
-          });
-          this.loading = false;
-          return;
-        }
-        let {
-          data: { playlist },
-        } = data;
-        this.detailInfo = playlist;
+      this.loading = true;
+      this.detailInfo = await req.netease.playlistdetail(pdlId);
 
-        if (playlist.trackIds.length === 0) {
-          this.loading = false;
-          return;
-        }
-
-        for (let i = 0; i < playlist.trackIds.length; i++) {
-          this.ids[i] = playlist.trackIds[i].id;
-        }
-
-        // 按照页码请求数据，默认进入加载第一页
-        // 一方面，可以减少不必要的请求；另一方面，也解决了可能歌单歌曲数太多导致请求失败和时间过长
-        this.reqIds(
-          this.ids.slice(
-            (this.curPage - 1) * this.pageSize,
-            this.pageSize * this.curPage
-          )
-        );
+      if (this.detailInfo.trackIds.length === 0) {
+        this.loading = false;
+        return;
       }
+
+      for (let i = 0; i < this.detailInfo.trackIds.length; i++) {
+        this.ids[i] = this.detailInfo.trackIds[i].id;
+      }
+
+      // 按照页码请求数据，默认进入加载第一页
+      // 一方面，可以减少不必要的请求；另一方面，也解决了可能歌单歌曲数太多导致请求失败和时间过长
+      this.reqIds(
+        this.ids.slice(
+          (this.curPage - 1) * this.pageSize,
+          this.pageSize * this.curPage
+        )
+      );
     },
     async reqIds(ids) {
       this.loading = true;
@@ -376,20 +361,7 @@ export default {
       for (let id of ids) {
         songIds += id + ",";
       }
-      let [err, data] = await to(req.netease.musicCover(songIds.slice(0, -1)));
-      if (err) {
-        this.$notify({
-          title: "加载错误",
-          message: err.response.statusText,
-          type: "error",
-          offset: 50,
-          duration: 2000,
-        });
-        return;
-      }
-      let {
-        data: { songs },
-      } = data;
+      let { songs } = await req.netease.musicCover(songIds.slice(0, -1));
       // 因为直接赋值数组指定索引不响应
       this.$set(this.songs, this.curPage, songs);
 
@@ -418,10 +390,11 @@ export default {
         return;
       }
       this.commentsLoading = true;
-      let {
-        data: { comments },
-      } = await req.netease.detailComment(id, limit);
-      this.comments = comments;
+      let data = await req.netease.detailComment(id, limit);
+
+      this.hotComments = data.hotComments;
+      this.comments = data.comments;
+
       this.commentsLoading = false;
       this.$nextTick(() => {
         this.$bus.$emit("refresh");
@@ -433,21 +406,8 @@ export default {
         return;
       }
       this.subLoading = true;
-      let {
-        data: { subscribers },
-      } = await req.netease.detailSubscribe(id, limit);
 
-      for (let v of subscribers) {
-        let obj = {};
-
-        obj.id = v.userId;
-        obj.name = v.nickname;
-        obj.signature = v.signature;
-        obj.gender = v.gender;
-        obj.imgUrl = v.avatarUrl;
-
-        this.subscribers.push(obj);
-      }
+      this.subscribers = await req.netease.detailSubscribe(id, limit);
 
       this.subLoading = false;
       this.$nextTick(() => {

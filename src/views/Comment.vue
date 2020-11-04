@@ -14,16 +14,21 @@
         >
           <comm-content :comments="hotComments" />
         </div>
-        <div v-if="loading">
-          <el-divider></el-divider>
-          <el-button type="primary">
-            <i class="el-icon-loading"></i>加载中...
-          </el-button>
+        <load-more-foot :loading="loading" :noMore="noMore"></load-more-foot>
+      </el-tab-pane>
+      <el-tab-pane label="最新评论" name="third">
+        <div
+          v-loading="commLoading"
+          element-loading-text="拼命加载中"
+          element-loading-spinner="el-icon-loading"
+          element-loading-background="rgba(0, 0, 0, 0.8)"
+        >
+          <comm-content :comments="comments" />
         </div>
-        <div v-if="noMore">
-          <el-divider></el-divider>
-          <el-button type="warning">没有更多了</el-button>
-        </div>
+        <load-more-foot
+          :loading="commLoading"
+          :noMore="commNoMore"
+        ></load-more-foot>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -35,6 +40,7 @@ import { mapState } from "vuex";
 import req from "@/network/req";
 import { to } from "@/utils";
 import CommContent from "@/components/content/CommContent";
+import LoadMoreFoot from "../components/content/LoadMoreFoot";
 
 export default {
   name: "Comment",
@@ -42,16 +48,20 @@ export default {
     return {
       tempSid: -1,
       limit: 20,
+      commLimit: 20,
       hotComments: [],
       comments: [],
       cloudHotComments: [],
       loading: false,
+      commLoading: false,
       noMore: false,
+      commNoMore: false,
       activeName: "second",
     };
   },
   components: {
     CommContent,
+    LoadMoreFoot,
   },
   mounted() {
     this.$bus.$on("loadMoreSongComments", () => {
@@ -62,6 +72,13 @@ export default {
       ) {
         this.limit += 20;
         this.requestHComments(this.songId, this.limit);
+      } else if (
+        this.source === "netease" &&
+        this.activeName === "third" &&
+        !this.commNoMore
+      ) {
+        this.commLimit += 20;
+        this.requestComments(this.songId, this.commLimit);
       }
     });
   },
@@ -78,6 +95,7 @@ export default {
   },
   activated() {
     if (this.tempSid && this.tempSid != this.songId) {
+      this.comments = [];
       this.hotComments = [];
       this.noMore = false;
       this.requestHComments(this.songId, this.limit);
@@ -88,6 +106,7 @@ export default {
       this.hotComments = [];
       this.tempSid = -1;
       this.limit = 20;
+      this.activeName = "second";
       this.noMore = false;
       newValue &&
         this.tempSid != newValue &&
@@ -102,6 +121,8 @@ export default {
     activeName(newValue) {
       if (newValue === "first" && this.cloudHotComments.length === 0) {
         this.requestCloudHotComments();
+      } else if (newValue === "third" && this.comments.length === 0) {
+        this.requestComments(this.songId);
       }
     },
   },
@@ -116,99 +137,67 @@ export default {
         this.$bus.$emit("refresh");
       });
     },
-    // requestComments(sid) {
-    //   req.netease.songComment(sid).then((res) => {
-    //     this.comments = res.data.comments;
-    //   });
-    // },
+    async requestComments(sid, limit) {
+      this.commLoading = true;
+      [this.comments, this.commNoMore] = await req.netease.songComment(
+        sid,
+        limit
+      );
+      this.commLoading = false;
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+      });
+    },
     async requestCloudHotComments() {
-      let {
-        data: { data },
-      } = await req.netease.cloudHotComments();
-
-      for (let v of data) {
-        let obj = {};
-        obj.userId = v.simpleUserInfo.userId;
-        obj.avatarUrl = v.simpleUserInfo.avatar;
-        obj.nickname = v.simpleUserInfo.nickname;
-
-        v.user = obj;
-      }
-
-      this.cloudHotComments = data;
+      this.cloudHotComments = await req.netease.cloudHotComments();
       this.$nextTick(() => {
         this.$bus.$emit("refresh");
       });
     },
     async requestHComments(sid, limit) {
-      if (sid) {
-        this.loading = true;
-        if (this.$route.path === "/comment") {
-          this.$notify({
-            title: "信息提示",
-            message: "加载歌曲热评数据中！",
-            type: "info",
-            offset: 50,
-            duration: 1500,
-          });
+      this.loading = true;
+      switch (this.source) {
+        case "netease": {
+          [this.hotComments, this.noMore] = await req.netease.songHotComment(
+            sid,
+            limit
+          );
+          break;
         }
-        let [err, hotComments] = [null, []];
-        switch (this.source) {
-          case "netease": {
-            [
-              err,
-              {
+        case "qq": {
+          [
+            err,
+            {
+              data: {
                 data: { hotComments },
               },
-            ] = await to(req.netease.songHotComment(sid, limit));
-            break;
-          }
-          case "qq": {
-            [
-              err,
-              {
-                data: {
-                  data: { hotComments },
+            },
+          ] = await to(req.qq.getMusicCommentsByQq(sid));
+          if (!err) {
+            let temp = [];
+            for (let v of hotComments) {
+              temp.push({
+                time: v.time * 1000,
+                content: v.rootcommentcontent,
+                likedCount: v.praisenum,
+                user: {
+                  userId: 0,
+                  avatarUrl: v.avatarurl,
+                  nickname: v.nick,
                 },
-              },
-            ] = await to(req.qq.getMusicCommentsByQq(sid));
-            if (!err) {
-              let temp = [];
-              for (let v of hotComments) {
-                temp.push({
-                  time: v.time * 1000,
-                  content: v.rootcommentcontent,
-                  likedCount: v.praisenum,
-                  user: {
-                    userId: 0,
-                    avatarUrl: v.avatarurl,
-                    nickname: v.nick,
-                  },
-                });
-              }
-              hotComments = temp;
+              });
             }
-            break;
+            this.hotComments = temp;
           }
+          break;
         }
-
-        if (err) {
-          this.$notify({
-            title: "加载错误",
-            message: err.response.statusText,
-            type: "error",
-            offset: 50,
-            duration: 2000,
-          });
-          return;
-        }
-        this.hotComments = hotComments;
-        this.tempSid = this.songId;
-        this.loading = false;
-        this.$nextTick(() => {
-          this.$bus.$emit("refresh");
-        });
       }
+
+      this.tempSid = this.songId;
+      this.loading = false;
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+      });
     },
     updateUserId(uid) {
       if (!uid) {

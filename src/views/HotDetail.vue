@@ -37,7 +37,6 @@
 <script>
 import Items from "@/components/common/items/Items";
 import req from "@/network/req";
-import { debounce, to } from "@/utils";
 
 export default {
   name: "hotDetail",
@@ -72,52 +71,9 @@ export default {
     });
   },
   methods: {
-    notify() {
-      return debounce(
-        this.$notify({
-          title: "信息提示",
-          message: "加载更多热门歌单数据中！",
-          type: "info",
-          offset: 50,
-          duration: 1500,
-        }),
-        500
-      );
-    },
     async requestHotDetails(limit) {
       this.loading = true;
-      this.notify();
-      let [
-        err,
-        {
-          data: { playlists },
-        },
-      ] = await to(req.netease.hotDetails(limit));
-      if (err) {
-        this.$notify({
-          title: "加载错误",
-          message: err.response.statusText,
-          type: "error",
-          offset: 50,
-          duration: 1500,
-        });
-        return;
-      }
-
-      let formatList = [];
-      for (let v of playlists) {
-        let obj = {};
-
-        obj.id = v.id;
-        obj.name = v.name;
-        obj.nickname = v.creator.nickname;
-        obj.imgUrl = v.coverImgUrl;
-        obj.playCount = v.playCount;
-
-        formatList.push(obj);
-      }
-
-      this.hotDetailLists = formatList;
+      this.hotDetailLists = await req.netease.hotDetails(limit);
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },

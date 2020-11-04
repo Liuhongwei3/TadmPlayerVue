@@ -26,7 +26,7 @@
           class="top-mv-items"
           v-for="item in topMvLists"
           :key="item.id"
-          @click="toMv(item.id, item.name, item.artists[0].name)"
+          @click="toMv(item.id, item.name, item.artists)"
         >
           <img :src="item.cover" alt="" />
           <div class="top-mv-right">
@@ -103,7 +103,7 @@
           class="all-mv-items"
           v-for="item in mvLists"
           :key="item.id"
-          @click="toMv(item.id, item.name, item.artists[0].name)"
+          @click="toMv(item.id, item.name, item.artists)"
         >
           <img :src="item.cover" alt="" />
           <div class="mv-name">{{ item.name }}</div>
@@ -200,26 +200,24 @@ export default {
   methods: {
     async requestTopMv(type) {
       this.topLoading = true;
-      let {
-        data: { data },
-      } = await req.netease.topMv(type);
-      this.topMvLists = data;
+
+      this.topMvLists = await req.netease.topMv(type);
+
       this.topLoading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
     async requestAllMv(area = "全部", type = "全部", order = "最热") {
       this.allLoading = true;
-      let {
-        data: { data },
-      } = await req.netease.allMv(area, type, order);
-      this.mvLists = data;
+
+      this.mvLists = await req.netease.allMv(area, type, order);
+
       this.allLoading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
-    toMv(id, name, artName) {
+    toMv(id, name, artists) {
       this.$router.push({
         path: "/showMv",
-        query: { mvId: id, name, artName },
+        query: { mvId: id, name, artists },
       });
     },
   },

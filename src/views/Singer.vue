@@ -9,7 +9,6 @@
       <el-avatar :src="singerInfo.picUrl" v-viewer.static></el-avatar>
       <el-tag>{{ singerInfo.name }}</el-tag>
       <el-tag type="danger">歌曲：{{ singerInfo.musicSize | roundW }}</el-tag>
-      <el-tag type="warning">专辑：{{ singerInfo.albumSize | roundW }}</el-tag>
       <el-tag type="success" @click="toUser(singerInfo.accountId)"
         >去他的个人主页</el-tag
       >
@@ -41,7 +40,7 @@
           </template>
         </Items>
       </el-tab-pane>
-      <el-tab-pane label="歌手热门歌曲" name="second">
+      <el-tab-pane label="热门歌曲" name="second">
         <Items :lists="filterList" @newId="songId" />
         <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
           <div class="page-content">
@@ -59,6 +58,30 @@
           </div>
         </horizontal-scroll>
       </el-tab-pane>
+      <el-tab-pane name="third">
+        <span slot="label">专辑 ({{ singerInfo.albumSize | roundW }})</span>
+        <Items :lists="albums" @newId="updateId" />
+      </el-tab-pane>
+      <el-tab-pane name="fourth">
+        <span slot="label">MV ({{ singerInfo.mvSize | roundW }})</span>
+        <Items :lists="mvs" @newId="updateId">
+          <template v-slot:playCount="singer">
+            <div v-if="singer.item.playCount">
+              <i class="fa fa-video-camera" aria-hidden="true"></i>
+              <span>{{ singer.item.playCount | roundW }}</span>
+            </div>
+          </template>
+          <template v-slot:nickname="singer">
+            <div v-if="singer.item.duration">
+              <i class="el-icon-time"></i>
+              <span style="margin-left: 10px">
+                {{ Math.floor(singer.item.duration / 1000) | timeFormat }}</span
+              >
+            </div>
+          </template>
+        </Items>
+        <load-more-foot :loading="loading" :noMore="mvNoMore"></load-more-foot>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -69,26 +92,43 @@ import { to } from "@/utils";
 import NoResult from "@/components/common/noResult/NoResult";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 import Items from "@/components/common/items/Items";
+import LoadMoreFoot from "../components/content/LoadMoreFoot";
 import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "Singer",
-  components: { NoResult, HorizontalScroll, Items },
+  components: { NoResult, HorizontalScroll, Items, LoadMoreFoot },
   data() {
     return {
       hotSingers: [],
       singerInfo: {},
       musiclist: [],
+      albums: [],
+      mvs: [],
       pageSize: 15,
       curPage: 1,
       loading: false,
       activeName: "second",
+      mvLimit: 20,
+      mvNoMore: false,
     };
   },
   created() {
     this.singerId && this.requestSinger(this.singerId);
   },
+  mounted() {
+    this.$bus.$on("loadMoreSinger", () => {
+      if (
+        this.source === "netease" &&
+        this.activeName === "fourth" &&
+        !this.mvNoMore
+      ) {
+        this.requestMvs(this.singerId, (this.mvLimit += 20));
+      }
+    });
+  },
   computed: {
+    ...mapState(["source"]),
     singerId: {
       get() {
         return this.$store.state.singerId;
@@ -110,12 +150,23 @@ export default {
     singerId(newValue) {
       if (newValue) {
         this.curPage = 1;
+        this.activeName = "second";
+        this.singerInfo = {};
+        this.musiclist = [];
+        this.albums = [];
+        this.mvs = [];
+        this.mvLimit = 20;
+        this.mvNoMore = false;
         this.requestSinger(newValue);
       }
     },
     activeName(newValue) {
       if (newValue === "first" && this.hotSingers.length === 0) {
         this.reqHotSingers();
+      } else if (newValue === "third" && this.albums.length === 0) {
+        this.requestAlbums(this.singerId);
+      } else if (newValue === "fourth" && this.mvs.length === 0) {
+        this.requestMvs(this.singerId, this.mvLimit);
       }
     },
   },
@@ -126,68 +177,37 @@ export default {
       "updateSingerName",
       "updateSource",
       "updateSingerId",
+      "updateAlbumId",
     ]),
     async requestSinger(sid) {
-      if (sid) {
-        this.loading = true;
-        this.$notify({
-          title: "信息提示",
-          message: "加载歌手详情数据中！",
-          type: "info",
-          offset: 50,
-          duration: 1500,
-        });
-        let [err, { data }] = await to(req.netease.singer(sid));
-        if (err) {
-          this.$notify({
-            title: "加载错误",
-            message: err.response.statusText,
-            type: "error",
-            offset: 50,
-            duration: 2000,
-          });
-          return;
-        }
-        this.singerInfo = data.artist;
-
-        let lists = [];
-        for (let v of data.hotSongs) {
-          let obj = {};
-
-          obj.id = v.id;
-          obj.name = v.name;
-          obj.imgUrl = v.al.picUrl;
-
-          lists.push(obj);
-        }
-        this.musiclist = lists;
-
-        this.loading = false;
-        this.$nextTick(() => {
-          this.$bus.$emit("refresh");
-          this.$refs.page.refresh();
-          this.$emit("toTop");
-        });
+      this.loading = true;
+      [this.singerInfo, this.musiclist] = await req.netease.singer(sid);
+      this.finishReq();
+    },
+    async requestMvs(sid, limit) {
+      this.loading = true;
+      this.mvs = await req.netease.getSingerMvs(sid, limit);
+      if (this.mvs.length === this.singerInfo.mvSize) {
+        this.mvNoMore = true;
       }
+      this.finishReq();
+    },
+    async requestAlbums(sid) {
+      this.loading = true;
+      this.albums = await req.netease.getSingerAlbums(sid);
+      this.finishReq();
     },
     async reqHotSingers() {
-      let {
-        data: { artists },
-      } = await req.netease.hotSinger();
-      let lists = [];
-      for (let v of artists) {
-        let obj = {};
-        obj.id = v.id;
-        obj.name = v.name;
-        obj.imgUrl = v.picUrl;
-        obj.accountId = v.accountId;
-        obj.albumSize = v.albumSize;
-        obj.musicSize = v.musicSize;
-
-        lists.push(obj);
-      }
-      this.hotSingers = lists;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.loading = true;
+      this.hotSingers = await req.netease.hotSinger();
+      this.finishReq();
+    },
+    finishReq() {
+      this.loading = false;
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+        this.$refs.page && this.$refs.page.refresh();
+      });
     },
     songId({ id }) {
       this.updateSource("netease");
@@ -198,7 +218,9 @@ export default {
       this.updateSingerName(name);
     },
     handleClick() {
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.$nextTick(() => {
+        this.$bus.$emit("refresh");
+      });
     },
     toUser(uid) {
       this.updateUserId(uid);
@@ -213,9 +235,19 @@ export default {
       this.curPage = val;
       this.$emit("toTop");
     },
-    updateId({ id, name }) {
-      this.updateSingerId(id);
-      this.updateSingerName(name);
+    updateId({ id, name, nickname }) {
+      if (this.activeName === "first") {
+        this.updateSingerId(id);
+        this.updateSingerName(name);
+      } else if (this.activeName === "third") {
+        this.updateAlbumId(id);
+        this.$router.push("/album");
+      } else if (this.activeName === "fourth") {
+        this.$router.push({
+          path: "/showMv",
+          query: { mvId: id, name, artName: nickname },
+        });
+      }
     },
   },
 };

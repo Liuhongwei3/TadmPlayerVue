@@ -25,6 +25,7 @@
         <el-option label="歌曲" value="1"></el-option>
         <el-option label="歌词" value="2"></el-option>
         <el-option label="歌单" value="3"></el-option>
+        <el-option label="专辑" value="8"></el-option>
         <el-option label="歌手" value="4"></el-option>
         <el-option label="用户" value="5"></el-option>
         <el-option label="MV" value="6"></el-option>
@@ -41,13 +42,13 @@
       </template>
     </el-autocomplete>
 
-    <div v-if="searchResults.length !== 0">
+    <div v-if="searchResults.length">
       <el-tag type="success">
         已为您找到 {{ searchResults.length }} 条结果
       </el-tag>
     </div>
 
-    <div v-if="isPc && (type == 1 || type == 2) && searchResults.length !== 0">
+    <div v-if="isPc && (type == 1 || type == 2) && searchResults.length">
       <el-row class="row-header" type="flex" justify="center" :gutter="20">
         <el-col :span="1">
           <div class="detail-item"></div>
@@ -105,11 +106,7 @@
       </el-row>
     </div>
 
-    <div
-      v-else-if="
-        !isPc && (type == 1 || type == 2) && searchResults.length !== 0
-      "
-    >
+    <div v-else-if="!isPc && (type == 1 || type == 2) && searchResults.length">
       <el-row
         class="row-header"
         type="flex"
@@ -200,7 +197,16 @@
         </div>
       </template>
       <template v-slot:nickname="search">
-        <span v-if="search.item.nickname">By {{ search.item.nickname }}</span>
+        <span v-if="search.item.nickname"
+          ><span>By </span>{{ search.item.nickname }}</span
+        >
+        <span v-if="search.item.artists">
+          <span>By </span>
+          <span v-for="art in search.item.artists" :key="art.id">
+            {{ art.name }} /</span
+          >
+        </span>
+
         <el-tooltip placement="top" content="个人签名">
           <div v-if="search.item.signature">
             <span>{{ search.item.signature }}</span>
@@ -260,6 +266,7 @@ export default {
       "updateUserId",
       "updateDetailId",
       "updateSingerId",
+      "updateAlbumId",
     ]),
     querySearch(queryString, cb) {
       let hotKeywords = this.hotSearchKeywords;
@@ -278,7 +285,7 @@ export default {
       this.keyword = item.searchWord;
       this.doSearch();
     },
-    async updateId({ id, name, nickname }) {
+    async updateId({ id, name, artists }) {
       switch (+this.type) {
         case 1:
         case 2: {
@@ -302,15 +309,27 @@ export default {
         case 6: {
           this.$router.push({
             path: "/showMv",
-            query: { mvId: id, name, artName: nickname },
+            query: { mvId: id, name, artists },
           });
           break;
         }
         case 7: {
-          this.$router.push({
-            path: "/showVideo",
-            query: { vid: id },
-          });
+          if (/^\d*$/.test(id)) {
+            this.$router.push({
+              path: "/showMv",
+              query: { mvId: id, name, artists },
+            });
+          } else {
+            this.$router.push({
+              path: "/showVideo",
+              query: { vid: id },
+            });
+          }
+          break;
+        }
+        case 8: {
+          this.updateAlbumId(id);
+          this.$router.push("/album");
           break;
         }
       }
@@ -429,111 +448,39 @@ export default {
           this.searchVideos();
           break;
         }
+        case 8: {
+          this.searchAlbums();
+        }
       }
-    },
-    handleData(songs = [], flag = 1) {
-      let lists = [];
-      for (let v of songs) {
-        let obj = {};
-
-        if (flag === 3) {
-          obj.trackCount = v.trackCount;
-          obj.playCount = v.playCount;
-        }
-
-        if (flag === 5) {
-          obj.id = v.userId;
-          obj.name = v.nickname;
-          obj.imgUrl = v.avatarUrl;
-          obj.signature = v.signature;
-          obj.gender = v.gender;
-          lists.push(obj);
-          continue;
-        }
-
-        obj.id = v.id;
-        obj.name = v.name;
-
-        if (flag === 4) {
-          obj.imgUrl = v.picUrl;
-          obj.albumSize = v.albumSize;
-          lists.push(obj);
-          continue;
-        }
-
-        if (flag === 6) {
-          obj.nickname = v.artists[0].name;
-          obj.playCount = v.playCount;
-          obj.imgUrl = v.cover;
-        } else if (flag === 3) {
-          obj.nickname = v.creator.nickname;
-          obj.imgUrl = v.coverImgUrl;
-        }
-        lists.push(obj);
-      }
-      this.setResults(lists);
-    },
-    async searchSongs() {
-      let {
-        data: {
-          result: { songs },
-        },
-      } = await req.netease.search(this.keyword);
-      this.setResults(songs);
-    },
-    async searchLyrics() {
-      let {
-        data: {
-          result: { songs },
-        },
-      } = await req.netease.search(this.keyword, 1006);
-      this.setResults(songs);
     },
     setResults(result) {
       this.searchResults = result;
       this.loading = false;
       this.$nextTick(() => this.$bus.$emit("refresh"));
     },
+    async searchSongs() {
+      this.setResults(await req.netease.searchSongs(this.keyword, 1));
+    },
+    async searchLyrics() {
+      this.setResults(await req.netease.searchSongs(this.keyword, 1006));
+    },
     async searchDetails() {
-      let {
-        data: {
-          result: { playlists },
-        },
-      } = await req.netease.search(this.keyword, 1000);
-      this.handleData(playlists, 3);
+      this.setResults(await req.netease.searchPlaylists(this.keyword, 1000));
     },
     async searchSingers() {
-      let {
-        data: {
-          result: { artists },
-        },
-      } = await req.netease.search(this.keyword, 100);
-
-      this.handleData(artists, 4);
+      this.setResults(await req.netease.searchArtists(this.keyword, 100));
     },
     async searchUsers() {
-      let {
-        data: {
-          result: { userprofiles },
-        },
-      } = await req.netease.search(this.keyword, 1002);
-      this.handleData(userprofiles, 5);
+      this.setResults(await req.netease.searchUsers(this.keyword, 1002));
     },
     async searchMvs() {
-      let {
-        data: {
-          result: { mvs },
-        },
-      } = await req.netease.search(this.keyword, 1004);
-      this.handleData(mvs, 6);
+      this.setResults(await req.netease.searchMvs(this.keyword, 1004));
     },
     async searchVideos() {
-      let {
-        data: {
-          result: { videos },
-        },
-      } = await req.netease.search(this.keyword, 1014);
-      this.setResults(videos);
+      this.setResults(await req.netease.searchVideos(this.keyword, 1014));
+    },
+    async searchAlbums() {
+      this.setResults(await req.netease.searchAlbums(this.keyword, 10));
     },
   },
 };

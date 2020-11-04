@@ -263,6 +263,13 @@ video {
   color: cornflowerblue;
 }
 
+.album-desc {
+  white-space: pre-wrap;
+  text-align: left;
+  color: #b4b4b4;
+  margin: 0 30px;
+}
+
 @media screen and (max-width: 768px) {
   video {
     width: 75vw;
