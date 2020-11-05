@@ -231,7 +231,7 @@ export default {
     finishReq() {
       this.loading = false;
       this.$nextTick(() => {
-        this.$bus.$emit("refresh");
+        this.$emit("refresh");
         this.$emit("toTop");
       });
     },

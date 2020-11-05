@@ -2,7 +2,7 @@
   <div id="app">
     <div id="app-bg" :style="backImg"></div>
     <el-tag class="top-info">Welcome to Tadm-Play-Vue ^-^</el-tag>
-    <nav-bar></nav-bar>
+    <nav-bar @toTop="backTop"></nav-bar>
     <div class="center">
       <vertical-scroll
         class="content"
@@ -16,7 +16,7 @@
         <transition name="fade">
           <div>
             <keep-alive>
-              <router-view @toTop="backTop" />
+              <router-view @toTop="backTop" @refresh="refresh" />
             </keep-alive>
             <el-divider></el-divider>
             <keep-alive>
@@ -93,7 +93,7 @@ export default {
     });
 
     this.$bus.$on("refresh", () => {
-      this.$refs.scroll.refresh();
+      this.refresh();
     });
     this.$bus.$on("toTop", () => {
       this.backTop();
@@ -116,6 +116,9 @@ export default {
     },
     backTop() {
       this.$refs.scroll.scrollTo(0, 0, 500);
+    },
+    refresh() {
+      this.$refs.scroll.refresh();
     },
     loadMore: debounce(function () {
       switch (this.$route.path) {

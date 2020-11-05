@@ -204,7 +204,7 @@ export default {
       this.topMvLists = await req.netease.topMv(type);
 
       this.topLoading = false;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.$nextTick(() => this.$emit("refresh"));
     },
     async requestAllMv(area = "全部", type = "全部", order = "最热") {
       this.allLoading = true;
@@ -212,7 +212,7 @@ export default {
       this.mvLists = await req.netease.allMv(area, type, order);
 
       this.allLoading = false;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.$nextTick(() => this.$emit("refresh"));
     },
     toMv(id, name, artists) {
       this.$router.push({

@@ -12,7 +12,7 @@
 #app-bg {
   width: 100vw;
   height: 100vh;
-  filter: blur(50px) brightness(60%);
+  filter: blur(10px) brightness(70%);
   position: relative;
   z-index: -2;
 }

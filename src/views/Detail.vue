@@ -319,9 +319,11 @@ export default {
       "updateUserId",
       "updateSingerId",
     ]),
-    handleClick(tab, event) {
+    handleClick(toTop = true) {
       this.$nextTick(() => {
-        this.$bus.$emit("refresh");
+        this.$emit("refresh");
+        this.$refs.page && this.$refs.page.refresh();
+        toTop && this.$emit("toTop");
       });
     },
     async requestPlaylistDetail(pdlId) {
@@ -379,10 +381,7 @@ export default {
       this.$set(this.formatSongs, this.curPage, formatList);
 
       this.loading = false;
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-        this.$refs.page && this.$refs.page.refresh();
-      });
+      this.handleClick();
     },
     async requesDetailComments(id, limit) {
       if (this.comments.length === this.detailInfo.commentCount) {
@@ -396,9 +395,7 @@ export default {
       this.comments = data.comments;
 
       this.commentsLoading = false;
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-      });
+      this.handleClick(false);
     },
     async requestDetailSubscribe(id, limit) {
       if (this.subscribers.length === this.detailInfo.subscribedCount) {
@@ -410,9 +407,7 @@ export default {
       this.subscribers = await req.netease.detailSubscribe(id, limit);
 
       this.subLoading = false;
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-      });
+      this.handleClick();
     },
     loadAll() {
       this.noMore = true;
@@ -453,11 +448,7 @@ export default {
         );
       }
 
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-        this.$refs.page && this.$refs.page.refresh();
-        this.$emit("toTop");
-      });
+      this.handleClick();
     },
     handleSizeChange(val) {
       this.pageSize = val;
@@ -467,9 +458,6 @@ export default {
       this.curPage = val;
       this.pageChange();
     },
-  },
-  beforeDestroy() {
-    this.$bus.$off("refresh");
   },
 };
 </script>

@@ -47,7 +47,7 @@ export default {
   methods: {
     dbClickTop(path) {
       if (this.$route.path === path) {
-        this.$bus.$emit("toTop");
+        this.$emit("toTop");
       }
     },
   },

@@ -134,7 +134,7 @@ export default {
   methods: {
     handleClick(tab, event) {
       this.$nextTick(() => {
-        this.$bus.$emit("refresh");
+        this.$emit("refresh");
       });
     },
     async requestComments(sid, limit) {
@@ -144,15 +144,11 @@ export default {
         limit
       );
       this.commLoading = false;
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-      });
+      this.handleClick();
     },
     async requestCloudHotComments() {
       this.cloudHotComments = await req.netease.cloudHotComments();
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-      });
+      this.handleClick();
     },
     async requestHComments(sid, limit) {
       this.loading = true;
@@ -195,9 +191,7 @@ export default {
 
       this.tempSid = this.songId;
       this.loading = false;
-      this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-      });
+      this.handleClick();
     },
     updateUserId(uid) {
       if (!uid) {

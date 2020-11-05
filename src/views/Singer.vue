@@ -190,7 +190,7 @@ export default {
       if (this.mvs.length === this.singerInfo.mvSize) {
         this.mvNoMore = true;
       }
-      this.finishReq();
+      this.finishReq(false);
     },
     async requestAlbums(sid) {
       this.loading = true;
@@ -202,10 +202,10 @@ export default {
       this.hotSingers = await req.netease.hotSinger();
       this.finishReq();
     },
-    finishReq() {
+    finishReq(toTop = true) {
       this.loading = false;
       this.$nextTick(() => {
-        this.$bus.$emit("refresh");
+        this.handleClick(toTop);
         this.$refs.page && this.$refs.page.refresh();
       });
     },
@@ -217,9 +217,10 @@ export default {
       this.singerId = id;
       this.updateSingerName(name);
     },
-    handleClick() {
+    handleClick(toTop = true) {
       this.$nextTick(() => {
-        this.$bus.$emit("refresh");
+        this.$emit("refresh");
+        toTop && this.$emit("toTop");
       });
     },
     toUser(uid) {
@@ -228,12 +229,12 @@ export default {
     },
     handleSizeChange(val) {
       this.pageSize = val;
-      this.$emit("toTop");
+      this.handleClick();
       this.$nextTick(() => this.$refs.page.refresh());
     },
     handleCurrentChange(val) {
       this.curPage = val;
-      this.$emit("toTop");
+      this.handleClick();
     },
     updateId({ id, name, nickname }) {
       if (this.activeName === "first") {

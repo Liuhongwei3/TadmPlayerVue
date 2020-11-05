@@ -119,7 +119,7 @@ import req from "@/network/req";
 import LogContent from "@/components/content/LogContent";
 import NoResult from "@/components/common/noResult/NoResult";
 import UserContent from "@/components/content/UserContent";
-import Event from "./Event";
+import Event from "@/components/content/Event";
 
 export default {
   name: "User",
@@ -237,29 +237,26 @@ export default {
       }
 
       this.loading = false;
-      this.reqFinish();
+      this.reqFinish(false);
     },
     async requestUserFan(uid) {
       this.fansList = await req.netease.userFans(uid);
       this.reqFinish();
     },
-    reqFinish() {
+    reqFinish(toTop = true) {
       this.loading = false;
-      this.handleClick();
+      this.handleClick(toTop);
     },
     toSinger(sid) {
       this.updateSingerId(sid);
       this.$router.push("/singer");
     },
-    handleClick() {
+    handleClick(toTop = true) {
       this.$nextTick(() => {
-        this.$bus.$emit("refresh");
-        this.$emit("toTop");
+        this.$emit("refresh");
+        toTop && this.$emit("toTop");
       });
     },
-  },
-  beforeDestroy() {
-    this.$bus.$off("refresh");
   },
 };
 </script>

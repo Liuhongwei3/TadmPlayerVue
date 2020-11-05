@@ -75,7 +75,7 @@ export default {
       this.loading = true;
       this.hotDetailLists = await req.netease.hotDetails(limit);
       this.loading = false;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.$nextTick(() => this.$emit("refresh"));
     },
     updateId({ id }) {
       this.$store.commit("updateDetailId", id);

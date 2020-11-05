@@ -1,14 +1,12 @@
 <template>
-  <div>
+  <div
+    v-loading.lock="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
     <el-tag type="danger">云音乐特色榜</el-tag>
-    <Items
-      :lists="toplists.slice(0, 4)"
-      @newId="updateId"
-      v-loading.lock="loading"
-      element-loading-text="拼命加载中"
-      element-loading-spinner="el-icon-loading"
-      element-loading-background="rgba(0, 0, 0, 0.8)"
-    >
+    <Items :lists="toplists.slice(0, 4)" @newId="updateId">
       <template v-slot:playCount="top">
         <i class="fa fa-headphones" aria-hidden="true"></i>
         <span>{{ top.item.playCount | roundW }}</span>
@@ -20,14 +18,7 @@
     <el-divider></el-divider>
 
     <el-tag type="warning">全球媒体榜</el-tag>
-    <Items
-      :lists="toplists.slice(4)"
-      @newId="updateId"
-      v-loading.lock="loading"
-      element-loading-text="拼命加载中"
-      element-loading-spinner="el-icon-loading"
-      element-loading-background="rgba(0, 0, 0, 0.8)"
-    >
+    <Items :lists="toplists.slice(4)" @newId="updateId">
       <template v-slot:playCount="top">
         <i class="fa fa-headphones" aria-hidden="true"></i>
         <span>{{ top.item.playCount | roundW }}</span>
@@ -66,7 +57,9 @@ export default {
       this.$store.dispatch("updateTopLists", { list });
 
       this.loading = false;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.$nextTick(() => {
+        this.$emit("refresh");
+      });
     },
     updateId({ id }) {
       this.$store.commit("updateDetailId", id);

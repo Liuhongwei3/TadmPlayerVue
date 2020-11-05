@@ -413,9 +413,8 @@ export default {
             album: v.album,
           });
         }
-        this.searchResults = lists;
-        this.loading = false;
-        this.$nextTick(() => this.$bus.$emit("refresh"));
+
+        this.setResults(lists);
       }
     },
     doNetEaseSearch(type = 1) {
@@ -456,7 +455,7 @@ export default {
     setResults(result) {
       this.searchResults = result;
       this.loading = false;
-      this.$nextTick(() => this.$bus.$emit("refresh"));
+      this.$nextTick(() => this.$emit("refresh"));
     },
     async searchSongs() {
       this.setResults(await req.netease.searchSongs(this.keyword, 1));
