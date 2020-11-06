@@ -17,7 +17,14 @@
           </div>
           <div class="bottom">
             <slot name="updateTime" :item="item"></slot>
-            <slot name="nickname" :item="item"></slot>
+            <slot name="nickname" :item="item">
+              <span v-if="item.artists">
+                <span>By </span>
+                <span v-for="art in item.artists" :key="art.id">
+                  {{ art.name }} /</span
+                >
+              </span>
+            </slot>
           </div>
         </div>
         <div class="items-name">{{ item.name }}</div>

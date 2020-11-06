@@ -83,8 +83,9 @@ export default {
   computed: {
     ...mapState(["source"]),
     lyricTop() {
-      return `transform :translate3d(0, ${-lineH *
-        (this.lyricIndex - this.top)}px, 0)`;
+      return `transform :translate3d(0, ${
+        -lineH * (this.lyricIndex - this.top)
+      }px, 0)`;
     },
   },
   watch: {
@@ -111,8 +112,8 @@ export default {
   methods: {
     async requestLyric(sid) {
       if (this.source === "netease") {
-        let { data } = await req.netease.musicLyric(sid);
-        if (data.nolyric || data.nocollected || !data.lrc) {
+        let data = await req.netease.musicLyric(sid);
+        if (!data || data.nolyric || data.nocollected || !data.lrc) {
           this.lyrics = [{ text: "暂无歌词" }];
         } else {
           let lrc = data.lrc.lyric;
@@ -122,12 +123,12 @@ export default {
           }
         }
       } else if (this.source === "qq") {
-        let {
-          data: { data },
-        } = await req.qq.getMusicLyricByQq(sid);
+        let data = await req.qq.getMusicLyricByQq(sid);
         if (data && data.lyric) {
           let tempLyric = parseLyricByQq(data);
           this.updateLyric(tempLyric);
+        } else {
+          this.lyrics = [{ text: "暂无歌词" }];
         }
       }
     },

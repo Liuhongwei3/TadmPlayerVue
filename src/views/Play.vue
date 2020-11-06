@@ -51,10 +51,19 @@
           <el-tag>{{ this.songName }}</el-tag>
         </el-tooltip>
 
-        <span v-for="art in artists" :key="art.id" @click="toSinger(art.id)">
+        <span v-if="isPc">
+          <span v-for="art in artists" :key="art.id" @click="toSinger(art.id)">
+            <el-tooltip content="点击查看歌手详情" placement="top">
+              <el-tag type="success">
+                {{ art.name }}
+              </el-tag>
+            </el-tooltip>
+          </span>
+        </span>
+        <span v-else>
           <el-tooltip content="点击查看歌手详情" placement="top">
-            <el-tag type="success">
-              {{ art.name }}
+            <el-tag v-if="artists[0]" type="success">
+              {{ artists[0].name }}
             </el-tag>
           </el-tooltip>
         </span>
@@ -80,13 +89,6 @@
               aria-hidden="true"
               v-if="order"
               @click="changeList"
-            ></i>
-          </el-tooltip>
-          <el-tooltip content="播放列表" placement="bottom">
-            <i
-              class="fa fa-history fa-2x"
-              aria-hidden="true"
-              @click="toCurDetail"
             ></i>
           </el-tooltip>
           <el-tooltip content="上一曲" placement="top">
@@ -155,12 +157,14 @@
 </template>
 
 <script>
-import req from "@/network/req";
+import { mapMutations, mapState } from "vuex";
+
 import RLyric from "@/components/content/RLyric";
 import Drawer from "@/components/content/Drawer";
+
+import req from "@/network/req";
 import { shuffle, timeFormat } from "../utils";
 import { createDownload, onLoadAudio } from "../features";
-import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "Play",
@@ -184,10 +188,11 @@ export default {
       status: false,
       drawer: false,
       showMore: false,
+      historyList: [],
     };
   },
   computed: {
-    ...mapState(["isPc", "source", "curDetailId"]),
+    ...mapState(["isPc", "source"]),
     backImage() {
       return {
         backgroundImage: "url(" + this.imgs + ")",
@@ -220,14 +225,12 @@ export default {
 
     audio.addEventListener("play", () => {
       this.status = true;
-      this.currDuration = parseInt(audio.duration);
       // onLoadAudio();
     });
     audio.addEventListener("pause", () => {
       this.status = false;
     });
     audio.addEventListener("timeupdate", () => {
-      this.currDuration = parseInt(audio.duration);
       this.cTime = parseInt(audio.currentTime);
       this.percent = Math.floor((this.cTime / audio.duration) * 100);
     });
@@ -243,38 +246,29 @@ export default {
       this.showMore = false;
     },
     async id(newValue) {
-      if (newValue) {
-        if (this.source === "netease") {
-          this.requestCover(newValue);
-          this.requestMusicUrl(newValue);
-        } else if (this.source === "qq") {
-          let [
-            {
-              data: { data },
-            },
-            {
-              data: { data: urlData },
-            },
-          ] = await Promise.all([
-            req.qq.getMusicDetailByQq(newValue),
-            req.qq.getMusicUrlByQq(newValue),
-          ]);
-          this.songName = data.name;
-          this.player = data.artists[0].name;
-          this.imgs = data.album.cover;
-          this.albumName = data.album.name;
+      if (!newValue) return;
+      if (this.source === "netease") {
+        this.requestCover(newValue);
+        this.requestMusicUrl(newValue);
+      } else if (this.source === "qq") {
+        let [{ data }, url] = await Promise.all([
+          req.qq.getMusicDetailByQq(newValue),
+          req.qq.getMusicUrlByQq(newValue),
+        ]);
 
-          if (urlData.url) {
-            this.urls = urlData.url;
-            this.play();
-          } else {
-            this.showAlert();
-          }
+        this.songName = data.name;
+        this.artists = data.artists;
+        this.imgs = data.album.cover;
+        this.albumName = data.album.name;
 
-          this.updateImgs(this.imgs);
+        if (url) {
+          this.urls = url;
+          this.play();
+        } else {
+          this.showAlert();
         }
-      } else {
-        this.showAlert();
+
+        this.updateImgs(this.imgs);
       }
     },
     currentIndex() {
@@ -287,31 +281,49 @@ export default {
       "updateImgs",
       "updateSingerId",
       "updateDetailId",
+      "updateHistoryLists",
     ]),
     async requestCover(newValue) {
       this.imgs = "";
       this.songName = "";
       this.player = "";
       let data = await req.netease.musicCover(newValue);
-      if (data.code === 200) {
-        let database = data.songs[0];
-        this.songName = database.name;
-        this.artists = database.ar;
-        this.imgs = database.al.picUrl;
-        this.albumName = database.al.name;
-        this.mv = database.mv;
+      if (data.length >= 1) {
+        data = data[0];
+        this.songName = data.name;
+        this.artists = data.artists;
+        this.imgs = data.album.picUrl;
+        this.albumName = data.album.name;
+        this.mv = data.mv;
+        this.currDuration = data.dt;
+
+        this.updateHistoryLists([
+          {
+            id: newValue,
+            name: data.name,
+            artists: data.artists,
+            album: data.album,
+            dt: data.dt,
+            publishTime: data.publishTime,
+          },
+        ]);
 
         this.updateImgs(this.imgs);
       }
     },
     async requestMusicUrl(id) {
-      this.urls = "";
-      let url = await req.netease.musicUrl(id);
-      if (url && url.length !== 0) {
-        this.urls = url;
-        this.play();
+      let { success, message } = await req.netease.checkMusic(id);
+      if (!success) {
+        this.showAlert(message);
       } else {
-        this.showAlert();
+        this.urls = "";
+        let url = await req.netease.musicUrl(id);
+        if (url && url.length !== 0) {
+          this.urls = url;
+          this.play();
+        } else {
+          this.showAlert();
+        }
       }
     },
     jumpIndex() {
@@ -363,14 +375,8 @@ export default {
         this.$router.push("/singer");
       }
     },
-    toCurDetail() {
-      this.updateDetailId(this.curDetailId);
-      if (this.$route.path !== "/detail") {
-        this.$router.push("/detail");
-      }
-    },
     toMv() {
-      if (this.$route.path !== "/showMv") {
+      if (this.$route.path !== "/showMv" && this.source === "netease") {
         this.$router.push({
           path: "/showMv",
           query: { mvId: this.mv, name: this.songName, artists: this.artists },
@@ -412,10 +418,10 @@ export default {
           });
         });
     },
-    showAlert() {
+    showAlert(message = "好像出错误了！尝试自动切换到下一首 ~") {
       this.$notify({
         title: "错误",
-        message: "好像出错误了！尝试自动切换到下一首 ~",
+        message,
         type: "error",
       });
       this.next();
@@ -492,7 +498,7 @@ export default {
 }
 
 .simply {
-  padding: 10px;
+  padding: 6px;
 }
 
 .more-play-info {

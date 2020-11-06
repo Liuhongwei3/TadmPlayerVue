@@ -48,63 +48,11 @@
       </el-tag>
     </div>
 
-    <div v-if="isPc && (type == 1 || type == 2) && searchResults.length">
-      <el-row class="row-header" type="flex" justify="center" :gutter="20">
-        <el-col :span="1">
-          <div class="detail-item"></div>
-        </el-col>
-        <el-col :span="8">
-          <div class="detail-item">音乐标题</div>
-        </el-col>
-        <el-col :span="4">
-          <div class="detail-item">歌手</div>
-        </el-col>
-        <el-col :span="6">
-          <div class="detail-item">专辑</div>
-        </el-col>
-        <el-col :span="3" v-if="source === 'netease'">
-          <div class="detail-item">时长</div>
-        </el-col>
-      </el-row>
-      <el-row
-        class="search-row-items"
-        type="flex"
-        justify="center"
-        align="middle"
-        :gutter="20"
-        v-for="(item, index) in searchResults"
-        :key="type + item.id"
-        @dblclick.native="updateId({ id: item.id })"
-      >
-        <el-col :span="1">
-          <div class="detail-item">{{ index + 1 }}</div>
-        </el-col>
-        <el-col :span="8">
-          <div class="detail-item">{{ item.name }}</div>
-        </el-col>
-        <el-col :span="4">
-          <div
-            class="detail-item search-singer"
-            v-for="items in item.artists"
-            :key="type + items.id"
-            @click="updateSinger(items.id)"
-          >
-            <span>{{ items.name }}</span>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="detail-item">{{ item.album.name }}</div>
-        </el-col>
-        <el-col :span="3" v-if="source === 'netease'">
-          <div class="detail-item">
-            <i class="el-icon-time"></i>
-            <span style="margin-left: 10px">
-              {{ Math.floor(item.duration / 1000) | timeFormat }}
-            </span>
-          </div>
-        </el-col>
-      </el-row>
-    </div>
+    <detail-content
+      v-if="isPc && (type == 1 || type == 2)"
+      :lists="searchResults"
+      :parent="type"
+    ></detail-content>
 
     <div v-else-if="!isPc && (type == 1 || type == 2) && searchResults.length">
       <el-row
@@ -222,12 +170,14 @@ import { mapMutations, mapState } from "vuex";
 
 import req from "@/network/req";
 import { to } from "@/utils";
+
+import DetailContent from "@/components/content/DetailContent";
 import Items from "@/components/common/items/Items";
 import VideoContent from "../components/content/VideoContent";
 
 export default {
   name: "search",
-  components: { Items, VideoContent },
+  components: { Items, VideoContent, DetailContent },
   data() {
     return {
       type: "1",
@@ -392,29 +342,8 @@ export default {
     },
     async doQqSearch(type = 1) {
       if (type === 1) {
-        let [err, data] = await to(req.qq.searchMusicByQq(this.keyword));
+        this.setResults(await req.qq.searchMusicByQq(this.keyword));
         this.loading = false;
-        if (err) {
-          return;
-        }
-        let {
-          data: {
-            data: { songs },
-          },
-        } = data;
-        let lists = [];
-        for (let v of songs) {
-          lists.push({
-            id: v.id,
-            name: v.name,
-            artists: v.artists,
-            nickname: v.artists[0].name,
-            imgUrl: v.album.cover,
-            album: v.album,
-          });
-        }
-
-        this.setResults(lists);
       }
     },
     doNetEaseSearch(type = 1) {

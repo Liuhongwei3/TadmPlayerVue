@@ -145,6 +145,13 @@ export default {
           )
         : [];
     },
+    ids() {
+      let allIds = [];
+      for (let v of this.musiclist) {
+        allIds.push(v.id);
+      }
+      return allIds;
+    },
   },
   watch: {
     singerId(newValue) {
@@ -178,6 +185,7 @@ export default {
       "updateSource",
       "updateSingerId",
       "updateAlbumId",
+      "updatePlaylistIds",
     ]),
     async requestSinger(sid) {
       this.loading = true;
@@ -211,6 +219,7 @@ export default {
     },
     songId({ id }) {
       this.updateSource("netease");
+      this.updatePlaylistIds(this.ids);
       this.updateSongId(id);
     },
     searchPlayer(id, name) {

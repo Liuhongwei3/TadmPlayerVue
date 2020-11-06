@@ -9,9 +9,9 @@ export default {
   ownUserName: "",
   userBackImg: true,
   detailId: 1978921795,
-  curDetailId: 1978921795,
   albumId: 21506,
-  playlistIds: [],
+  playlistIds: [1446769897],
+  historyLists: [],
   songId: 1446769897,
   singerId: 4292,
 };

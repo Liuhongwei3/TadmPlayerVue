@@ -39,84 +39,26 @@
       </el-collapse-item>
     </el-collapse>
 
-    <el-tabs v-model="activeName" @tab-click="handleClick">
-      <el-tab-pane label="歌曲列表" name="first">
-        <div
-          v-if="isPc && filterList.length !== 0"
-          v-loading.lock="loading"
-          element-loading-text="拼命加载中"
-          element-loading-spinner="el-icon-loading"
-          element-loading-background="rgba(0, 0, 0, 0.8)"
-        >
-          <el-tag v-for="(item, index) in detailInfo.tags" :key="index">{{
-            item
-          }}</el-tag>
-          <el-divider></el-divider>
-          <el-row class="row-header" type="flex" justify="center" :gutter="20">
-            <el-col :span="2">
-              <div class="detail-item">封面</div>
-            </el-col>
-            <el-col :span="6">
-              <div class="detail-item">音乐标题</div>
-            </el-col>
-            <el-col :span="4">
-              <div class="detail-item">歌手</div>
-            </el-col>
-            <el-col :span="5">
-              <div class="detail-item">专辑</div>
-            </el-col>
-            <el-col :span="2">
-              <div class="detail-item">时长</div>
-            </el-col>
-            <el-col :span="4">
-              <div class="detail-item">发行日期</div>
-            </el-col>
-          </el-row>
-          <el-row
-            class="detail-row-items"
-            type="flex"
-            justify="center"
-            align="middle"
-            :gutter="20"
-            v-for="item in filterList"
-            :key="item.id"
-            @click.native="updateSId(item.id)"
-          >
-            <el-col :span="2">
-              <el-avatar class="detail-item" :src="item.al.picUrl"></el-avatar>
-            </el-col>
-            <el-col :span="6">
-              <div class="detail-item">{{ item.name }}</div>
-            </el-col>
-            <el-col :span="4">
-              <div
-                class="detail-item search-singer"
-                v-for="items in item.ar"
-                :key="items.id"
-                @click="updateSinger(items.id)"
-              >
-                <span>{{ items.name }}</span>
-              </div>
-            </el-col>
-            <el-col :span="5">
-              <div class="detail-item">{{ item.al.name }}</div>
-            </el-col>
-            <el-col :span="2">
-              <div class="detail-item">
-                <!-- <i class="el-icon-time"></i> -->
-                <span style="margin-left: 10px">
-                  {{ Math.floor(item.dt / 1000) | timeFormat }}
-                </span>
-              </div>
-            </el-col>
-            <el-col :span="4">
-              <div class="detail-item">{{ item.publishTime | dateFormat }}</div>
-            </el-col>
-          </el-row>
-        </div>
-        <no-result v-else-if="isPc && filterList.length === 0"></no-result>
+    <el-tag v-for="(item, index) in detailInfo.tags" :key="index">{{
+      item
+    }}</el-tag>
+    <el-divider></el-divider>
 
-        <Items v-else-if="!isPc" :lists="filterFormatList" @newId="updateId" />
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane
+        label="歌曲列表"
+        name="first"
+        v-loading.lock="loading"
+        element-loading-text="拼命加载中"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
+        <detail-content
+          :lists="filterList"
+          parent="detail"
+          @updateSong="updateSId"
+          @updateSinger="updateSinger"
+        ></detail-content>
 
         <horizontal-scroll
           class="page-wrapper"
@@ -220,6 +162,9 @@
 
 <script>
 import req from "@/network/req";
+
+import DetailContent from "@/components/content/DetailContent";
+
 import Items from "@/components/common/items/Items";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 import NoResult from "@/components/common/noResult/NoResult";
@@ -230,6 +175,7 @@ import { mapMutations, mapState } from "vuex";
 export default {
   name: "Detail",
   components: {
+    DetailContent,
     Items,
     HorizontalScroll,
     NoResult,
@@ -241,7 +187,6 @@ export default {
       detailInfo: {},
       tempDetailId: 0,
       songs: [],
-      formatSongs: [],
       ids: [],
       pageSize: 15,
       curPage: 1,
@@ -282,16 +227,10 @@ export default {
     filterList() {
       return this.songs[this.curPage] ? this.songs[this.curPage] : [];
     },
-    filterFormatList() {
-      return this.formatSongs[this.curPage]
-        ? this.formatSongs[this.curPage]
-        : [];
-    },
   },
   watch: {
     detailId(newValue) {
       this.songs = [];
-      this.formatSongs = [];
       this.ids = [];
       this.hotComments = [];
       this.comments = [];
@@ -314,7 +253,6 @@ export default {
   methods: {
     ...mapMutations([
       "updateSongId",
-      "updateCurDetailId",
       "updatePlaylistIds",
       "updateUserId",
       "updateSingerId",
@@ -328,7 +266,6 @@ export default {
     },
     async requestPlaylistDetail(pdlId) {
       this.songs = [];
-      this.formatSongs = [];
       this.ids = [];
 
       this.loading = true;
@@ -363,22 +300,9 @@ export default {
       for (let id of ids) {
         songIds += id + ",";
       }
-      let { songs } = await req.netease.musicCover(songIds.slice(0, -1));
+      let songs = await req.netease.musicCover(songIds.slice(0, -1));
       // 因为直接赋值数组指定索引不响应
       this.$set(this.songs, this.curPage, songs);
-
-      let formatList = [];
-      for (let v of songs) {
-        let obj = {};
-
-        obj.id = v.id;
-        obj.name = v.name;
-        obj.nickname = v.ar[0].name;
-        obj.imgUrl = v.al.picUrl;
-
-        formatList.push(obj);
-      }
-      this.$set(this.formatSongs, this.curPage, formatList);
 
       this.loading = false;
       this.handleClick();
@@ -415,7 +339,6 @@ export default {
     updateSId(sid) {
       this.updateSongId(sid);
       if (this.tempDetailId !== this.detailId) {
-        this.updateCurDetailId(this.detailId);
         this.updatePlaylistIds(this.ids);
         this.tempDetailId = this.detailId;
       }

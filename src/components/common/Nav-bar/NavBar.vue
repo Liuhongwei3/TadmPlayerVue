@@ -27,6 +27,9 @@
       <router-link to="/detail" @click.native="dbClickTop('/detail')"
         >歌单</router-link
       >
+      <router-link to="/history" @click.native="dbClickTop('/history')"
+        >历史</router-link
+      >
       <router-link to="/album" @click.native="dbClickTop('/album')"
         >专辑</router-link
       >

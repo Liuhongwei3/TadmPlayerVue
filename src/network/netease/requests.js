@@ -54,16 +54,13 @@ const hotDetails = async (limit = 24) => {
   return formatList;
 };
 
-const listId = (idx) => {
-  return request({
-    url: "/top/list?idx=" + idx,
-  });
-};
+const checkMusic = async (id) => {
+  let flag = await doReq(`/check/music?id=${id}`);
+  if (!flag || !flag.data) {
+    return { suceess: false, message: "暂无版权" };
+  }
 
-const checkMusic = (id) => {
-  return request({
-    url: "/check/music?id=" + id,
-  });
+  return flag.data;
 };
 
 const musicUrl = async (id) => {
@@ -77,17 +74,32 @@ const musicUrl = async (id) => {
 
 const musicCover = async (id) => {
   let flag = await doReq(`/song/detail?ids=${id}`);
-  if (!flag) {
-    return {};
+  if (!flag || !flag.data || !flag.data.songs) {
+    return [];
+  }
+
+  let songs = [];
+  for (let v of flag.data.songs) {
+    songs.push({
+      id: v.id,
+      name: v.name,
+      artists: v.ar,
+      album: v.al,
+      dt: Math.floor(v.dt / 1000),
+      mv: v.mv,
+      publishTime: v.publishTime,
+    });
+  }
+  return songs;
+};
+
+const musicLyric = async (id) => {
+  let flag = await doReq(`/lyric?id=${id}`);
+  if (!flag || !flag.data) {
+    return false;
   }
 
   return flag.data;
-};
-
-const musicLyric = (id) => {
-  return request({
-    url: "/lyric?id=" + id,
-  });
 };
 
 const userMusic = async (uid) => {
@@ -128,11 +140,17 @@ const searchSongs = async (keyword, type = 1) => {
   if (!flag || !flag.data.result || !flag.data.result.songs) {
     return [];
   }
+
   let {
     data: {
       result: { songs },
     },
   } = flag;
+  for (let v of songs) {
+    v.dt = Math.floor(v.duration / 1000);
+    v.publishTime = v.album.publishTime;
+  }
+
   return songs;
 };
 
@@ -591,7 +609,6 @@ const getAlbumComments = async (id, limit = 20) => {
 
 export default {
   toplist,
-  listId,
   checkMusic,
   musicUrl,
   musicCover,

@@ -276,6 +276,8 @@ video {
   }
   .nav-wrapper {
     width: 20vw;
+    height: 70vh;
+    overflow-y: scroll;
   }
 
   .top-info {

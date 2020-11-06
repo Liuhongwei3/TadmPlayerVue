@@ -11,14 +11,26 @@ export default {
   updateDetailId: (state, payload) => {
     state.detailId = payload;
   },
-  updateCurDetailId: (state, payload) => {
-    state.curDetailId = payload;
-  },
   updateAlbumId: (state, payload) => {
     state.albumId = payload;
   },
   updatePlaylistIds: (state, payload) => {
     state.playlistIds = payload;
+  },
+  updateHistoryLists: (state, payload) => {
+    if (!payload || payload.length === 0) {
+      state.historyLists = [];
+      return;
+    }
+    for (let pay of payload) {
+      for (let i = 0; i < state.historyLists.length; i++) {
+        if (pay.id === state.historyLists[i].id) {
+          state.historyLists.splice(i, 1);
+          break;
+        }
+      }
+      state.historyLists.unshift(pay);
+    }
   },
   updateSongId: (state, payload) => {
     state.songId = payload;

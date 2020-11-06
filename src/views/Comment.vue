@@ -161,29 +161,9 @@ export default {
           break;
         }
         case "qq": {
-          [
-            err,
-            {
-              data: {
-                data: { hotComments },
-              },
-            },
-          ] = await to(req.qq.getMusicCommentsByQq(sid));
-          if (!err) {
-            let temp = [];
-            for (let v of hotComments) {
-              temp.push({
-                time: v.time * 1000,
-                content: v.rootcommentcontent,
-                likedCount: v.praisenum,
-                user: {
-                  userId: 0,
-                  avatarUrl: v.avatarurl,
-                  nickname: v.nick,
-                },
-              });
-            }
-            this.hotComments = temp;
+          let data = await to(req.qq.getMusicCommentsByQq(sid));
+          if (!data) {
+            [this.hotComments, this.comments] = data;
           }
           break;
         }
