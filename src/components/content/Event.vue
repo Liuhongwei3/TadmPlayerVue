@@ -10,7 +10,7 @@
           <el-avatar
             class="event-user-item"
             :src="item.user.avatarUrl"
-            v-viewer.static
+            v-viewer
           ></el-avatar>
           <div class="event-user-item">
             <div>
@@ -27,7 +27,7 @@
           <event-content :json="item.json" />
         </div>
 
-        <div class="event-img" v-viewer.static>
+        <div class="event-img" v-viewer>
           <img
             v-for="items in item.pics"
             :key="items.originUrl"

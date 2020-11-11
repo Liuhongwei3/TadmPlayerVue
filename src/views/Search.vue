@@ -52,6 +52,8 @@
       v-if="isPc && (type == 1 || type == 2)"
       :lists="searchResults"
       :parent="type"
+      @updateSong="updateSId"
+      @updateSinger="updateSinger"
     ></detail-content>
 
     <div v-else-if="!isPc && (type == 1 || type == 2) && searchResults.length">
@@ -234,6 +236,9 @@ export default {
     handleSelect(item) {
       this.keyword = item.searchWord;
       this.doSearch();
+    },
+    updateSId(sid) {
+      this.updateSongId(sid);
     },
     async updateId({ id, name, artists }) {
       switch (+this.type) {

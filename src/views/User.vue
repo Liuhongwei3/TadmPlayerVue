@@ -1,5 +1,6 @@
 <template>
   <div
+    :style="useBackImg"
     v-loading.lock="loading"
     element-loading-text="拼命加载中"
     element-loading-spinner="el-icon-loading"
@@ -14,7 +15,7 @@
           size="medium"
           v-if="userInfo.profile.avatarUrl"
           :src="userInfo.profile.avatarUrl"
-          v-viewer.static
+          v-viewer
         />
         <el-tag type="success">{{ userInfo.profile.nickname }}</el-tag>
         <el-tooltip placement="bottom" content="性别">
@@ -154,7 +155,7 @@ export default {
       },
     },
     useBackImg() {
-      if (this.userBackImg) {
+      if (this.userBackImg && this.userInfo.profile) {
         return {
           backgroundImage: "url(" + this.userInfo.profile.backgroundUrl + ")",
           backgroundPosition: "center",

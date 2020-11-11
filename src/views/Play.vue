@@ -1,13 +1,6 @@
 <template>
   <div>
-    <audio
-      id="audio"
-      ref="audio"
-      :src="urls"
-      autoplay
-      muted
-      crossorigin="anonymous"
-    />
+    <audio id="audio" ref="audio" :src="urls" muted crossorigin="anonymous" />
     <!-- <canvas id="canvas"></canvas> -->
     <Drawer :drawer.sync="drawer" />
 
@@ -23,6 +16,7 @@
               <div class="otherName">
                 <span>歌手:</span>
                 <span
+                  class="content-username"
                   v-for="art in artists"
                   :key="art.id"
                   @click="toSinger(art.id)"
@@ -31,7 +25,9 @@
                 </span>
               </div>
               <div class="otherName">
-                专辑:<span>{{ albumName }} </span>
+                专辑:<span class="content-username" @click="toAlbum(album.id)"
+                  >{{ album.name }}
+                </span>
               </div>
             </div>
           </div>
@@ -51,19 +47,10 @@
           <el-tag>{{ this.songName }}</el-tag>
         </el-tooltip>
 
-        <span v-if="isPc">
-          <span v-for="art in artists" :key="art.id" @click="toSinger(art.id)">
-            <el-tooltip content="点击查看歌手详情" placement="top">
-              <el-tag type="success">
-                {{ art.name }}
-              </el-tag>
-            </el-tooltip>
-          </span>
-        </span>
-        <span v-else>
+        <span v-for="art in artists" :key="art.id" @click="toSinger(art.id)">
           <el-tooltip content="点击查看歌手详情" placement="top">
-            <el-tag v-if="artists[0]" type="success">
-              {{ artists[0].name }}
+            <el-tag type="success">
+              {{ art.name }}
             </el-tag>
           </el-tooltip>
         </span>
@@ -172,13 +159,13 @@ export default {
   data() {
     return {
       songName: "",
-      albumName: "",
+      album: {},
       artists: [],
-      player: "",
       imgs: "",
       defaultImgs: 'this.src="' + require("@/assets/404.jpg") + '"',
       urls: "",
       mv: 0,
+      publishTime: 0,
       currentIndex: 0,
       currDuration: 0,
       order: true,
@@ -216,7 +203,6 @@ export default {
     },
   },
   created() {
-    this.requestCover(this.id);
     this.requestMusicUrl(this.id);
   },
   mounted() {
@@ -248,7 +234,6 @@ export default {
     async id(newValue) {
       if (!newValue) return;
       if (this.source === "netease") {
-        this.requestCover(newValue);
         this.requestMusicUrl(newValue);
       } else if (this.source === "qq") {
         let [{ data }, url] = await Promise.all([
@@ -259,7 +244,7 @@ export default {
         this.songName = data.name;
         this.artists = data.artists;
         this.imgs = data.album.cover;
-        this.albumName = data.album.name;
+        this.album = data.album;
 
         if (url) {
           this.urls = url;
@@ -282,49 +267,74 @@ export default {
       "updateSingerId",
       "updateDetailId",
       "updateHistoryLists",
+      "updateAlbumId",
+      "updatePlaylistIds",
     ]),
     async requestCover(newValue) {
       this.imgs = "";
       this.songName = "";
-      this.player = "";
+      this.artists = [];
+      this.album = {};
+      this.percent = 0;
+      this.currDuration = 0;
+      this.mv = 0;
+      this.publishTime = 0;
+
       let data = await req.netease.musicCover(newValue);
+
       if (data.length >= 1) {
         data = data[0];
+
         this.songName = data.name;
         this.artists = data.artists;
         this.imgs = data.album.picUrl;
-        this.albumName = data.album.name;
+        this.album = data.album;
         this.mv = data.mv;
         this.currDuration = data.dt;
-
-        this.updateHistoryLists([
-          {
-            id: newValue,
-            name: data.name,
-            artists: data.artists,
-            album: data.album,
-            dt: data.dt,
-            publishTime: data.publishTime,
-          },
-        ]);
+        this.publishTime = data.publishTime;
 
         this.updateImgs(this.imgs);
       }
     },
     async requestMusicUrl(id) {
       let { success, message } = await req.netease.checkMusic(id);
+
       if (!success) {
         this.showAlert(message);
+        this.deleteId(id);
       } else {
         this.urls = "";
+
         let url = await req.netease.musicUrl(id);
+
         if (url && url.length !== 0) {
+          this.requestCover(id);
           this.urls = url;
           this.play();
+
+          this.updateHistoryLists([
+            {
+              id: this.id,
+              name: this.songName,
+              artists: this.artists,
+              album: this.album,
+              dt: this.currDuration,
+              publishTime: this.publishTime,
+            },
+          ]);
         } else {
           this.showAlert();
+          this.deleteId(id);
         }
       }
+    },
+    deleteId(id) {
+      // let index = this.playlistIds.findIndex((id) => {
+      //   return id === this.id;
+      // });
+      // console.log(index);
+      // this.playlistIds.splice(index, 1);
+      // this.updatePlaylistIds(this.playlistIds);
     },
     jumpIndex() {
       if (this.id !== this.playlistIds[this.currentIndex]) {
@@ -375,6 +385,12 @@ export default {
         this.$router.push("/singer");
       }
     },
+    toAlbum(id) {
+      this.updateAlbumId(id);
+      if (this.$route.path !== "/album" && this.source === "netease") {
+        this.$router.push("/album");
+      }
+    },
     toMv() {
       if (this.$route.path !== "/showMv" && this.source === "netease") {
         this.$router.push({
@@ -403,7 +419,7 @@ export default {
       req.netease
         .download(this.urls)
         .then((res) => {
-          createDownload(this.songName, this.player, res.data);
+          createDownload(this.songName, this.artists[0].name, res.data);
           this.$notify({
             title: "成功",
             message: "歌曲下载完成！",
@@ -454,7 +470,7 @@ export default {
   height: 200px;
   border-radius: 50%;
   border: 30px solid rgb(56, 53, 53);
-  animation: imgRotate 10s linear infinite normal;
+  animation: imgRotate 20s linear infinite normal;
   position: relative;
   z-index: 2;
 }
@@ -484,17 +500,11 @@ export default {
   margin-left: -10vw;
 }
 
-.el-tag {
-  max-width: 30vw;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .more-play-info,
 .simply {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .simply {
@@ -504,7 +514,7 @@ export default {
 .more-play-info {
   background-color: rgba(0, 0, 0, 0.6);
   height: 70vh;
-  padding: 5vh;
+  padding: 2vw;
   border-top-left-radius: 25px;
   border-top-right-radius: 25px;
 }
@@ -525,12 +535,12 @@ export default {
 
 .up-enter,
 .up-leave-to {
-  top: 84vh;
+  top: 85vh;
 }
 
 .up-enter-to,
 .up-leave {
-  top: 5vh;
+  top: 8vh;
 }
 
 @keyframes imgRotate {
@@ -593,6 +603,10 @@ i {
     padding: 0;
   }
 
+  .more {
+    width: 80%;
+  }
+
   .simply-play-info {
     margin-left: -20vw;
   }
@@ -608,7 +622,7 @@ i {
 
   .left,
   .right {
-    width: 100%;
+    width: 96%;
   }
 
   .left img {

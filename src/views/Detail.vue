@@ -6,7 +6,7 @@
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
     <div class="user-info">
-      <el-avatar size="medium" :src="detailInfo.coverImgUrl" v-viewer.static />
+      <el-avatar size="medium" :src="detailInfo.coverImgUrl" v-viewer />
       <el-tag type="primary">
         {{ this.detailInfo.name }}
       </el-tag>

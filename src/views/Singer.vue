@@ -6,7 +6,7 @@
     element-loading-background="rgba(0, 0, 0, 0.8)"
   >
     <div class="user-info">
-      <el-avatar :src="singerInfo.picUrl" v-viewer.static></el-avatar>
+      <el-avatar :src="singerInfo.picUrl" v-viewer></el-avatar>
       <el-tag>{{ singerInfo.name }}</el-tag>
       <el-tag type="danger">歌曲：{{ singerInfo.musicSize | roundW }}</el-tag>
       <el-tag type="success" @click="toUser(singerInfo.accountId)"

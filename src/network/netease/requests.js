@@ -80,6 +80,9 @@ const musicCover = async (id) => {
 
   let songs = [];
   for (let v of flag.data.songs) {
+    if (v.ar.length >= 3) {
+      v.ar = v.ar.slice(0, 3);
+    }
     songs.push({
       id: v.id,
       name: v.name,
@@ -147,6 +150,9 @@ const searchSongs = async (keyword, type = 1) => {
     },
   } = flag;
   for (let v of songs) {
+    if (v.artists.length >= 3) {
+      v.artists = v.artists.slice(0, 3);
+    }
     v.dt = Math.floor(v.duration / 1000);
     v.publishTime = v.album.publishTime;
   }

@@ -38,7 +38,7 @@
         <el-col :span="2">
           <el-avatar
             class="detail-item"
-            v-if="item.album"
+            v-if="item.album && item.album.picUrl"
             :src="item.album.picUrl"
           ></el-avatar>
         </el-col>
@@ -56,7 +56,9 @@
           </div>
         </el-col>
         <el-col :span="4">
-          <div class="detail-item">{{ item.album.name }}</div>
+          <div class="detail-item" @click="toAlbum(item.album.id)">
+            {{ item.album.name }}
+          </div>
         </el-col>
         <el-col :span="3">
           <div class="detail-item">
@@ -80,7 +82,7 @@
 <script>
 import Items from "@/components/common/items/Items";
 import NoResult from "@/components/common/noResult/NoResult";
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "DetailContent",
@@ -110,11 +112,16 @@ export default {
   },
   watch: {},
   methods: {
+    ...mapMutations(["updateAlbumId"]),
     updateSong({ id }) {
       this.$emit("updateSong", id);
     },
     updateSinger(id) {
       this.$emit("updateSinger", id);
+    },
+    toAlbum(id) {
+      this.updateAlbumId(id);
+      this.$router.push("/album");
     },
   },
 };
