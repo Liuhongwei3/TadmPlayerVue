@@ -9,6 +9,9 @@
 <template>
   <div class="nav-wrapper">
     <div class="nav-content">
+      <router-link to="/home" @click.native="dbClickTop('/home')">
+        发现音乐
+      </router-link>
       <router-link to="/top" @click.native="dbClickTop('/top')">
         巅峰榜
       </router-link>

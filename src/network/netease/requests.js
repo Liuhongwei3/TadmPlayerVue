@@ -9,6 +9,54 @@
 import { request } from "./index";
 import doReq from "./doReq";
 
+// 0: pc
+// 1: android
+// 2: iphone
+// 3: ipad
+const getBanner = async (type = 0) => {
+  let flag = await doReq(`/banner?type=${type}`);
+  if (!flag || !flag.data || !flag.data.banners) {
+    return [];
+  }
+
+  return flag.data.banners;
+};
+
+const getRecomDetails = async (limit = 30) => {
+  let flag = await doReq(`/personalized?limit=${limit}`);
+  if (!flag || !flag.data) {
+    return [];
+  }
+
+  for (let v of flag.data.result) {
+    v.imgUrl = v.picUrl;
+  }
+
+  return flag.data.result;
+};
+
+const getNewSongs = async (limit = 14) => {
+  let flag = await doReq(`/personalized/newsong?limit=${limit}`);
+  if (!flag || !flag.data) {
+    return [];
+  }
+
+  for (let v of flag.data.result) {
+    v.imgUrl = v.picUrl;
+  }
+
+  return flag.data.result;
+};
+
+const getNewMvs = async () => {
+  let flag = await doReq(`/personalized/mv`);
+  if (!flag || !flag.data) {
+    return [];
+  }
+
+  return flag.data.result;
+};
+
 const toplist = async () => {
   let flag = await doReq(`/toplist`);
   if (!flag) {
@@ -136,6 +184,15 @@ const searchMusic = (keyword) => {
   return request({
     url: "/search?keywords=" + keyword,
   });
+};
+
+const searchSuggest = async (keyword, type = "mobile") => {
+  let flag = await doReq(`/search/suggest?keywords=${keyword}&type=${type}`);
+  if (!flag) {
+    return [];
+  }
+
+  return flag.data.result;
 };
 
 const searchSongs = async (keyword, type = 1) => {
@@ -613,7 +670,37 @@ const getAlbumComments = async (id, limit = 20) => {
   return [flag.data.comments, flag.data.hotComments];
 };
 
+const getSimiDetails = async (id) => {
+  let flag = await doReq(`/related/playlist?id=${id}`);
+  if (!flag || !flag.data || !flag.data.playlists) {
+    return [];
+  }
+
+  for (let v of flag.data.playlists) {
+    v.imgUrl = v.coverImgUrl;
+  }
+
+  return flag.data.playlists;
+};
+
+const getSimiSingers = async (id) => {
+  let flag = await doReq(`/simi/artist?id=${id}`);
+  if (!flag || !flag.data || !flag.data.artists) {
+    return [];
+  }
+
+  for (let v of flag.data.artists) {
+    v.imgUrl = v.picUrl;
+  }
+
+  return flag.data.artists;
+};
+
 export default {
+  getBanner,
+  getRecomDetails,
+  getNewSongs,
+  getNewMvs,
   toplist,
   checkMusic,
   musicUrl,
@@ -624,6 +711,7 @@ export default {
   playlistdetail,
   searchMusic,
   search,
+  searchSuggest,
   searchSongs,
   searchPlaylists,
   searchArtists,
@@ -657,4 +745,6 @@ export default {
   getVideoComments,
   getAlbumDetail,
   getAlbumComments,
+  getSimiDetails,
+  getSimiSingers,
 };

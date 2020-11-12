@@ -6,12 +6,17 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    redirect: "/top",
+    redirect: "/home",
   },
   {
     path: "/top",
     name: "Top",
     component: () => import(/* webpackChunkName: "1" */ "@/views/Top.vue"),
+  },
+  {
+    path: "/home",
+    name: "Home",
+    component: () => import(/* webpackChunkName: "2" */ "@/views/Home.vue"),
   },
   {
     path: "/hotDetail",

@@ -164,7 +164,6 @@ export default {
   width: 85%;
   height: 50vh;
   overflow: hidden;
-  /* overflow-y: scroll; */
 }
 
 .lyrics {
@@ -187,7 +186,7 @@ export default {
   opacity: 1;
   color: transparent;
   background: linear-gradient(to right, #0af, #2fff39);
-  -webkit-background-clip: text;
+  background-clip: text;
   font-size: calc(12px + 1vmin);
   font-weight: 700;
 }

@@ -1,7 +1,10 @@
 <template>
   <div id="app">
     <div id="app-bg" :style="backImg"></div>
-    <el-tag class="top-info">Welcome to Tadm-Play-Vue ^-^</el-tag>
+    <div class="top-info">
+      <el-tag style="font-size: 15px">Welcome to Tadm-Play-Vue ^-^</el-tag>
+    </div>
+
     <nav-bar @toTop="backTop"></nav-bar>
     <div class="center">
       <vertical-scroll
@@ -25,9 +28,7 @@
           </div>
         </transition>
       </vertical-scroll>
-      <div class="home">
-        <Play />
-      </div>
+      <Play />
     </div>
     <back-top class="backTop" @backTop="backTop" v-show="showBackTop" />
   </div>

@@ -30,16 +30,9 @@
               </div>
             </el-tooltip>
           </template>
-          <template v-slot:nickname="singer">
-            <el-tooltip placement="top" content="歌曲数">
-              <div>
-                <i class="fa fa-list-ol" aria-hidden="true"></i>
-                <span>{{ singer.item.musicSize | roundW }}</span>
-              </div>
-            </el-tooltip>
-          </template>
         </Items>
       </el-tab-pane>
+
       <el-tab-pane label="热门歌曲" name="second">
         <Items :lists="filterList" @newId="songId" />
         <horizontal-scroll class="page-wrapper" :probe-type="3" ref="page">
@@ -58,10 +51,12 @@
           </div>
         </horizontal-scroll>
       </el-tab-pane>
+
       <el-tab-pane name="third">
         <span slot="label">专辑 ({{ singerInfo.albumSize | roundW }})</span>
         <Items :lists="albums" @newId="updateId" />
       </el-tab-pane>
+
       <el-tab-pane name="fourth">
         <span slot="label">MV ({{ singerInfo.mvSize | roundW }})</span>
         <Items :lists="mvs" @newId="updateId">
@@ -81,6 +76,19 @@
           </template>
         </Items>
         <load-more-foot :loading="loading" :noMore="mvNoMore"></load-more-foot>
+      </el-tab-pane>
+
+      <el-tab-pane label="相似歌手" name="fifth">
+        <Items :lists="simiSingers" @newId="updateId">
+          <template v-slot:playCount="singer">
+            <el-tooltip placement="bottom" content="专辑数">
+              <div>
+                <i class="fa fa-list-ol" aria-hidden="true"></i>
+                <span>{{ singer.item.albumSize | roundW }}</span>
+              </div>
+            </el-tooltip>
+          </template>
+        </Items>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -111,6 +119,7 @@ export default {
       activeName: "second",
       mvLimit: 20,
       mvNoMore: false,
+      simiSingers: [],
     };
   },
   created() {
@@ -162,6 +171,7 @@ export default {
         this.musiclist = [];
         this.albums = [];
         this.mvs = [];
+        this.simiSingers = [];
         this.mvLimit = 20;
         this.mvNoMore = false;
         this.requestSinger(newValue);
@@ -174,6 +184,8 @@ export default {
         this.requestAlbums(this.singerId);
       } else if (newValue === "fourth" && this.mvs.length === 0) {
         this.requestMvs(this.singerId, this.mvLimit);
+      } else if (newValue === "fifth" && this.simiSingers.length === 0) {
+        this.requestSimiSingers(this.singerId);
       }
     },
   },
@@ -208,6 +220,11 @@ export default {
     async reqHotSingers() {
       this.loading = true;
       this.hotSingers = await req.netease.hotSinger();
+      this.finishReq();
+    },
+    async requestSimiSingers(id) {
+      this.loading = true;
+      this.simiSingers = await req.netease.getSimiSingers(id);
       this.finishReq();
     },
     finishReq(toTop = true) {
@@ -257,6 +274,9 @@ export default {
           path: "/showMv",
           query: { mvId: id, name, artName: nickname },
         });
+      } else if (this.activeName === "fifth") {
+        this.updateSingerId(id);
+        this.updateSingerName(name);
       }
     },
   },

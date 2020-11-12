@@ -83,6 +83,7 @@
           </div>
         </horizontal-scroll>
       </el-tab-pane>
+
       <el-tab-pane
         name="second"
         v-loading.lock="commentsLoading"
@@ -113,6 +114,7 @@
           </el-tab-pane>
         </el-tabs>
       </el-tab-pane>
+
       <el-tab-pane
         name="third"
         v-loading.lock="subLoading"
@@ -155,6 +157,23 @@
         <no-result v-else>
           <el-tag type="warning">暂无收藏者！</el-tag>
         </no-result>
+      </el-tab-pane>
+
+      <el-tab-pane
+        label="相关推荐"
+        name="fourth"
+        v-loading.lock="recomLoading"
+        element-loading-text="拼命加载中"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+      >
+        <Items :lists="recomDetails" @newId="updateId">
+          <template v-slot:nickname="detail">
+            <span v-if="detail.item.creator.nickname"
+              >By {{ detail.item.creator.nickname }}</span
+            >
+          </template>
+        </Items>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -201,6 +220,8 @@ export default {
       subLimit: 20,
       noMore: false,
       commActiveName: "comm-first",
+      recomDetails: [],
+      recomLoading: false,
     };
   },
   created() {
@@ -235,6 +256,7 @@ export default {
       this.hotComments = [];
       this.comments = [];
       this.subscribers = [];
+      this.recomDetails = [];
       this.curPage = 1;
       this.activeName = "first";
       this.requestPlaylistDetail(newValue);
@@ -247,6 +269,8 @@ export default {
         this.requesDetailComments(this.detailInfo.id, this.limit);
       } else if (newValue === "third" && this.subscribers.length === 0) {
         this.requestDetailSubscribe(this.detailInfo.id, this.subLimit);
+      } else if (newValue === "fourth" && this.subscribers.length === 0) {
+        this.requestRecomDetails(this.detailInfo.id);
       }
     },
   },
@@ -256,6 +280,7 @@ export default {
       "updatePlaylistIds",
       "updateUserId",
       "updateSingerId",
+      "updateDetailId",
     ]),
     handleClick(toTop = true) {
       this.$nextTick(() => {
@@ -333,6 +358,11 @@ export default {
       this.subLoading = false;
       this.handleClick();
     },
+    async requestRecomDetails(id) {
+      this.recomLoading = true;
+      this.recomDetails = await req.netease.getSimiDetails(id);
+      this.recomLoading = false;
+    },
     loadAll() {
       this.noMore = true;
     },
@@ -351,6 +381,8 @@ export default {
         this.updateSId(id);
       } else if (this.activeName === "third") {
         this.updateUId(id);
+      } else if (this.activeName === "fourth") {
+        this.updateDetailId(+id);
       }
     },
     updateUId(id) {

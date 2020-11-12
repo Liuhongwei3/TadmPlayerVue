@@ -308,7 +308,7 @@ export default {
         let url = await req.netease.musicUrl(id);
 
         if (url && url.length !== 0) {
-          this.requestCover(id);
+          await this.requestCover(id);
           this.urls = url;
           this.play();
 
@@ -522,7 +522,7 @@ export default {
 .more {
   width: 88%;
   position: fixed;
-  bottom: 16%;
+  bottom: 14%;
   z-index: 9;
   border-top-left-radius: 25px;
   border-top-right-radius: 25px;
@@ -562,11 +562,9 @@ i {
 }
 
 .playControl {
-  margin: 0 1vw 1vw 1vw;
   display: flex;
   justify-content: center;
   background-color: #efeaea85;
-  border-radius: 10px;
   transition: all 0.5s;
   z-index: 9;
 }
@@ -586,7 +584,6 @@ i {
 
 .myProgress {
   flex: 6;
-  margin: 0 0.5vw;
 }
 
 .myProgress:hover {
@@ -622,7 +619,7 @@ i {
 
   .left,
   .right {
-    width: 96%;
+    width: 100%;
   }
 
   .left img {

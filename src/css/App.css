@@ -12,7 +12,7 @@
 #app-bg {
   width: 100vw;
   height: 100vh;
-  filter: blur(10px) brightness(70%);
+  filter: blur(16px) brightness(60%);
   position: relative;
   z-index: -2;
 }
@@ -55,7 +55,7 @@ video {
 .nav-wrapper {
   position: absolute;
   left: 0;
-  top: 32px;
+  top: 45px;
   width: 10vw;
   overflow: hidden;
 }
@@ -81,10 +81,12 @@ video {
 }
 
 .top-info {
-  position: fixed;
+  width: 100vw;
+  position: absolute;
   top: 0;
-  left: 45%;
-  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .center {
@@ -115,12 +117,12 @@ video {
 
 .name,
 .items-name {
+  text-align: center;
   width: 160px;
-  margin: 0 auto;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   line-height: 20px;
+  height: 40px;
 }
 
 .fa-2x {
@@ -130,7 +132,7 @@ video {
 
 .content {
   width: 88vw;
-  height: 77vh;
+  height: 80vh;
   overflow: hidden;
 }
 
@@ -174,10 +176,7 @@ video {
   position: absolute;
   bottom: 10px;
   left: 5px;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
   z-index: 9;
   text-align: left;
 }
@@ -273,14 +272,11 @@ video {
   video {
     width: 75vw;
   }
+
   .nav-wrapper {
     width: 20vw;
     height: 70vh;
     overflow-y: scroll;
-  }
-
-  .top-info {
-    left: 25%;
   }
 
   .main img {

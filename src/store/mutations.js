@@ -22,12 +22,11 @@ export default {
       state.historyLists = [];
       return;
     }
+
     for (let pay of payload) {
-      for (let i = 0; i < state.historyLists.length; i++) {
-        if (pay.id === state.historyLists[i].id) {
-          state.historyLists.splice(i, 1);
-          break;
-        }
+      let same = state.historyLists.findIndex((item) => item.id === pay.id);
+      if (same !== -1) {
+        state.historyLists.splice(same, 1);
       }
       state.historyLists.unshift(pay);
     }

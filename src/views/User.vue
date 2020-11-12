@@ -68,6 +68,11 @@
         </el-collapse-item>
       </el-collapse>
 
+      <div style="text-align: left; color: #d9d9d9">
+        听歌排行：累计听歌《 {{ userInfo.listenSongs }} 》首
+      </div>
+      <el-divider></el-divider>
+
       <el-tabs v-model="activeName" @tab-click="handleClick">
         <el-tab-pane label="歌单列表" name="first">
           <user-content

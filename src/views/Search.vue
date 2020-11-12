@@ -37,8 +37,25 @@
         @click="doSearch"
       ></el-button>
       <template slot-scope="{ item }">
-        <div class="searchWord">{{ item.searchWord }}</div>
-        <span class="search-input-content">{{ item.content }}</span>
+        <div v-if="item.content">
+          <div class="searchWord">{{ item.searchWord }}</div>
+          <span class="search-input-content">{{ item.content }}</span>
+        </div>
+        <div v-else>
+          <div class="searchWord">{{ item.keyword }}</div>
+          <!-- <div class="searchWord">{{ item.name }}</div> -->
+          <!-- <div v-if="type == 1 || type == 2">
+            <span
+              class="search-input-content"
+              v-for="art in item.artists"
+              :key="art.id"
+              >{{ art.name }} /
+            </span>
+          </div>
+          <div v-if="type == 8">
+            <span class="search-input-content">{{ art.name }}</span>
+          </div> -->
+        </div>
       </template>
     </el-autocomplete>
 
@@ -220,11 +237,31 @@ export default {
       "updateSingerId",
       "updateAlbumId",
     ]),
-    querySearch(queryString, cb) {
-      let hotKeywords = this.hotSearchKeywords;
-      let results = queryString
-        ? hotKeywords.filter(this.createFilter(queryString))
-        : hotKeywords;
+    async querySearch(queryString, cb) {
+      let results = [];
+      if (!queryString) {
+        let hotKeywords = this.hotSearchKeywords;
+        results = queryString
+          ? hotKeywords.filter(this.createFilter(queryString))
+          : hotKeywords;
+      } else {
+        let res = await req.netease.searchSuggest(queryString);
+        results = res.allMatch;
+        // if (this.type == 1 || this.type == 2) {
+        //   results = res.songs;
+        // } else if (this.type == 3) {
+        //   results = res.playlists;
+        // } else if (this.type == 4) {
+        //   results = res.artists;
+        // } else if (this.type == 8) {
+        //   results = res.albums;
+        // }
+
+        if (!results) {
+          results = [];
+        }
+      }
+
       // 调用 callback 返回建议列表的数据
       cb(results);
     },
@@ -234,7 +271,7 @@ export default {
       };
     },
     handleSelect(item) {
-      this.keyword = item.searchWord;
+      this.keyword = item.searchWord ? item.searchWord : item.keyword;
       this.doSearch();
     },
     updateSId(sid) {

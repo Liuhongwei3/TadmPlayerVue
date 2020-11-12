@@ -16,7 +16,7 @@ export function request(config) {
       : "https://api.mtnhao.com/";
   const instance = axios.create({
     baseURL,
-    timeout: 5000,
+    timeout: 10000,
   });
 
   instance.interceptors.request.use(
