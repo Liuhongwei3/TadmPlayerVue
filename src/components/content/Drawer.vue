@@ -23,8 +23,8 @@
             />
           </el-tooltip>
         </el-option>
-        <el-option label="QQ" value="qq">
-          <el-tooltip content="QQ" placement="left">
+        <el-option label="QQ" value="qq" disabled>
+          <el-tooltip content="QQ（无线上资源）" placement="left">
             <img
               width="25"
               height="25"

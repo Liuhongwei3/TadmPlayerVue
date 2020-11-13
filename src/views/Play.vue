@@ -37,84 +37,125 @@
     </transition>
 
     <div class="simply-play-info">
-      <div class="simply">
-        <el-tooltip content="点击查看或隐藏详情界面" placement="top">
-          <div @click="showMore = !showMore">
-            <el-avatar shape="square" :src="imgs" />
+      <div class="simply" v-if="isPc">
+        <div class="control-start">
+          <div>
+            <el-tooltip content="点击查看或隐藏详情界面" placement="top">
+              <img
+                class="cover"
+                width="60"
+                height="60"
+                :src="imgs"
+                @click="showMore = !showMore"
+              />
+            </el-tooltip>
           </div>
-        </el-tooltip>
-        <el-tooltip content="歌曲名" placement="top">
-          <el-tag>{{ this.songName }}</el-tag>
-        </el-tooltip>
 
-        <span v-for="art in artists" :key="art.id" @click="toSinger(art.id)">
-          <el-tooltip content="点击查看歌手详情" placement="top">
-            <el-tag type="success">
-              {{ art.name }}
-            </el-tag>
-          </el-tooltip>
-        </span>
+          <div class="song-info">
+            <div class="song-name">{{ this.songName }}</div>
 
-        <el-tooltip content="去看 MV" placement="top" v-if="this.mv !== 0">
-          <el-tag type="warning" v-if="this.mv !== 0" @click="toMv">MV</el-tag>
-        </el-tooltip>
-      </div>
+            <div>
+              <span
+                class="song-info-name"
+                v-for="art in artists"
+                :key="art.id"
+                @click="toSinger(art.id)"
+              >
+                {{ art.name }} /
+              </span>
+            </div>
+          </div>
+        </div>
 
-      <div class="playControl">
-        <div class="control">
-          <el-tooltip content="随机播放" placement="bottom">
-            <i
-              class="fa fa-random fa-2x"
-              aria-hidden="true"
-              v-if="!order"
-              @click="changeList"
-            ></i>
-          </el-tooltip>
-          <el-tooltip content="顺序播放" placement="bottom">
-            <i
-              class="fa fa-bars fa-2x"
-              aria-hidden="true"
-              v-if="order"
-              @click="changeList"
-            ></i>
-          </el-tooltip>
-          <el-tooltip content="上一曲" placement="top">
+        <div class="control-center">
+          <div class="control">
+            <el-tooltip content="去看 MV" placement="top" v-if="this.mv !== 0">
+              <el-tag
+                style="margin: 0"
+                type="warning"
+                size="small"
+                v-show="this.mv !== 0"
+                @click="toMv"
+                >MV</el-tag
+              >
+            </el-tooltip>
+            <el-tooltip content="随机播放" placement="top" v-if="!order">
+              <i
+                class="fa fa-random fa-2x"
+                aria-hidden="true"
+                v-if="!order"
+                @click="changeList"
+              ></i>
+            </el-tooltip>
+            <el-tooltip content="顺序播放" placement="top" v-if="order">
+              <i
+                class="fa fa-bars fa-2x"
+                aria-hidden="true"
+                v-if="order"
+                @click="changeList"
+              ></i>
+            </el-tooltip>
             <i
               class="fa fa-step-backward fa-2x"
               aria-hidden="true"
               @click="prev"
             ></i>
-          </el-tooltip>
-          <el-tooltip content="继续播放" placement="bottom" v-if="!status">
             <i
               class="fa fa-play fa-2x"
               aria-hidden="true"
               v-if="!status"
               @click="play"
             ></i>
-          </el-tooltip>
-          <el-tooltip content="暂停播放" placement="bottom" v-if="status">
             <i
               class="fa fa-pause fa-2x"
               aria-hidden="true"
               @click="play"
               v-if="status"
             ></i>
-          </el-tooltip>
-          <el-tooltip content="下一曲" placement="top">
             <i
               class="fa fa-step-forward fa-2x"
               aria-hidden="true"
               @click="next"
             ></i>
-          </el-tooltip>
-          <el-tooltip content="下载" placement="top">
-            <i
-              class="fa fa-download fa-2x"
-              aria-hidden="true"
-              @click="downloadMusic"
-            ></i>
-          </el-tooltip>
+            <el-tooltip content="下载" placement="top">
+              <i
+                class="fa fa-download fa-2x"
+                aria-hidden="true"
+                @click="downloadMusic"
+              ></i>
+            </el-tooltip>
+          </div>
+          <div class="timeProgress">
+            <el-tooltip content="当前播放时间" placement="bottom">
+              <div class="leftTime">{{ this.cTime | timeFormat }}</div>
+            </el-tooltip>
+            <!-- @input="updateTime" -->
+            <el-slider
+              class="myProgress"
+              v-model="percent"
+              :format-tooltip="formatTime"
+              @change="offsetX"
+            ></el-slider>
+            <el-tooltip content="歌曲时长" placement="top">
+              <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
+            </el-tooltip>
+          </div>
+        </div>
+
+        <div class="control-end">
+          <div class="volume">
+            <i class="fa fa-2x fa-volume-up" aria-hidden="true"></i>
+            <el-slider
+              class="control-end-volume"
+              v-model="volume"
+              :min="0"
+              :max="1"
+              :step="0.1"
+              @change="changeVolume"
+              @input="changeVolume"
+            ></el-slider>
+          </div>
+
           <el-tooltip id="controlPc" content="站点选项配置" placement="bottom">
             <i
               class="fa fa-cog fa-2x"
@@ -123,6 +164,108 @@
             ></i>
           </el-tooltip>
         </div>
+      </div>
+
+      <div v-else>
+        <div class="control-start">
+          <div>
+            <el-tooltip content="点击查看或隐藏详情界面" placement="top">
+              <img
+                class="cover"
+                width="40"
+                height="40"
+                :src="imgs"
+                @click="showMore = !showMore"
+              />
+            </el-tooltip>
+          </div>
+
+          <div class="song-info">
+            <div class="song-name">{{ this.songName }}</div>
+
+            <div>
+              <span
+                class="song-info-name"
+                v-for="art in artists"
+                :key="art.id"
+                @click="toSinger(art.id)"
+              >
+                {{ art.name }} /
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-center">
+          <div class="control">
+            <el-tooltip content="去看 MV" placement="top" v-if="this.mv !== 0">
+              <el-tag
+                style="margin: 0"
+                type="warning"
+                v-if="this.mv !== 0"
+                @click="toMv"
+                >MV</el-tag
+              >
+            </el-tooltip>
+            <el-tooltip content="随机播放" placement="top">
+              <i
+                class="fa fa-random fa-2x"
+                aria-hidden="true"
+                v-if="!order"
+                @click="changeList"
+              ></i>
+            </el-tooltip>
+            <el-tooltip content="顺序播放" placement="top">
+              <i
+                class="fa fa-bars fa-2x"
+                aria-hidden="true"
+                v-if="order"
+                @click="changeList"
+              ></i>
+            </el-tooltip>
+            <i
+              class="fa fa-step-backward fa-2x"
+              aria-hidden="true"
+              @click="prev"
+            ></i>
+            <i
+              class="fa fa-play fa-2x"
+              aria-hidden="true"
+              v-if="!status"
+              @click="play"
+            ></i>
+            <i
+              class="fa fa-pause fa-2x"
+              aria-hidden="true"
+              @click="play"
+              v-if="status"
+            ></i>
+            <i
+              class="fa fa-step-forward fa-2x"
+              aria-hidden="true"
+              @click="next"
+            ></i>
+            <el-tooltip content="下载" placement="top">
+              <i
+                class="fa fa-download fa-2x"
+                aria-hidden="true"
+                @click="downloadMusic"
+              ></i>
+            </el-tooltip>
+            <el-tooltip
+              id="controlPc"
+              content="站点选项配置"
+              placement="bottom"
+            >
+              <i
+                class="fa fa-cog fa-2x"
+                aria-hidden="true"
+                @click="drawer = true"
+              ></i>
+            </el-tooltip>
+          </div>
+        </div>
+
         <div class="timeProgress">
           <el-tooltip content="当前播放时间" placement="bottom">
             <div class="leftTime">{{ this.cTime | timeFormat }}</div>
@@ -135,7 +278,9 @@
             @input="updateTime"
           ></el-slider>
           <el-tooltip content="歌曲时长" placement="top">
-            <div class="rightTime">{{ this.currDuration | timeFormat }}</div>
+            <div class="rightTime">
+              {{ this.currDuration | timeFormat }}
+            </div>
           </el-tooltip>
         </div>
       </div>
@@ -176,6 +321,7 @@ export default {
       drawer: false,
       showMore: false,
       historyList: [],
+      volume: 0.85,
     };
   },
   computed: {
@@ -218,6 +364,7 @@ export default {
     });
     audio.addEventListener("timeupdate", () => {
       this.cTime = parseInt(audio.currentTime);
+      this.currDuration = audio.duration;
       this.percent = Math.floor((this.cTime / audio.duration) * 100);
     });
     audio.addEventListener("ended", () => {
@@ -405,8 +552,7 @@ export default {
     offsetX(percent) {
       const audio = this.$refs.audio;
 
-      this.percent = percent;
-      this.cTime = parseInt((percent / 100) * this.currDuration);
+      this.updateTime(percent);
 
       audio.currentTime = this.cTime;
       audio.play();
@@ -414,6 +560,9 @@ export default {
     updateTime(percent) {
       this.percent = percent;
       this.cTime = parseInt((percent / 100) * this.currDuration);
+    },
+    changeVolume(val) {
+      this.$refs.audio && (this.$refs.audio.volume = val);
     },
     downloadMusic() {
       req.netease
@@ -490,6 +639,66 @@ export default {
   margin-left: 10px;
 }
 
+.song-info {
+  /* max-width: 25vw; */
+  text-align: left;
+}
+
+.cover {
+  border-radius: 5px;
+}
+
+.song-name {
+  font-size: 18px;
+  max-width: 20vw;
+}
+
+.song-name,
+.song-info-name {
+  margin: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-info-name {
+  color: #5aacc8;
+  max-width: 7vw;
+}
+
+.song-info-name:hover {
+  color: rgb(16, 228, 104);
+  border-bottom: 1px solid rgb(16, 228, 104);
+  cursor: pointer;
+}
+
+.control-start {
+  width: 25vw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.control-center {
+  width: 40vw;
+  margin: 0 2vw;
+}
+
+.control-end {
+  width: 20vw;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.volume {
+  display: flex;
+}
+
+.control-end-volume {
+  width: 80px;
+}
+
 .simply-play-info {
   width: 100%;
   background-color: rgb(105 105 105);
@@ -503,12 +712,11 @@ export default {
 .more-play-info,
 .simply {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
 }
 
 .simply {
-  padding: 6px;
+  padding: 6px 5vw;
 }
 
 .more-play-info {
@@ -522,7 +730,7 @@ export default {
 .more {
   width: 88%;
   position: fixed;
-  bottom: 14%;
+  bottom: 12%;
   z-index: 9;
   border-top-left-radius: 25px;
   border-top-right-radius: 25px;
@@ -540,7 +748,7 @@ export default {
 
 .up-enter-to,
 .up-leave {
-  top: 8vh;
+  top: 12vh;
 }
 
 @keyframes imgRotate {
@@ -552,26 +760,14 @@ export default {
   }
 }
 
-i {
-  color: #fefefe;
-  margin: 10px 18px;
-}
-
 .fa-2x {
-  font-size: 1.5em;
-}
-
-.playControl {
-  display: flex;
-  justify-content: center;
-  background-color: #efeaea85;
-  transition: all 0.5s;
-  z-index: 9;
+  color: #fefefe;
+  margin: 6px 24px;
+  font-size: 1.3em;
 }
 
 .timeProgress {
   display: flex;
-  flex: 1;
   justify-content: space-between;
   align-items: center;
 }
@@ -583,21 +779,26 @@ i {
 }
 
 .myProgress {
-  flex: 6;
+  flex: 5;
 }
-
-.myProgress:hover {
-  cursor: pointer;
-}
-
 @media screen and (max-width: 768px) {
   .fa-2x {
-    font-size: 1.3em;
     margin: 5px 2.5vh;
   }
 
   .simply {
     padding: 0;
+  }
+
+  .control-start,
+  .control-center {
+    justify-content: center;
+    width: 100vw;
+    margin: 0;
+  }
+
+  .song-info {
+    max-width: 80vw;
   }
 
   .more {
@@ -630,14 +831,6 @@ i {
 
   .songName {
     font-size: 20px;
-  }
-
-  .playControl {
-    flex-wrap: wrap;
-  }
-
-  .control {
-    width: 100vw;
   }
 
   #canvas {

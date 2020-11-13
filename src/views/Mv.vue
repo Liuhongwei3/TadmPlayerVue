@@ -56,71 +56,51 @@
 
     <el-divider></el-divider>
     <div class="all">
-      <h3>全部 MV</h3>
-      <el-tag>地区</el-tag>
-      <el-tag
-        class="top-type"
-        effect="dark"
-        v-for="item in areas"
-        :key="item.id"
-        :class="{ active: area === item.value }"
-        @click="area = item.value"
-        >{{ item.value }}</el-tag
-      >
-      <br />
-      <el-tag type="warning">类型</el-tag>
-      <el-tag
-        class="top-type"
-        type="warning"
-        effect="dark"
-        v-for="item in types"
-        :key="item.value"
-        :class="{ active: type === item.value }"
-        @click="type = item.value"
-        >{{ item.value }}</el-tag
-      >
-      <br />
-      <el-tag type="danger">排序</el-tag>
-      <el-tag
-        class="top-type"
-        type="danger"
-        effect="dark"
-        v-for="item in orders"
-        :key="item.value"
-        :class="{ active: order === item.value }"
-        @click="order = item.value"
-        >{{ item.value }}</el-tag
-      >
-      <el-divider></el-divider>
+      <div class="top">
+        <h3>全部 MV</h3>
+        <el-tag>地区</el-tag>
+        <el-tag
+          class="top-type"
+          effect="dark"
+          v-for="item in areas"
+          :key="item.id"
+          :class="{ active: area === item.value }"
+          @click="area = item.value"
+          >{{ item.value }}</el-tag
+        >
+        <br />
+        <el-tag type="warning">类型</el-tag>
+        <el-tag
+          class="top-type"
+          type="warning"
+          effect="dark"
+          v-for="item in types"
+          :key="item.value"
+          :class="{ active: type === item.value }"
+          @click="type = item.value"
+          >{{ item.value }}</el-tag
+        >
+        <br />
+        <el-tag type="danger">排序</el-tag>
+        <el-tag
+          class="top-type"
+          type="danger"
+          effect="dark"
+          v-for="item in orders"
+          :key="item.value"
+          :class="{ active: order === item.value }"
+          @click="order = item.value"
+          >{{ item.value }}</el-tag
+        >
+      </div>
+
       <div
-        class="main"
         v-loading.lock="allLoading"
         element-loading-text="拼命加载中"
         element-loading-spinner="el-icon-loading"
         element-loading-background="rgba(0, 0, 0, 0.8)"
       >
-        <div
-          class="all-mv-items"
-          v-for="item in mvLists"
-          :key="item.id"
-          @click="toMv(item.id, item.name, item.artists)"
-        >
-          <img :src="item.cover" alt="" />
-          <div class="mv-name">{{ item.name }}</div>
-          <span class="art-name" v-for="arts in item.artists" :key="arts.id">
-            <span>{{ arts.name }}</span>
-            <span v-if="item.artists.length > 1">
-              &nbsp;&nbsp;/&nbsp;&nbsp;
-            </span>
-          </span>
-          <div class="mv-play-count">
-            <i class="fa fa-video-camera" aria-hidden="true"></i>
-            <span> {{ item.playCount | roundW }}</span>
-          </div>
-          <div class="mv-brief" v-if="item.briefDesc">
-            {{ item.briefDesc }}
-          </div>
-        </div>
+        <mv-content :mvs="mvLists"></mv-content>
       </div>
     </div>
   </div>
@@ -130,8 +110,11 @@
 import { mapState } from "vuex";
 import req from "@/network/req";
 
+import MvContent from "@/components/content/MvContent";
+
 export default {
   name: "Mv",
+  components: { MvContent },
   data() {
     return {
       topTypes: [
@@ -227,17 +210,16 @@ export default {
 <style scoped>
 #mv {
   text-align: left;
-  margin-left: 20px;
+}
+
+.top {
+  margin-left: 10px;
 }
 
 .top-type {
   display: inline-block;
-  margin-right: 10px;
+  margin: 5px;
   background-color: transparent;
-}
-
-.el-select {
-  width: 150px !important;
 }
 
 .active {
@@ -247,11 +229,6 @@ export default {
 .top-mv {
   display: flex;
   flex-wrap: wrap;
-}
-
-.top-mv-items:hover,
-.all-mv-items:hover {
-  color: #fff;
 }
 
 .top-mv-items {
@@ -273,60 +250,17 @@ export default {
   overflow: hidden;
 }
 
-.all-mv-items {
-  width: 400px;
-  margin: 10px;
-  position: relative;
-}
-
 .top img {
   width: 200px;
   height: 150px;
-}
-
-.all img {
-  width: 400px;
-  height: 200px;
-  border-radius: 0%;
-  margin: 0;
-}
-
-.mv-name {
-  width: 100%;
-  font-size: 18px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 5px;
 }
 
 .art-name {
   color: #bebebe;
 }
 
-.mv-play-count {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.mv-brief {
-  width: 100%;
-  line-height: 30px;
-  position: absolute;
-  bottom: 50px;
-  left: 0;
-  color: #dfdfdf;
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
 @media screen and (max-width: 768px) {
-  #mv {
-    margin-left: 10px;
-    font-size: 14px;
-  }
-
-  .active {
+  .top {
     font-size: 14px;
   }
 
@@ -335,16 +269,8 @@ export default {
     height: 80px;
   }
 
-  .all img {
-    width: 76vw;
-    height: 150px;
-  }
-
   .top-mv-items {
     width: 95%;
-  }
-
-  .top-mv-items {
     margin: 5px 0;
   }
 
@@ -354,11 +280,6 @@ export default {
 
   .top-mv-right-item {
     margin: 0 0 5px 5px;
-  }
-
-  .all-mv-items {
-    width: 76vw;
-    position: relative;
   }
 }
 </style>

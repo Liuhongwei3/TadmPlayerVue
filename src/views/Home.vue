@@ -1,11 +1,12 @@
 <template>
   <div class="home">
     <el-carousel
-      height="200px"
+      height="250px"
       trigger="click"
       type="card"
-      :interval="5000"
+      :interval="4000"
       arrow="always"
+      v-if="isPc"
     >
       <el-carousel-item :key="banner.scm" v-for="banner in banners">
         <div class="banner-item">
@@ -48,49 +49,38 @@
     </Items>
 
     <div class="item-title">最新MV ></div>
-    <div class="main">
-      <div
-        class="all-mv-items"
-        v-for="item in newMvs"
-        :key="item.id"
-        @click="toMv(item.id, item.name, item.artists)"
-      >
-        <img class="mv-img" :src="item.picUrl" alt="" />
-        <div class="mv-name">{{ item.name }}</div>
-        <span class="art-name" v-for="arts in item.artists" :key="arts.id">
-          <span>{{ arts.name }} / </span>
-        </span>
-        <div class="mv-play-count">
-          <i class="fa fa-video-camera" aria-hidden="true"></i>
-          <span> {{ item.playCount | roundW }}</span>
-        </div>
-        <div class="mv-brief" v-if="item.copywriter">
-          {{ item.copywriter }}
-        </div>
-      </div>
-    </div>
+    <el-divider></el-divider>
+    <mv-content :mvs="newMvs"></mv-content>
   </div>
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 import req from "@/network/req";
 
 import Items from "@/components/common/items/Items";
+import MvContent from "@/components/content/MvContent";
 
 export default {
   name: "Home",
-  components: { Items },
+  components: { Items, MvContent },
   data() {
     return {
       banners: [],
       recomDetails: [],
       newSongs: [],
       newMvs: [],
-      detailLimit: 14,
-      songLimit: 14,
     };
+  },
+  computed: {
+    ...mapState(["isPc"]),
+    detailLimit() {
+      return this.isPc ? 14 : 6;
+    },
+    songLimit() {
+      return this.isPc ? 14 : 6;
+    },
   },
   async created() {
     await this.getBanners();
@@ -126,23 +116,18 @@ export default {
         this.$router.push("/detail");
       }
     },
-    toMv(id, name, artists) {
-      this.$router.push({
-        path: "/showMv",
-        query: { mvId: id, name, artists },
-      });
-    },
   },
 };
 </script>
 
 <style scoped>
 .home {
-  margin: 30px;
+  margin: 0 30px;
 }
 
 .banner-img {
-  height: 200px;
+  width: 100%;
+  height: 250px;
 }
 
 .banner-item {
@@ -160,48 +145,6 @@ export default {
   font-size: 20px;
   font-weight: 600;
   margin-left: 10px;
-}
-
-.all-mv-items {
-  width: 300px;
-  margin: 10px;
-  position: relative;
-  text-align: left;
-}
-
-.mv-img {
-  width: 300px;
-  height: 180px;
-  border-radius: 10px;
-}
-
-.mv-name {
-  width: 100%;
-  font-size: 18px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 5px;
-}
-
-.art-name {
-  color: #bebebe;
-}
-
-.mv-play-count {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.mv-brief {
-  width: 100%;
-  line-height: 30px;
-  position: absolute;
-  bottom: 50px;
-  left: 0;
-  color: #dfdfdf;
-  background-color: rgba(0, 0, 0, 0.2);
 }
 
 @media screen and (max-width: 768px) {

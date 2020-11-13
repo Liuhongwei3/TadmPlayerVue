@@ -13,7 +13,7 @@
             <i class="fa fa-user-circle-o" aria-hidden="true"></i>
             <span>{{ item[count] | roundW }}</span>
           </div>
-          <p class="name">{{ item[name] }}</p>
+          <div class="name">{{ item[name] }}</div>
         </div>
       </div>
     </div>
