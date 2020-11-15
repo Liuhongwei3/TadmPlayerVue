@@ -47,11 +47,13 @@
       <el-option label="虾米音乐" value="xiami"></el-option> -->
       </el-select>
     </div>
+
     <div class="switch-item">
       <el-checkbox v-model="doSingle">
         单曲循环（歌曲列表变化时需要重新设置方可生效~）
       </el-checkbox>
     </div>
+
     <div class="switch-item">
       <span class="start">开启用户背景</span>
       <el-switch
@@ -63,11 +65,21 @@
       >
       </el-switch>
     </div>
+
+    <el-divider></el-divider>
+    <div class="switch-item">
+      <div class="start">快捷键</div>
+      <div class="second">ctrl + space: 播放/暂停</div>
+      <div class="second">ctrl + left: 上一曲</div>
+      <div class="second">ctrl + right: 下一曲</div>
+    </div>
+
     <el-divider></el-divider>
     <div class="switch-item">
       <div class="start">关于我</div>
       <div class="second">Tadm：前端爱好者 · 喜爱音乐与文学</div>
     </div>
+
     <el-divider></el-divider>
     <div class="switch-item">
       <div class="start">帮助与反馈</div>

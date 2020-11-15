@@ -25,6 +25,32 @@
       </el-carousel-item>
     </el-carousel>
 
+    <el-carousel
+      trigger="click"
+      height="200px"
+      :interval="4000"
+      arrow="always"
+      indicator-position="outside"
+      v-else
+    >
+      <el-carousel-item :key="banner.scm" v-for="banner in banners">
+        <div class="banner-item">
+          <img
+            class="mobile-banner-img"
+            style="margin: 5px; border-radius: 10px"
+            :src="banner.imageUrl"
+            @click="updateSId({ id: banner.encodeId })"
+          />
+          <el-tag
+            :type="banner.titleColor === 'blue' ? 'primary' : 'danger'"
+            effect="dark"
+            class="banner-type"
+            >{{ banner.typeTitle }}</el-tag
+          >
+        </div>
+      </el-carousel-item>
+    </el-carousel>
+
     <div class="item-title">推荐歌单 ></div>
     <Items :lists="recomDetails" @newId="updateDId">
       <template v-slot:playCount="home">
@@ -128,6 +154,11 @@ export default {
 .banner-img {
   width: 100%;
   height: 250px;
+}
+
+.mobile-banner-img {
+  width: 77vw;
+  height: 28.5vh;
 }
 
 .banner-item {

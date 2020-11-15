@@ -151,8 +151,25 @@ export default {
       this.$router.push("/singer");
     },
     clearHistory() {
-      this.historyLists = [];
-      window.localStorage.setItem("history", JSON.stringify([]));
+      this.$confirm("确定要清空所有的播放记录?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.$message({
+            type: "success",
+            message: "清空成功!",
+          });
+          this.historyLists = [];
+          window.localStorage.setItem("history", JSON.stringify([]));
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消清空",
+          });
+        });
     },
   },
 };

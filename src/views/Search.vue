@@ -8,9 +8,8 @@
   >
     <el-autocomplete
       class="searchInput"
-      v-model.lazy="keyword"
       clearable
-      v-model="keyword"
+      v-model.lazy="keyword"
       :fetch-suggestions="querySearch"
       placeholder="请输入搜索关键词"
       @select="handleSelect"
@@ -37,29 +36,47 @@
         @click="doSearch"
       ></el-button>
       <template slot-scope="{ item }">
-        <div v-if="item.content">
+        <div v-if="keyword.trim().length === 0">
           <div class="searchWord">{{ item.searchWord }}</div>
           <span class="search-input-content">{{ item.content }}</span>
         </div>
         <div v-else>
           <div class="searchWord">{{ item.keyword }}</div>
-          <!-- <div class="searchWord">{{ item.name }}</div> -->
-          <!-- <div v-if="type == 1 || type == 2">
-            <span
-              class="search-input-content"
-              v-for="art in item.artists"
-              :key="art.id"
-              >{{ art.name }} /
-            </span>
-          </div>
-          <div v-if="type == 8">
-            <span class="search-input-content">{{ art.name }}</span>
-          </div> -->
         </div>
       </template>
     </el-autocomplete>
+    <br />
+
+    <horizontal-scroll
+      class="page-wrapper"
+      :probe-type="3"
+      ref="page"
+      v-if="keywordHistory.length !== 0"
+    >
+      <div class="page-content">
+        <el-tag
+          style="background: transparent"
+          closable
+          effect="plain"
+          type="warning"
+          v-for="(item, index) in keywordHistory"
+          :key="index"
+          @click="updateKeyword(item)"
+          @close="removeKeyword(item)"
+          >{{ item }}</el-tag
+        >
+
+        <el-button
+          type="danger"
+          icon="el-icon-delete"
+          :disabled="keywordHistory.length === 0"
+          @click="removeAllKeywords"
+        ></el-button>
+      </div>
+    </horizontal-scroll>
 
     <div v-if="searchResults.length">
+      <el-divider></el-divider>
       <el-tag type="success">
         已为您找到 {{ searchResults.length }} 条结果
       </el-tag>
@@ -193,10 +210,11 @@ import { to } from "@/utils";
 import DetailContent from "@/components/content/DetailContent";
 import Items from "@/components/common/items/Items";
 import VideoContent from "../components/content/VideoContent";
+import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
 export default {
   name: "search",
-  components: { Items, VideoContent, DetailContent },
+  components: { Items, VideoContent, DetailContent, HorizontalScroll },
   data() {
     return {
       type: "1",
@@ -204,6 +222,7 @@ export default {
       tempKeyword: "",
       hotSearchKeywords: [],
       searchResults: [],
+      keywordHistory: [],
       loading: false,
     };
   },
@@ -215,6 +234,11 @@ export default {
       data: { data },
     } = await req.netease.hotSearch();
     this.hotSearchKeywords = data;
+
+    // get localStorage keywordHistory
+    this.keywordHistory = JSON.parse(
+      window.localStorage.getItem("keywordHistory")
+    );
   },
   watch: {
     source(newValue) {
@@ -222,6 +246,9 @@ export default {
     },
     type(newValue) {
       this.doSearch();
+    },
+    keywordHistory(newVal) {
+      this.updateLocalKeywords(newVal);
     },
   },
   beforeRouteEnter(to, from, next) {
@@ -239,6 +266,7 @@ export default {
     ]),
     async querySearch(queryString, cb) {
       let results = [];
+      queryString = queryString.trim();
       if (!queryString) {
         let hotKeywords = this.hotSearchKeywords;
         results = queryString
@@ -247,15 +275,6 @@ export default {
       } else {
         let res = await req.netease.searchSuggest(queryString);
         results = res.allMatch;
-        // if (this.type == 1 || this.type == 2) {
-        //   results = res.songs;
-        // } else if (this.type == 3) {
-        //   results = res.playlists;
-        // } else if (this.type == 4) {
-        //   results = res.artists;
-        // } else if (this.type == 8) {
-        //   results = res.albums;
-        // }
 
         if (!results) {
           results = [];
@@ -345,7 +364,7 @@ export default {
         });
         return;
       }
-      if (!this.keyword) {
+      if (!this.keyword.trim()) {
         this.$message.warning({
           showClose: true,
           message: "请输入关键词后搜索！",
@@ -381,6 +400,45 @@ export default {
           break;
         }
       }
+
+      // add to history
+      this.addToHistory(this.keyword.trim());
+    },
+    addToHistory(keyword) {
+      keyword = keyword.toLowerCase();
+      if (this.keywordHistory.indexOf(keyword) !== -1) {
+        this.removeKeyword(keyword);
+      }
+      this.keywordHistory.unshift(keyword);
+    },
+    removeKeyword(keyword) {
+      this.keywordHistory.splice(this.keywordHistory.indexOf(keyword), 1);
+    },
+    removeAllKeywords() {
+      this.$confirm("确定要删除所有的搜索记录?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.$message({
+            type: "success",
+            message: "删除成功!",
+          });
+          this.keywordHistory = [];
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
+    updateLocalKeywords(keywords) {
+      this.$nextTick(() => {
+        this.$refs.page && this.$refs.page.refresh();
+      });
+      window.localStorage.setItem("keywordHistory", JSON.stringify(keywords));
     },
     async doQqSearch(type = 1) {
       if (type === 1) {

@@ -23,7 +23,7 @@ import VerticalScroll from "@/components/common/scroll/VerticalScroll";
 
 import req from "@/network/req";
 import { parseLyric, parseLyricByQq } from "@/features";
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 export default {
   name: "RLyric",
@@ -108,8 +108,12 @@ export default {
         this.$refs.musicLyric.scrollTo(0, -y, 1000);
       }
     },
+    activeLyric(newVal) {
+      this.updateActiveLyric(newVal);
+    },
   },
   methods: {
+    ...mapMutations(["updateActiveLyric"]),
     async requestLyric(sid) {
       if (this.source === "netease") {
         let data = await req.netease.musicLyric(sid);
@@ -193,6 +197,7 @@ export default {
 
 @media screen and (max-width: 768px) {
   .rightL {
+    width: 95%;
     height: 40vh;
   }
 }

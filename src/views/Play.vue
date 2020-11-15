@@ -2,7 +2,14 @@
   <div>
     <audio id="audio" ref="audio" :src="urls" muted crossorigin="anonymous" />
     <!-- <canvas id="canvas"></canvas> -->
+
     <Drawer :drawer.sync="drawer" />
+
+    <transition-group name="fade-trans" tag="p">
+      <div class="active-lyric" :key="activeLyric" v-show="!showMore">
+        {{ activeLyric }}
+      </div>
+    </transition-group>
 
     <transition name="up">
       <div class="more" :style="backImage" v-show="showMore">
@@ -31,6 +38,7 @@
               </div>
             </div>
           </div>
+
           <r-lyric class="right" :songId="id" :cTime="cTime" />
         </div>
       </div>
@@ -202,6 +210,7 @@
               <el-tag
                 style="margin: 0"
                 type="warning"
+                size="small"
                 v-if="this.mv !== 0"
                 @click="toMv"
                 >MV</el-tag
@@ -325,7 +334,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["isPc", "source"]),
+    ...mapState(["isPc", "source", "activeLyric"]),
     backImage() {
       return {
         backgroundImage: "url(" + this.imgs + ")",
@@ -373,6 +382,38 @@ export default {
       this.currDuration = 0;
       this.next();
     });
+
+    // 监听键盘
+    document.onkeyup = ({ keyCode, ctrlKey }) => {
+      if (!ctrlKey) return;
+      switch (keyCode) {
+        //  space
+        case 32: {
+          this.play();
+          break;
+        }
+        // left
+        case 37: {
+          this.prev();
+          break;
+        }
+        // top
+        // case 38: {
+        //   this.volume += 0.1;
+        //   break;
+        // }
+        // right
+        case 39: {
+          this.next();
+          break;
+        }
+        // down
+        // case 40: {
+        //   this.volume -= 0.1;
+        //   break;
+        // }
+      }
+    };
   },
   watch: {
     $route(newValue) {
@@ -605,6 +646,15 @@ export default {
   z-index: 1;
 }
 
+.active-lyric {
+  max-width: 25vw;
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 666;
+  color: aquamarine;
+}
+
 .left,
 .right {
   width: 50%;
@@ -653,6 +703,7 @@ export default {
   max-width: 20vw;
 }
 
+.active-lyric,
 .song-name,
 .song-info-name {
   margin: 5px;
@@ -670,6 +721,7 @@ export default {
   color: rgb(16, 228, 104);
   border-bottom: 1px solid rgb(16, 228, 104);
   cursor: pointer;
+  transition: all 0.5s;
 }
 
 .control-start {
@@ -730,7 +782,7 @@ export default {
 .more {
   width: 88%;
   position: fixed;
-  bottom: 12%;
+  bottom: 10%;
   z-index: 9;
   border-top-left-radius: 25px;
   border-top-right-radius: 25px;
@@ -748,7 +800,7 @@ export default {
 
 .up-enter-to,
 .up-leave {
-  top: 12vh;
+  top: 14vh;
 }
 
 @keyframes imgRotate {
@@ -797,12 +849,19 @@ export default {
     margin: 0;
   }
 
+  .song-name,
   .song-info {
-    max-width: 80vw;
+    max-width: 85vw;
+  }
+
+  .active-lyric {
+    max-width: 90vw;
+    bottom: 18vh;
   }
 
   .more {
     width: 80%;
+    bottom: 18vh;
   }
 
   .simply-play-info {

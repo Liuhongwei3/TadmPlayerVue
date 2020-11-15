@@ -58,4 +58,7 @@ export default {
   updateTopLists: (state, payload) => {
     state.toplists = payload;
   },
+  updateActiveLyric: (state, payload) => {
+    state.activeLyric = payload;
+  },
 };

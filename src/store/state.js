@@ -14,4 +14,5 @@ export default {
   historyLists: [],
   songId: 1446769897,
   singerId: 4292,
+  activeLyric: "暂无歌词",
 };

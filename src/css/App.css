@@ -96,7 +96,6 @@ video {
   background: rgba(0, 0, 0, 0.2);
   transition: 0.3s;
   border-radius: 20px 20px 0 0;
-  padding-top: 10px;
 }
 
 .main {
@@ -127,7 +126,7 @@ video {
 
 .content {
   width: 88vw;
-  height: 80vh;
+  height: 82vh;
   overflow: hidden;
 }
 
@@ -155,7 +154,7 @@ video {
 .main img:hover {
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
   transform: translate3d(0, -3px, 0);
-  transition: all 0.3s;
+  transition: all 0.5s;
   opacity: 0.9;
 }
 
@@ -189,6 +188,34 @@ video {
 .fade-enter-to,
 .fade-leave {
   opacity: 1;
+}
+
+.fade-trans-enter-active,
+.fade-trans-leave-active {
+  transition: opacity 2s;
+  animation: bounce-in 3s;
+}
+
+.fade-trans-enter,
+.fade-trans-leave-to {
+  opacity: 0;
+}
+
+.fade-trans-enter-to,
+.fade-trans-leave {
+  opacity: 1;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: translateY(15px);
+  }
+  50% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .user-info {
@@ -226,6 +253,7 @@ video {
   color: #5aacc8;
   margin: 5px;
   display: inline-block;
+  transition: all 0.5s;
 }
 
 .content-username:hover {
@@ -290,8 +318,7 @@ video {
 
   .content {
     width: 80vw;
-    height: 74vh;
-    padding: 0;
+    height: 72vh;
   }
 
   .name,
