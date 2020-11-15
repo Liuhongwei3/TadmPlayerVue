@@ -236,9 +236,12 @@ export default {
     this.hotSearchKeywords = data;
 
     // get localStorage keywordHistory
-    this.keywordHistory = JSON.parse(
+    let localKeywords = JSON.parse(
       window.localStorage.getItem("keywordHistory")
     );
+    if (localKeywords) {
+      this.keywordHistory = localKeywords;
+    }
   },
   watch: {
     source(newValue) {
