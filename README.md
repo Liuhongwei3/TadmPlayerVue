@@ -49,7 +49,23 @@ npm run build
 
 ## Shortcut
 
-> preview online web~
+- 首页
+  ![home](./screen/home.png)
+
+- 榜单
+  ![top](./screen/top.png)
+
+- 搜索
+  ![search](./screen/search.png)
+
+- 用户
+  ![user](./screen/user.png)
+
+- 评论
+  ![top](./screen/comment.png)
+
+- More
+  > preview online web~
 
 ## 项目文件目录树
 

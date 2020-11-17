@@ -6,7 +6,11 @@
     <Drawer :drawer.sync="drawer" />
 
     <transition-group name="fade-trans" tag="p">
-      <div class="active-lyric" :key="activeLyric" v-show="!showMore">
+      <div
+        class="active-lyric"
+        :key="activeLyric"
+        v-show="useActiveLyric && !showMore"
+      >
         {{ activeLyric }}
       </div>
     </transition-group>
@@ -21,7 +25,7 @@
                 <span>{{ songName }}</span>
               </div>
               <div class="otherName">
-                <span>歌手:</span>
+                <span>歌手：</span>
                 <span
                   class="content-username"
                   v-for="art in artists"
@@ -32,7 +36,7 @@
                 </span>
               </div>
               <div class="otherName">
-                专辑:<span class="content-username" @click="toAlbum(album.id)"
+                专辑：<span class="content-username" @click="toAlbum(album.id)"
                   >{{ album.name }}
                 </span>
               </div>
@@ -59,10 +63,10 @@
             </el-tooltip>
           </div>
 
-          <div class="song-info">
+          <div>
             <div class="song-name">{{ this.songName }}</div>
 
-            <div>
+            <div class="song-info">
               <span
                 class="song-info-name"
                 v-for="art in artists"
@@ -188,10 +192,10 @@
             </el-tooltip>
           </div>
 
-          <div class="song-info">
+          <div>
             <div class="song-name">{{ this.songName }}</div>
 
-            <div>
+            <div class="song-info">
               <span
                 class="song-info-name"
                 v-for="art in artists"
@@ -334,7 +338,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(["isPc", "source", "activeLyric"]),
+    ...mapState([
+      "isPc",
+      "source",
+      "songInfo",
+      "activeLyric",
+      "useActiveLyric",
+    ]),
     backImage() {
       return {
         backgroundImage: "url(" + this.imgs + ")",
@@ -457,6 +467,7 @@ export default {
       "updateHistoryLists",
       "updateAlbumId",
       "updatePlaylistIds",
+      "updateSongInfo",
     ]),
     async requestCover(newValue) {
       this.imgs = "";
@@ -482,6 +493,7 @@ export default {
         this.publishTime = data.publishTime;
 
         this.updateImgs(this.imgs);
+        this.updateSongInfo(data);
       }
     },
     async requestMusicUrl(id) {
@@ -681,17 +693,12 @@ export default {
 }
 
 .otherName {
-  font-size: 14px;
   margin: 10px;
 }
 
-.otherName span {
-  margin-left: 10px;
-}
-
 .song-info {
-  /* max-width: 25vw; */
-  text-align: left;
+  max-width: 20vw;
+  margin: 0;
 }
 
 .cover {
@@ -705,7 +712,9 @@ export default {
 
 .active-lyric,
 .song-name,
+.song-info,
 .song-info-name {
+  text-align: left;
   margin: 5px;
   white-space: nowrap;
   overflow: hidden;
@@ -714,7 +723,6 @@ export default {
 
 .song-info-name {
   color: #5aacc8;
-  max-width: 7vw;
 }
 
 .song-info-name:hover {
@@ -768,7 +776,7 @@ export default {
 }
 
 .simply {
-  padding: 6px 5vw;
+  padding: 6px 3vw;
 }
 
 .more-play-info {

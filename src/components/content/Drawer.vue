@@ -55,9 +55,20 @@
     </div>
 
     <div class="switch-item">
-      <span class="start">开启用户背景</span>
+      <span class="start">用户背景</span>
       <el-switch
         v-model="userBackImg"
+        active-color="#13ce66"
+        inactive-color="#ff4949"
+        active-text="开"
+        inactive-text="关"
+      >
+      </el-switch>
+    </div>
+    <div class="switch-item">
+      <span class="start">桌面歌词</span>
+      <el-switch
+        v-model="useActiveLyric"
         active-color="#13ce66"
         inactive-color="#ff4949"
         active-text="开"
@@ -92,7 +103,8 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapState } from "vuex";
+
 export default {
   name: "Drawer",
   data() {
@@ -107,6 +119,15 @@ export default {
     },
   },
   computed: {
+    ...mapState(["songId"]),
+    useActiveLyric: {
+      get() {
+        return this.$store.state.useActiveLyric;
+      },
+      set(val) {
+        this.updateUseActiveLyric(val);
+      },
+    },
     userBackImg: {
       get() {
         return this.$store.state.userBackImg;
@@ -124,15 +145,22 @@ export default {
       },
     },
   },
+  created() {
+    let temp = JSON.parse(window.localStorage.getItem("settings"));
+    console.log(temp);
+  },
   watch: {
     doSingle(newValue) {
-      if (newValue) {
-        this.$store.commit("updatePlaylistIds", [this.$store.state.songId]);
-      }
+      newValue && this.updatePlaylistIds([this.songId]);
     },
   },
   methods: {
-    ...mapMutations(["updateSource", "updateUserBackImg"]),
+    ...mapMutations([
+      "updateSource",
+      "updatePlaylistIds",
+      "updateUserBackImg",
+      "updateUseActiveLyric",
+    ]),
   },
 };
 </script>

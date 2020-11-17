@@ -61,4 +61,10 @@ export default {
   updateActiveLyric: (state, payload) => {
     state.activeLyric = payload;
   },
+  updateSongInfo: (state, payload) => {
+    state.songInfo = payload;
+  },
+  updateUseActiveLyric: (state, payload) => {
+    state.useActiveLyric = payload;
+  },
 };

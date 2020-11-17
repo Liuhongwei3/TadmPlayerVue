@@ -29,14 +29,14 @@
 
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  -webkit-box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.4);
   background: rgba(0, 0, 0, 0.2);
 }
 
 /*  剩余部分  */
 
 ::-webkit-scrollbar-track {
-  -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
   border-radius: 0;
   background: rgba(0, 0, 0, 0.1);
 }
@@ -81,7 +81,11 @@ video {
 }
 
 .top-info {
+  color: #ff4040;
   width: 100vw;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 700;
   position: absolute;
   top: 0;
   display: flex;
@@ -91,7 +95,7 @@ video {
 
 .center {
   position: absolute;
-  top: 40px;
+  top: 45px;
   left: 10vw;
   background: rgba(0, 0, 0, 0.2);
   transition: 0.3s;
@@ -251,8 +255,6 @@ video {
 
 .content-username {
   color: #5aacc8;
-  margin: 5px;
-  display: inline-block;
   transition: all 0.5s;
 }
 

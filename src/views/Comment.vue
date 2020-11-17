@@ -1,5 +1,32 @@
 <template>
-  <div id="comments">
+  <div>
+    <el-row class="comment-head" v-if="Object.keys(songInfo).length">
+      <el-col :sm="3" :xs="7">
+        <img class="comment-song-img" :src="songInfo.album.picUrl" v-viewer />
+      </el-col>
+      <el-col :sm="16" :xs="16">
+        <div class="song-name comm-h-r">{{ songInfo.name }}</div>
+        <div class="comm-h-r">
+          <span>歌手：</span>
+          <span
+            class="content-username"
+            v-for="art in songInfo.artists"
+            :key="art.id"
+            @click="toSinger(art.id)"
+          >
+            {{ art.name }} /
+          </span>
+        </div>
+
+        <div class="comm-h-r">
+          <span>专辑：</span>
+          <span class="content-username" @click="toAlbum(songInfo.album.id)">{{
+            songInfo.album.name
+          }}</span>
+        </div>
+      </el-col>
+    </el-row>
+
     <el-tabs v-model="activeName" @tab-click="handleClick">
       <el-tab-pane label="云村热评" name="first">
         <comm-content :comments="cloudHotComments" />
@@ -35,7 +62,7 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapMutations, mapState } from "vuex";
 
 import req from "@/network/req";
 import { to } from "@/utils";
@@ -83,7 +110,7 @@ export default {
     });
   },
   computed: {
-    ...mapState(["source"]),
+    ...mapState(["source", "songInfo"]),
     songId: {
       get() {
         return this.$store.state.songId;
@@ -132,6 +159,15 @@ export default {
     });
   },
   methods: {
+    ...mapMutations(["updateSingerId", "updateAlbumId"]),
+    toSinger(sid) {
+      this.updateSingerId(sid);
+      this.$router.push("/singer");
+    },
+    toAlbum(id) {
+      this.updateAlbumId(id);
+      this.$router.push("/album");
+    },
     handleClick(tab, event) {
       this.$nextTick(() => {
         this.$emit("refresh");
@@ -187,3 +223,48 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.comment-head {
+  text-align: left;
+  padding: 16px;
+}
+
+.comment-song-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+}
+
+.song-name {
+  font-size: 24px;
+}
+
+.comm-h-r {
+  max-width: 52vw;
+  margin: 10px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media screen and (max-width: 768px) {
+  .comment-head {
+    text-align: left;
+    padding: 6px;
+  }
+
+  .song-name {
+    font-size: 20px;
+  }
+
+  .comment-song-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .comm-h-r {
+    margin: 5px 0;
+  }
+}
+</style>

@@ -1,9 +1,7 @@
 <template>
   <div id="app">
     <div id="app-bg" :style="backImg"></div>
-    <div class="top-info">
-      <el-tag style="font-size: 15px">Welcome to Tadm-Play-Vue ^-^</el-tag>
-    </div>
+    <div class="top-info">Welcome to Tadm-Player-Vue ^-^</div>
 
     <nav-bar @toTop="backTop"></nav-bar>
     <div class="center">
