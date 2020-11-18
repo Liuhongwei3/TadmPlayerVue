@@ -86,6 +86,20 @@ const routes = [
     name: "About",
     component: () => import(/* webpackChunkName: "2" */ "@/views/About.vue"),
   },
+  {
+    path: "/kugou/detail",
+    name: "Kugou",
+    component: () =>
+      import(/* webpackChunkName: "2" */ "@/views/kugou/Detail.vue"),
+    // children: [
+    //   {
+    //     path: "/detail",
+    //     name: "KugouDetail",
+    //     component: () =>
+    //       import(/* webpackChunkName: "2" */ "@/views/kugou/Detail.vue"),
+    //   },
+    // ],
+  },
 ];
 
 const router = new VueRouter({

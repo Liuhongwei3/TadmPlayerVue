@@ -62,6 +62,10 @@
       </template>
     </Items>
 
+    <div class="item-title">独家放送 ></div>
+    <el-divider></el-divider>
+    <mv-content :mvs="perPushs"></mv-content>
+
     <div class="item-title">最新音乐 ></div>
     <Items :lists="newSongs" @newId="updateSId">
       <template v-slot:nickname="home">
@@ -74,7 +78,7 @@
       </template>
     </Items>
 
-    <div class="item-title">最新MV ></div>
+    <div class="item-title">推荐 MV ></div>
     <el-divider></el-divider>
     <mv-content :mvs="newMvs"></mv-content>
   </div>
@@ -95,6 +99,7 @@ export default {
     return {
       banners: [],
       recomDetails: [],
+      perPushs: [],
       newSongs: [],
       newMvs: [],
     };
@@ -110,6 +115,7 @@ export default {
   },
   async created() {
     await this.getBanners();
+    await this.getPerPush();
     await this.getRecomDetails(this.detailLimit);
     await this.getNewSongs(this.songLimit);
     await this.getNewMvs();
@@ -124,6 +130,9 @@ export default {
     },
     async getRecomDetails(limit) {
       this.recomDetails = await req.netease.getRecomDetails(limit);
+    },
+    async getPerPush() {
+      this.perPushs = await req.netease.getPerPush();
     },
     async getNewSongs(limit) {
       this.newSongs = await req.netease.getNewSongs(limit);

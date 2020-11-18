@@ -270,12 +270,18 @@ video {
 
 .like-icon,
 .share-icon,
+.sub-icon,
 .comment-icon {
   margin: 0 10px;
+  font-size: 1.3em;
 }
 
 .like-icon {
   color: #ed959f;
+}
+
+.sub-icon {
+  color: #ffdf07;
 }
 
 .share-icon {
@@ -291,6 +297,15 @@ video {
   text-align: left;
   color: #b4b4b4;
   margin: 0 30px;
+}
+
+.mv-detail {
+  text-align: left;
+  margin-left: 10px;
+}
+
+.mv-detail-item {
+  margin: 10px 0;
 }
 
 @media screen and (max-width: 768px) {

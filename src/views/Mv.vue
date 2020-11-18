@@ -26,7 +26,7 @@
           class="top-mv-items"
           v-for="item in topMvLists"
           :key="item.id"
-          @click="toMv(item.id, item.name, item.artists)"
+          @click="toMv(item.id)"
         >
           <img :src="item.cover" alt="" />
           <div class="top-mv-right">
@@ -200,7 +200,7 @@ export default {
     toMv(id, name, artists) {
       this.$router.push({
         path: "/showMv",
-        query: { mvId: id, name, artists },
+        query: { mvId: id },
       });
     },
   },

@@ -8,7 +8,10 @@
 > 利用 Vue 全家桶实现多源音乐平台，妈妈再也不用担心我听不到喜欢的歌曲啦！
 
 - 前台 --- vue 全家桶
-- 后端 --- [NetEaseApi](https://github.com/Binaryify/NeteaseCloudMusicApi)、其他数据源敬请期待~
+- 后端
+  - 网易云 - [NetEaseApi](https://github.com/Binaryify/NeteaseCloudMusicApi)
+  - 酷狗 - 暂只支持开发环境
+  - 其他数据源敬请期待~
 
 ## Preview
 
@@ -49,20 +52,27 @@ npm run build
 
 ## Shortcut
 
+> 部分截图或许过时，以线上站点为主。
+
 - 首页
-  ![home](./screen/home.png)
+
+  ![home.png](https://i.loli.net/2020/11/18/CRBuvm471nl2ch3.png)
 
 - 榜单
-  ![top](./screen/top.png)
+
+  ![top.png](https://i.loli.net/2020/11/18/9TWd3MQZFyPBcmi.png)
 
 - 搜索
-  ![search](./screen/search.png)
+
+  ![search.png](https://i.loli.net/2020/11/18/vKi1g9DbndBp8V7.png)
 
 - 用户
-  ![user](./screen/user.png)
+
+  ![user.png](https://i.loli.net/2020/11/18/AEzPmRhc4Y6apgX.png)
 
 - 评论
-  ![top](./screen/comment.png)
+
+  ![comment.png](https://i.loli.net/2020/11/18/VXxeghmzdoQC5bY.png)
 
 - More
   > preview online web~
@@ -74,24 +84,6 @@ npm run build
 <pre><code>
 tadm-player-vue
 ├── babel.config.js
-├── dist
-│   ├── css
-│   │   ├── 1.f9f2f353.css
-│   │   ├── 2.89b69a9f.css
-│   │   ├── app.974093cc.css
-│   │   └── chunk-vendors.f9d003d1.css 
-│   ├── favicon.ico
-│   ├── fonts
-│   │   ├── element-icons.535877f5.woff
-│   │   └── element-icons.732389de.ttf 
-│   ├── img
-│   │   └── 404.aef8654a.jpg
-│   ├── index.html
-│   └── js
-│       ├── 1.6b1e08bc.js
-│       ├── 2.85d339e1.js
-│       ├── app.79e2667e.js
-│       └── chunk-vendors.7feb7771.js
 ├── package-lock.json
 ├── package.json
 ├── public

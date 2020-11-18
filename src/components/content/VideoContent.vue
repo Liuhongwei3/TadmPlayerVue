@@ -4,7 +4,7 @@
       class="video-items"
       v-for="item in videos"
       :key="item.vid"
-      @click="updateId(item.vid, item.title, item.creator)"
+      @click="updateId(item.vid)"
     >
       <img :src="item.coverUrl" alt="视频封面" />
       <div class="video-name">
@@ -42,12 +42,8 @@ export default {
     },
   },
   methods: {
-    updateId(id, name, artists) {
-      for (let v of artists) {
-        v.id = v.userId;
-        v.name = v.userName;
-      }
-      this.$emit("newId", { id, name, artists });
+    updateId(id) {
+      this.$emit("newId", { id });
     },
   },
 };

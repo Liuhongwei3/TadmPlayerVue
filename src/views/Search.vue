@@ -137,6 +137,8 @@
       </el-row>
     </div>
 
+    <mv-content v-else-if="type == 6" :mvs="searchResults"></mv-content>
+
     <video-content
       v-else-if="type == 7"
       :videos="searchResults"
@@ -209,12 +211,19 @@ import { to } from "@/utils";
 
 import DetailContent from "@/components/content/DetailContent";
 import Items from "@/components/common/items/Items";
-import VideoContent from "../components/content/VideoContent";
+import MvContent from "@/components/content/MvContent";
+import VideoContent from "@/components/content/VideoContent";
 import HorizontalScroll from "@/components/common/scroll/HorizontalScroll";
 
 export default {
   name: "search",
-  components: { Items, VideoContent, DetailContent, HorizontalScroll },
+  components: {
+    Items,
+    VideoContent,
+    DetailContent,
+    HorizontalScroll,
+    MvContent,
+  },
   data() {
     return {
       type: "1",
@@ -323,7 +332,7 @@ export default {
         case 6: {
           this.$router.push({
             path: "/showMv",
-            query: { mvId: id, name, artists },
+            query: { mvId: id, name, artists: JSON.stringify(artists) },
           });
           break;
         }
@@ -331,7 +340,7 @@ export default {
           if (/^\d*$/.test(id)) {
             this.$router.push({
               path: "/showMv",
-              query: { mvId: id, name, artists },
+              query: { mvId: id, name, artists: JSON.stringify(artists) },
             });
           } else {
             this.$router.push({

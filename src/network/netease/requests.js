@@ -35,6 +35,15 @@ const getRecomDetails = async (limit = 30) => {
   return flag.data.result;
 };
 
+const getPerPush = async () => {
+  let flag = await doReq(`/personalized/privatecontent`);
+  if (!flag || !flag.data) {
+    return [];
+  }
+
+  return flag.data.result;
+};
+
 const getNewSongs = async (limit = 14) => {
   let flag = await doReq(`/personalized/newsong?limit=${limit}`);
   if (!flag || !flag.data) {
@@ -696,9 +705,46 @@ const getSimiSingers = async (id) => {
   return flag.data.artists;
 };
 
+const getSimiMvs = async (id) => {
+  let flag = await doReq(`/simi/mv?mvid=${id}`);
+  if (!flag || !flag.data || !flag.data.mvs) {
+    return [];
+  }
+
+  return flag.data.mvs;
+};
+
+const getRelatedVideos = async (id) => {
+  let flag = await doReq(`/related/allvideo?id=${id}`);
+  if (!flag || !flag.data || !flag.data.data) {
+    return {};
+  }
+
+  return flag.data.data;
+};
+
+const getMvDetail = async (id) => {
+  let flag = await doReq(`/mv/detail?mvid=${id}`);
+  if (!flag || !flag.data || !flag.data.data) {
+    return {};
+  }
+
+  return flag.data.data;
+};
+
+const getMvCount = async (id) => {
+  let flag = await doReq(`/mv/detail/info?mvid=${id}`);
+  if (!flag || !flag.data) {
+    return {};
+  }
+
+  return flag.data;
+};
+
 export default {
   getBanner,
   getRecomDetails,
+  getPerPush,
   getNewSongs,
   getNewMvs,
   toplist,
@@ -747,4 +793,8 @@ export default {
   getAlbumComments,
   getSimiDetails,
   getSimiSingers,
+  getSimiMvs,
+  getRelatedVideos,
+  getMvDetail,
+  getMvCount,
 };

@@ -2,7 +2,6 @@ export default {
   isPc: true,
   source: "netease",
   imgs: "",
-  toplists: [],
   username: "",
   userId: 537069044,
   ownUserId: 0,

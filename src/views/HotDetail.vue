@@ -37,9 +37,11 @@
 <script>
 import Items from "@/components/common/items/Items";
 import req from "@/network/req";
+import { mapState } from "vuex";
 
 export default {
   name: "hotDetail",
+  components: { Items },
   data() {
     return {
       hotDetailLists: [],
@@ -48,13 +50,27 @@ export default {
       noMore: false,
     };
   },
-  components: { Items },
+  computed: {
+    ...mapState(["source"]),
+  },
   created() {
     this.requestHotDetails(this.limit);
   },
+  watch: {
+    source(val) {
+      switch (val) {
+        case "netease": {
+          this.requestHotDetails(true);
+        }
+        case "kugou": {
+          this.requestHotDetails(false);
+        }
+      }
+    },
+  },
   mounted() {
     this.$bus.$on("loadMoreHotDetails", () => {
-      if (this.limit <= 100) {
+      if (this.limit <= 100 && this.source === "netease") {
         this.limit += 24;
         this.loading = true;
         this.requestHotDetails(this.limit);
@@ -71,15 +87,29 @@ export default {
     });
   },
   methods: {
-    async requestHotDetails(limit) {
+    async requestHotDetails(flag) {
       this.loading = true;
-      this.hotDetailLists = await req.netease.hotDetails(limit);
+
+      if (flag) {
+        this.hotDetailLists = await req[this.source].hotDetails(this.limit);
+      } else {
+        this.hotDetailLists = await req[this.source].hotDetails();
+      }
+
       this.loading = false;
       this.$nextTick(() => this.$emit("refresh"));
     },
     updateId({ id }) {
-      this.$store.commit("updateDetailId", id);
-      this.$router.push("/detail");
+      switch (this.source) {
+        case "netease": {
+          this.$store.commit("updateDetailId", id);
+          this.$router.push("/detail");
+        }
+        case "kugou": {
+          this.$store.commit("updateDetailId", id);
+          this.$router.push("/kugou/detail");
+        }
+      }
     },
   },
   beforeDestroy() {

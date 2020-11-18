@@ -7,6 +7,24 @@ const path = require("path");
 module.exports = {
   publicPath: "./",
   productionSourceMap: false,
+  devServer: {
+    proxy: {
+      "/p_kugou": {
+        target: "https://www.kugou.com",
+        changeOrigin: true,
+        pathRewrite: {
+          "^/p_kugou": "",
+        },
+      },
+      "/m_kugou": {
+        target: "http://m.kugou.com",
+        changeOrigin: true,
+        pathRewrite: {
+          "^/m_kugou": "",
+        },
+      },
+    },
+  },
   configureWebpack: {
     resolve: {
       // 配置别名

@@ -55,9 +55,6 @@ export default {
   updateUserBackImg: (state, payload) => {
     state.userBackImg = payload;
   },
-  updateTopLists: (state, payload) => {
-    state.toplists = payload;
-  },
   updateActiveLyric: (state, payload) => {
     state.activeLyric = payload;
   },

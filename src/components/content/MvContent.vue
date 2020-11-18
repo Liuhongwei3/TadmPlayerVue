@@ -4,12 +4,18 @@
       class="all-mv-items"
       v-for="item in mvs"
       :key="item.id"
-      @click="toMv(item.id, item.name, item.artists)"
+      @click="toMv(item.id)"
     >
       <img
         class="mv-img"
         v-if="item.picUrl"
         :src="item.picUrl"
+        :alt="item.name"
+      />
+      <img
+        class="mv-img"
+        v-if="item.imgUrl"
+        :src="item.imgUrl"
         :alt="item.name"
       />
       <img
@@ -22,7 +28,7 @@
       <span class="art-name" v-for="arts in item.artists" :key="arts.id">
         <span>{{ arts.name }} / </span>
       </span>
-      <div class="mv-play-count">
+      <div class="mv-play-count" v-if="item.playCount">
         <i class="fa fa-video-camera" aria-hidden="true"></i>
         <span> {{ item.playCount | roundW }}</span>
       </div>
@@ -46,11 +52,17 @@ export default {
     },
   },
   methods: {
-    toMv(id, name, artists) {
-      this.$router.push({
-        path: "/showMv",
-        query: { mvId: id, name, artists },
-      });
+    toMv(id) {
+      if (this.$route.path !== "/showMv") {
+        this.$router.push({
+          path: "/showMv",
+          query: { mvId: id },
+        });
+      } else {
+        this.$emit("newId", {
+          mvId: id,
+        });
+      }
     },
   },
 };

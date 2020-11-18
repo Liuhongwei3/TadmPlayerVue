@@ -33,8 +33,8 @@
             />
           </el-tooltip>
         </el-option>
-        <el-option label="酷狗" value="kugou" disabled>
-          <el-tooltip content="酷狗（敬请期待）" placement="left">
+        <el-option label="酷狗" value="kugou">
+          <el-tooltip content="酷狗" placement="left">
             <img
               width="25"
               height="25"
@@ -146,8 +146,8 @@ export default {
     },
   },
   created() {
-    let temp = JSON.parse(window.localStorage.getItem("settings"));
-    console.log(temp);
+    // let temp = JSON.parse(window.localStorage.getItem("settings"));
+    // console.log(temp);
   },
   watch: {
     doSingle(newValue) {
