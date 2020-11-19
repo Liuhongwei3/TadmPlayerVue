@@ -145,6 +145,31 @@ video {
   position: relative;
 }
 
+.items-mv-img {
+  position: relative;
+}
+
+.items-img:hover .abso-img {
+  opacity: 0.7;
+}
+
+.items-mv-img:hover .abso-img {
+  opacity: 0.7;
+  border-radius: 10px;
+}
+
+.abso-img {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10%;
+  position: absolute;
+  z-index: 2;
+  background-position: center;
+  background-image: url("../assets/play_icon.png");
+  transition: all 0.5s;
+}
+
 .play-count {
   position: absolute;
   right: 10px;

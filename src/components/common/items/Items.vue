@@ -11,6 +11,7 @@
         @click="updateId(item.id, item.name, item.artists)"
       >
         <div class="items-img">
+          <div class="abso-img"></div>
           <img v-lazy="item.imgUrl" :key="item.imgUrl" />
           <div class="play-count">
             <slot name="playCount" :item="item"></slot>

@@ -65,7 +65,11 @@
           >
             <el-col :span="2">{{ index + 1 }}</el-col>
             <el-col :span="2">
-              <el-avatar class="detail-item" :src="item.al.picUrl"></el-avatar>
+              <el-avatar
+                class="detail-item"
+                v-viewer
+                :src="item.al.picUrl"
+              ></el-avatar>
             </el-col>
             <el-col :span="6">
               <div class="detail-item">{{ item.name }}</div>

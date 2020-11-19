@@ -28,7 +28,10 @@
           :key="item.id"
           @click="toMv(item.id)"
         >
-          <img :src="item.cover" alt="" />
+          <div class="items-mv-img">
+            <div class="abso-img"></div>
+            <img style="border-radius:10px" v-lazy="item.cover" alt="" />
+          </div>
           <div class="top-mv-right">
             <div class="top-mv-right-item">
               <span>{{ item.name }}</span>

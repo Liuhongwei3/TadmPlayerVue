@@ -12,7 +12,7 @@
         <div class="banner-item">
           <img
             class="banner-img"
-            :src="banner.imageUrl"
+            v-lazy="banner.imageUrl"
             @click="updateSId({ id: banner.encodeId })"
           />
           <el-tag
@@ -38,7 +38,7 @@
           <img
             class="mobile-banner-img"
             style="margin: 5px; border-radius: 10px"
-            :src="banner.imageUrl"
+            v-lazy="banner.imageUrl"
             @click="updateSId({ id: banner.encodeId })"
           />
           <el-tag

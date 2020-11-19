@@ -6,24 +6,27 @@
       :key="item.id"
       @click="toMv(item.id)"
     >
-      <img
-        class="mv-img"
-        v-if="item.picUrl"
-        :src="item.picUrl"
-        :alt="item.name"
-      />
-      <img
-        class="mv-img"
-        v-if="item.imgUrl"
-        :src="item.imgUrl"
-        :alt="item.name"
-      />
-      <img
-        class="mv-img"
-        v-if="item.cover"
-        :src="item.cover"
-        :alt="item.name"
-      />
+      <div class="items-mv-img">
+        <div class="abso-img"></div>
+        <img
+          class="mv-img"
+          v-if="item.picUrl"
+          v-lazy="item.picUrl"
+          :alt="item.name"
+        />
+        <img
+          class="mv-img"
+          v-if="item.imgUrl"
+          v-lazy="item.imgUrl"
+          :alt="item.name"
+        />
+        <img
+          class="mv-img"
+          v-if="item.cover"
+          v-lazy="item.cover"
+          :alt="item.name"
+        />
+      </div>
       <div class="mv-name">{{ item.name }}</div>
       <span class="art-name" v-for="arts in item.artists" :key="arts.id">
         <span>{{ arts.name }} / </span>

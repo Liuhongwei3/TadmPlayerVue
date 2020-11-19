@@ -6,7 +6,7 @@
       :key="item.vid"
       @click="updateId(item.vid)"
     >
-      <img :src="item.coverUrl" alt="视频封面" />
+      <img v-lazy="item.coverUrl" alt="视频封面" />
       <div class="video-name">
         <el-tag
           style="background: transparent"

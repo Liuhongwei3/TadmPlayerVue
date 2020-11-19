@@ -19,7 +19,12 @@
       <div class="more" :style="backImage" v-show="showMore">
         <div class="more-play-info">
           <div class="left">
-            <img :src="imgs" :onerror="defaultImgs" alt="网易云音乐" />
+            <img
+              v-lazy="imgs"
+              v-viewer
+              :onerror="defaultImgs"
+              alt="网易云音乐"
+            />
             <div>
               <div class="songName">
                 <span>{{ songName }}</span>
@@ -57,7 +62,7 @@
                 class="cover"
                 width="60"
                 height="60"
-                :src="imgs"
+                v-lazy="imgs"
                 @click="showMore = !showMore"
               />
             </el-tooltip>
@@ -186,7 +191,7 @@
                 class="cover"
                 width="40"
                 height="40"
-                :src="imgs"
+                v-lazy="imgs"
                 @click="showMore = !showMore"
               />
             </el-tooltip>

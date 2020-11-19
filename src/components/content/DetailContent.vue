@@ -40,6 +40,7 @@
             class="detail-item"
             v-if="item.album && item.album.picUrl"
             :src="item.album.picUrl"
+            v-viewer
           ></el-avatar>
         </el-col>
         <el-col :span="5">

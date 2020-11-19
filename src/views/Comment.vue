@@ -2,7 +2,7 @@
   <div>
     <el-row class="comment-head" v-if="Object.keys(songInfo).length">
       <el-col :sm="3" :xs="7">
-        <img class="comment-song-img" :src="songInfo.album.picUrl" v-viewer />
+        <img class="comment-song-img" v-lazy="songInfo.album.picUrl" v-viewer />
       </el-col>
       <el-col :sm="16" :xs="16">
         <div class="song-name comm-h-r">{{ songInfo.name }}</div>

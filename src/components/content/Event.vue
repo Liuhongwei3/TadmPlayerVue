@@ -31,7 +31,7 @@
           <img
             v-for="items in item.pics"
             :key="items.originUrl"
-            :src="items.originUrl"
+            v-lazy="items.originUrl"
           />
         </div>
 

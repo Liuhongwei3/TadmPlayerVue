@@ -14,7 +14,8 @@ import "./filters";
 
 Vue.use(VueLazyLoad, {
   preLoad: 1.2,
-  attempt: 6,
+  attempt: 3,
+  loading: require("@/assets/loading.gif"),
   error: require("@/assets/404.jpg"),
 });
 
