@@ -57,7 +57,7 @@
           :gutter="20"
           v-for="(item, index) in songs"
           :key="item.hash"
-          @click.native="updateSong(item.hash)"
+          @click.native="updateSong(item.hash, item.album_id)"
         >
           <el-col :span="1">
             <div>{{ index + 1 }}</div>
@@ -129,10 +129,8 @@ export default {
         this.$emit("refresh");
       });
     },
-    async updateSong(id) {
-      console.log(id);
-      let data = await req.kugou.getSongDetail(id);
-      console.log(data);
+    async updateSong(hash, album_id) {
+      let data = await req.kugou.getSongDetail(hash, album_id);
     },
     async requestDetails(id) {
       this.loading = true;

@@ -831,6 +831,10 @@ export default {
   font-size: 1.3em;
 }
 
+.fa-2x:hover {
+  cursor: pointer;
+}
+
 .timeProgress {
   display: flex;
   justify-content: space-between;

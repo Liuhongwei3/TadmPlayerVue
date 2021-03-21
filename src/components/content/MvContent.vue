@@ -26,20 +26,26 @@
           v-lazy="item.cover"
           :alt="item.name"
         />
+
+        <div class="mv-play-count" v-if="item.playCount">
+          <i class="fa fa-video-camera" aria-hidden="true"></i>
+          <span> {{ item.playCount | roundW }}</span>
+        </div>
+
+        <div class="mv-brief" v-if="item.copywriter">
+          <span>{{ item.copywriter }}</span>
+        </div>
+        <div class="mv-brief" v-if="item.briefDesc">
+          <span>{{ item.briefDesc }}</span>
+        </div>
       </div>
+
       <div class="mv-name">{{ item.name }}</div>
-      <span class="art-name" v-for="arts in item.artists" :key="arts.id">
-        <span>{{ arts.name }} / </span>
-      </span>
-      <div class="mv-play-count" v-if="item.playCount">
-        <i class="fa fa-video-camera" aria-hidden="true"></i>
-        <span> {{ item.playCount | roundW }}</span>
-      </div>
-      <div class="mv-brief" v-if="item.copywriter">
-        <span>{{ item.copywriter }}</span>
-      </div>
-      <div class="mv-brief" v-if="item.briefDesc">
-        <span>{{ item.briefDesc }}</span>
+
+      <div class="art-name">
+        <span v-for="arts in item.artists" :key="arts.id">
+          {{ arts.name }} /
+        </span>
       </div>
     </div>
   </div>
@@ -85,17 +91,25 @@ export default {
   border-radius: 10px;
 }
 
+.items-mv-img:hover .mv-brief {
+  opacity: 1;
+}
+
 .mv-name {
-  width: 100%;
   font-size: 18px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 5px;
+  margin: 5px 0;
 }
 
 .art-name {
   color: #bebebe;
+}
+
+.mv-name,
+.art-name {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mv-play-count {
@@ -106,12 +120,15 @@ export default {
 
 .mv-brief {
   width: 100%;
-  line-height: 30px;
+  line-height: 24px;
   position: absolute;
-  bottom: 45px;
+  opacity: 0;
+  bottom: 0;
   left: 0;
+  transition: all 0.5s;
   color: #ccc;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 6px 0;
 }
 
 .mv-brief span {

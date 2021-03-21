@@ -40,9 +40,6 @@
         >评论</router-link
       >
       <router-link to="/mv" @click.native="dbClickTop('/mv')">MV</router-link>
-      <router-link to="/myvideo" @click.native="dbClickTop('/myvideo')"
-        >视频</router-link
-      >
     </div>
   </div>
 </template>

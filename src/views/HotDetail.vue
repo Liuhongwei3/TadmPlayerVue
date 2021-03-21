@@ -104,10 +104,12 @@ export default {
         case "netease": {
           this.$store.commit("updateDetailId", id);
           this.$router.push("/detail");
+          break;
         }
         case "kugou": {
           this.$store.commit("updateDetailId", id);
           this.$router.push("/kugou/detail");
+          break;
         }
       }
     },

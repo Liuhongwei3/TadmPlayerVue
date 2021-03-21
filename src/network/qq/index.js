@@ -33,6 +33,7 @@ export function request(config) {
     },
     (error) => {
       const { response } = error;
+      NProgress.done();
       if (!response) {
         error = { response: { statusText: "网络错误，请检查您的网络连接！" } };
       }

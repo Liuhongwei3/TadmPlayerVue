@@ -28,10 +28,6 @@
     </el-row>
 
     <el-tabs v-model="activeName" @tab-click="handleClick">
-      <el-tab-pane label="云村热评" name="first">
-        <comm-content :comments="cloudHotComments" />
-      </el-tab-pane>
-
       <el-tab-pane label="精彩评论" name="second">
         <div
           v-loading="loading"
@@ -78,7 +74,6 @@ export default {
       commLimit: 20,
       hotComments: [],
       comments: [],
-      cloudHotComments: [],
       loading: false,
       commLoading: false,
       noMore: false,
@@ -146,9 +141,7 @@ export default {
       }
     },
     activeName(newValue) {
-      if (newValue === "first" && this.cloudHotComments.length === 0) {
-        this.requestCloudHotComments();
-      } else if (newValue === "third" && this.comments.length === 0) {
+      if (newValue === "third" && this.comments.length === 0) {
         this.requestComments(this.songId);
       }
     },
@@ -180,10 +173,6 @@ export default {
         limit
       );
       this.commLoading = false;
-      this.handleClick();
-    },
-    async requestCloudHotComments() {
-      this.cloudHotComments = await req.netease.cloudHotComments();
       this.handleClick();
     },
     async requestHComments(sid, limit) {

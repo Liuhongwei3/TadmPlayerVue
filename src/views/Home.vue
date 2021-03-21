@@ -5,7 +5,6 @@
       trigger="click"
       type="card"
       :interval="4000"
-      arrow="always"
       v-if="isPc"
     >
       <el-carousel-item :key="banner.scm" v-for="banner in banners">

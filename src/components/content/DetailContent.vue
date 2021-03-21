@@ -44,7 +44,9 @@
           ></el-avatar>
         </el-col>
         <el-col :span="5">
-          <div class="detail-item">{{ item.name }}</div>
+          <div class="detail-item" @click="updateSong({ id: item.id })">
+            {{ item.name }}
+          </div>
         </el-col>
         <el-col :span="4">
           <div

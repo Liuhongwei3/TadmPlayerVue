@@ -60,8 +60,10 @@ export default {
       });
     },
     updateId({ id }) {
-      this.$store.commit("updateDetailId", id);
-      this.$router.push("/detail");
+      if (this.source === "netease") {
+        this.$store.commit("updateDetailId", id);
+        this.$router.push("/detail");
+      }
     },
   },
 };
